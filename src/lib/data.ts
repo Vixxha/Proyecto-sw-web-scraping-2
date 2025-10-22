@@ -2,9 +2,9 @@ import type { Component, Store, PriceHistoryPoint } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 export const stores: Store[] = [
-  { id: 'store-1', name: 'PC Parts Plus', logoUrl: '/logos/pc-parts-plus.png' },
-  { id: 'store-2', name: 'Tech Giga', logoUrl: '/logos/tech-giga.png' },
-  { id: 'store-3', name: 'Circuit City', logoUrl: '/logos/circuit-city.png' },
+  { id: 'store-1', name: 'PC Factory', logoUrl: '/logos/pc-parts-plus.png' },
+  { id: 'store-2', name: 'SP Digital', logoUrl: '/logos/tech-giga.png' },
+  { id: 'store-3', name: 'Infor-Ingen', logoUrl: '/logos/circuit-city.png' },
 ];
 
 const generatePriceHistory = (basePrice: number): PriceHistoryPoint[] => {
@@ -15,7 +15,7 @@ const generatePriceHistory = (basePrice: number): PriceHistoryPoint[] => {
     const fluctuation = (Math.random() - 0.5) * (basePrice * 0.1);
     history.push({
       date: currentDate.toISOString().split('T')[0],
-      price: Math.round((basePrice + fluctuation) * 100) / 100,
+      price: Math.round(basePrice + fluctuation),
     });
     currentDate.setDate(currentDate.getDate() + 1);
   }
@@ -35,11 +35,11 @@ export const components: Component[] = [
     imageUrl: placeholderImageMap.get('cpu-1')?.imageUrl || 'https://picsum.photos/seed/101/600/600',
     imageHint: 'processor chip',
     prices: [
-      { storeId: 'store-1', price: 589.99, url: '#' },
-      { storeId: 'store-2', price: 599.99, url: '#' },
-      { storeId: 'store-3', price: 585.0, url: '#' },
+      { storeId: 'store-1', price: 589990, url: '#' },
+      { storeId: 'store-2', price: 599990, url: '#' },
+      { storeId: 'store-3', price: 585000, url: '#' },
     ],
-    priceHistory: generatePriceHistory(590),
+    priceHistory: generatePriceHistory(590000),
     specs: {
       Cores: '24 (8P + 16E)',
       Threads: '32',
@@ -57,10 +57,10 @@ export const components: Component[] = [
     imageUrl: placeholderImageMap.get('gpu-1')?.imageUrl || 'https://picsum.photos/seed/102/600/400',
     imageHint: 'graphics card',
     prices: [
-      { storeId: 'store-1', price: 1599.99, url: '#' },
-      { storeId: 'store-2', price: 1649.99, url: '#' },
+      { storeId: 'store-1', price: 1599990, url: '#' },
+      { storeId: 'store-2', price: 1649990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(1620),
+    priceHistory: generatePriceHistory(1620000),
     specs: {
       'CUDA Cores': '16384',
       'Boost Clock': '2.52 GHz',
@@ -78,10 +78,10 @@ export const components: Component[] = [
     imageUrl: placeholderImageMap.get('motherboard-1')?.imageUrl || 'https://picsum.photos/seed/103/600/600',
     imageHint: 'motherboard circuit',
     prices: [
-      { storeId: 'store-1', price: 629.99, url: '#' },
-      { storeId: 'store-3', price: 619.99, url: '#' },
+      { storeId: 'store-1', price: 629990, url: '#' },
+      { storeId: 'store-3', price: 619990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(625),
+    priceHistory: generatePriceHistory(625000),
     specs: {
       Chipset: 'Intel Z790',
       'Memory Support': 'DDR5',
@@ -99,11 +99,11 @@ export const components: Component[] = [
     imageUrl: placeholderImageMap.get('ram-1')?.imageUrl || 'https://picsum.photos/seed/104/600/400',
     imageHint: 'ram stick',
     prices: [
-      { storeId: 'store-1', price: 99.99, url: '#' },
-      { storeId: 'store-2', price: 104.99, url: '#' },
-      { storeId: 'store-3', price: 97.99, url: '#' },
+      { storeId: 'store-1', price: 99990, url: '#' },
+      { storeId: 'store-2', price: 104990, url: '#' },
+      { storeId: 'store-3', price: 97990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(100),
+    priceHistory: generatePriceHistory(100000),
     specs: {
       Capacity: '32GB (2 x 16GB)',
       Speed: 'DDR5 5200MHz',
@@ -121,11 +121,11 @@ export const components: Component[] = [
     imageUrl: placeholderImageMap.get('ssd-1')?.imageUrl || 'https://picsum.photos/seed/105/600/400',
     imageHint: 'ssd drive',
     prices: [
-      { storeId: 'store-1', price: 169.99, url: '#' },
-      { storeId: 'store-2', price: 175.99, url: '#' },
-      { storeId: 'store-3', price: 169.99, url: '#' },
+      { storeId: 'store-1', price: 169990, url: '#' },
+      { storeId: 'store-2', price: 175990, url: '#' },
+      { storeId: 'store-3', price: 169990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(172),
+    priceHistory: generatePriceHistory(172000),
     specs: {
       Capacity: '2TB',
       Interface: 'PCIe 4.0 NVMe',
@@ -143,11 +143,11 @@ export const components: Component[] = [
     imageUrl: placeholderImageMap.get('cpu-2')?.imageUrl || 'https://picsum.photos/seed/106/600/600',
     imageHint: 'processor chip',
     prices: [
-      { storeId: 'store-1', price: 549.0, url: '#' },
-      { storeId: 'store-2', price: 559.99, url: '#' },
-      { storeId: 'store-3', price: 545.5, url: '#' },
+      { storeId: 'store-1', price: 549000, url: '#' },
+      { storeId: 'store-2', price: 559990, url: '#' },
+      { storeId: 'store-3', price: 545500, url: '#' },
     ],
-    priceHistory: generatePriceHistory(550),
+    priceHistory: generatePriceHistory(550000),
     specs: {
       Cores: '16',
       Threads: '32',
@@ -165,10 +165,10 @@ export const components: Component[] = [
     imageUrl: placeholderImageMap.get('gpu-2')?.imageUrl || 'https://picsum.photos/seed/107/600/400',
     imageHint: 'graphics card',
     prices: [
-      { storeId: 'store-1', price: 999.99, url: '#' },
-      { storeId: 'store-2', price: 979.99, url: '#' },
+      { storeId: 'store-1', price: 999990, url: '#' },
+      { storeId: 'store-2', price: 979990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(985),
+    priceHistory: generatePriceHistory(985000),
     specs: {
         'Stream Processors': '6144',
         'Game Clock': '2.3 GHz',
@@ -186,10 +186,10 @@ export const components: Component[] = [
     imageUrl: placeholderImageMap.get('motherboard-2')?.imageUrl || 'https://picsum.photos/seed/108/600/600',
     imageHint: 'motherboard circuit',
     prices: [
-      { storeId: 'store-1', price: 259.99, url: '#' },
-      { storeId: 'store-2', price: 249.99, url: '#' },
+      { storeId: 'store-1', price: 259990, url: '#' },
+      { storeId: 'store-2', price: 249990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(255),
+    priceHistory: generatePriceHistory(255000),
     specs: {
       Chipset: 'Intel Z790',
       'Memory Support': 'DDR5',
@@ -207,10 +207,10 @@ export const components: Component[] = [
     imageUrl: placeholderImageMap.get('ram-2')?.imageUrl || 'https://picsum.photos/seed/109/600/400',
     imageHint: 'ram stick',
     prices: [
-      { storeId: 'store-1', price: 74.99, url: '#' },
-      { storeId: 'store-3', price: 72.99, url: '#' },
+      { storeId: 'store-1', price: 74990, url: '#' },
+      { storeId: 'store-3', price: 72990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(74),
+    priceHistory: generatePriceHistory(74000),
     specs: {
       Capacity: '16GB (2 x 8GB)',
       Speed: 'DDR4 3200MHz',
@@ -228,10 +228,10 @@ export const components: Component[] = [
     imageUrl: placeholderImageMap.get('psu-1')?.imageUrl || 'https://picsum.photos/seed/110/600/600',
     imageHint: 'power supply unit',
     prices: [
-      { storeId: 'store-1', price: 129.99, url: '#' },
-      { storeId: 'store-2', price: 134.99, url: '#' },
+      { storeId: 'store-1', price: 129990, url: '#' },
+      { storeId: 'store-2', price: 134990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(132),
+    priceHistory: generatePriceHistory(132000),
     specs: {
       Wattage: '750W',
       '80+ Rating': 'Gold',
@@ -249,11 +249,11 @@ export const components: Component[] = [
     imageUrl: placeholderImageMap.get('cpu-3')?.imageUrl || 'https://picsum.photos/seed/111/600/600',
     imageHint: 'processor chip',
     prices: [
-      { storeId: 'store-1', price: 319.99, url: '#' },
-      { storeId: 'store-2', price: 329.99, url: '#' },
-      { storeId: 'store-3', price: 315.00, url: '#' },
+      { storeId: 'store-1', price: 319990, url: '#' },
+      { storeId: 'store-2', price: 329990, url: '#' },
+      { storeId: 'store-3', price: 315000, url: '#' },
     ],
-    priceHistory: generatePriceHistory(320),
+    priceHistory: generatePriceHistory(320000),
     specs: {
         Cores: '14 (6P + 8E)',
         Threads: '20',
@@ -271,10 +271,10 @@ export const components: Component[] = [
     imageUrl: placeholderImageMap.get('case-1')?.imageUrl || 'https://picsum.photos/seed/112/600/800',
     imageHint: 'computer case',
     prices: [
-      { storeId: 'store-1', price: 69.99, url: '#' },
-      { storeId: 'store-3', price: 68.99, url: '#' },
+      { storeId: 'store-1', price: 69990, url: '#' },
+      { storeId: 'store-3', price: 68990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(70),
+    priceHistory: generatePriceHistory(70000),
     specs: {
         Type: 'ATX Mid Tower',
         'Side Panel': 'Tempered Glass',
@@ -292,10 +292,10 @@ export const components: Component[] = [
     imageUrl: placeholderImageMap.get('motherboard-3')?.imageUrl || 'https://picsum.photos/seed/113/600/600',
     imageHint: 'motherboard circuit',
     prices: [
-      { storeId: 'store-1', price: 159.99, url: '#' },
-      { storeId: 'store-2', price: 164.99, url: '#' },
+      { storeId: 'store-1', price: 159990, url: '#' },
+      { storeId: 'store-2', price: 164990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(162),
+    priceHistory: generatePriceHistory(162000),
     specs: {
       Chipset: 'Intel B660',
       'Memory Support': 'DDR4',

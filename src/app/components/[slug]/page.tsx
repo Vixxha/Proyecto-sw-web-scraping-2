@@ -68,7 +68,7 @@ export default function ComponentPage({ params }: { params: { slug: string } }) 
                   {component.prices.map((price) => (
                     <TableRow key={price.storeId}>
                       <TableCell className="font-medium">{storeMap.get(price.storeId) || 'Tienda Desconocida'}</TableCell>
-                      <TableCell className="text-right font-semibold text-primary">${price.price.toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-semibold text-primary">${price.price.toLocaleString('es-CL')}</TableCell>
                       <TableCell className="text-right">
                         <Button asChild variant="ghost" size="sm">
                           <Link href={price.url} target="_blank" rel="noopener noreferrer">

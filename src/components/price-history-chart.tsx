@@ -49,7 +49,7 @@ export default function PriceHistoryChart({ data }: PriceHistoryChartProps) {
             tickMargin={8}
             tickFormatter={(value) => {
                 const date = new Date(value);
-                return date.toLocaleDateString("en-US", {
+                return date.toLocaleDateString("es-CL", {
                     month: "short",
                     day: "numeric",
                 });
@@ -59,15 +59,16 @@ export default function PriceHistoryChart({ data }: PriceHistoryChartProps) {
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            tickFormatter={(value) => `$${value}`}
+            tickFormatter={(value) => `$${new Intl.NumberFormat('es-CL').format(value as number)}`}
         />
         <ChartTooltip
             cursor={false}
             content={<ChartTooltipContent 
                 indicator="dot"
+                formatter={(value, name, props) => [`$${new Intl.NumberFormat('es-CL').format(value as number)}`, 'Precio']}
                 labelFormatter={(label, payload) => {
                     const date = new Date(payload[0]?.payload.date);
-                     return date.toLocaleDateString("en-US", {
+                     return date.toLocaleDateString("es-CL", {
                         weekday: 'long',
                         year: 'numeric',
                         month: 'long',
