@@ -4,7 +4,6 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { components as allComponents } from '@/lib/data';
 import type { Component } from '@/lib/types';
 import { Cpu, Dices, HardDrive, MemoryStick, Video, Power, Case, PlusCircle, Trash2, X } from 'lucide-react';
 import ComponentPicker from './component-picker';
@@ -29,7 +28,7 @@ export function PCBuilder() {
     RAM: null,
     GPU: null,
     Storage: null,
-    Power Supply: null,
+    'Power Supply': null,
     Case: null,
   });
 
