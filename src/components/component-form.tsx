@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -39,14 +40,15 @@ const formSchema = z.object({
 type ComponentFormValues = z.infer<typeof formSchema>;
 
 interface ComponentFormProps {
-  initialData?: Component;
-  onSubmit: (data: any) => void;
+  initialData?: Component | null;
+  onSubmit: (data: ComponentFormValues) => void;
+  onCancel: () => void;
 }
 
-export default function ComponentForm({ initialData, onSubmit }: ComponentFormProps) {
+export default function ComponentForm({ initialData, onSubmit, onCancel }: ComponentFormProps) {
   const form = useForm<ComponentFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData || {
+    defaultValues: {
       name: '',
       sku: '',
       brand: '',
@@ -56,15 +58,26 @@ export default function ComponentForm({ initialData, onSubmit }: ComponentFormPr
     },
   });
 
+  useEffect(() => {
+    if (initialData) {
+      form.reset(initialData);
+    } else {
+      form.reset({
+        name: '',
+        sku: '',
+        brand: '',
+        category: undefined,
+        imageUrl: '',
+        description: '',
+      });
+    }
+  }, [initialData, form]);
+
   const handleSubmit = (values: ComponentFormValues) => {
-    // We can expand the submitted data with more complex logic later
-    const specs = {};
-    const fullComponentData = {
-        ...values,
-        specs,
-    };
-    onSubmit(fullComponentData);
+    onSubmit(values);
   };
+
+  const isSubmitting = form.formState.isSubmitting;
 
   return (
     <Form {...form}>
@@ -147,10 +160,28 @@ export default function ComponentForm({ initialData, onSubmit }: ComponentFormPr
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Descripción (Opcional)</FormLabel>
+                <FormControl>
+                  <Textarea placeholder="Describe brevemente el componente..." {...field} value={field.value || ''}/>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         
-        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? 'Guardando...' : 'Guardar Componente'}
-        </Button>
+        <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Guardando...' : 'Guardar Componente'}
+            </Button>
+        </div>
       </form>
     </Form>
   );
