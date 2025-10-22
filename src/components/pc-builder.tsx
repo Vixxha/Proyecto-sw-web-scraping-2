@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import type { Component } from '@/lib/types';
-import { Cpu, Dices, HardDrive, MemoryStick, Video, Power, Case, PlusCircle, Trash2, X } from 'lucide-react';
+import { Cpu, Dices, HardDrive, MemoryStick, Video, Power, PcCase, PlusCircle, Trash2, X } from 'lucide-react';
 import ComponentPicker from './component-picker';
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 type Category = 'CPU' | 'Motherboard' | 'RAM' | 'GPU' | 'Storage' | 'Power Supply' | 'Case';
 
@@ -18,7 +19,7 @@ const componentCategories: { id: Category; name: string; icon: React.ReactNode }
   { id: 'GPU', name: 'Tarjeta de Video', icon: <Video className="h-8 w-8 text-primary" /> },
   { id: 'Storage', name: 'Almacenamiento', icon: <HardDrive className="h-8 w-8 text-primary" /> },
   { id: 'Power Supply', name: 'Fuente de Poder', icon: <Power className="h-8 w-8 text-primary" /> },
-  { id: 'Case', name: 'Gabinete', icon: <Case className="h-8 w-8 text-primary" /> },
+  { id: 'Case', name: 'Gabinete', icon: <PcCase className="h-8 w-8 text-primary" /> },
 ];
 
 export function PCBuilder() {
