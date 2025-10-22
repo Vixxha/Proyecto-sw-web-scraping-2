@@ -1,3 +1,46 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "cpu-1",
+      "description": "An Intel Core i9 processor chip.",
+      "imageUrl": "https://images.unsplash.com/photo-1553241930-484af6f8506d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwcm9jZXNzb3IlMjBjaGlwfGVufDB8fHx8MTc2MTE1MDYxNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "processor chip"
+    },
+    {
+      "id": "gpu-1",
+      "description": "An NVIDIA GeForce RTX 4090 graphics card.",
+      "imageUrl": "https://images.unsplash.com/photo-1512756290469-ec264b7fbf87?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Z3JhcGhpY3MlMjBjYXJkfGVufDB8fHx8MTc2MTEzMjc5NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "graphics card"
+    },
+    {
+      "id": "motherboard-1",
+      "description": "An ASUS ROG Maximus motherboard.",
+      "imageUrl": "https://images.unsplash.com/photo-1609581771681-9a920ff90f26?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxtb3RoZXJib2FyZCUyMGNpcmN1aXR8ZW58MHx8fHwxNzYxMDY1ODc2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "motherboard circuit"
+    },
+    {
+      "id": "ram-1",
+      "description": "Corsair Vengeance DDR5 RAM sticks.",
+      "imageUrl": "https://images.unsplash.com/photo-1588638630520-5882f049df32?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxyYW0lMjBzdGlja3xlbnwwfHx8fDE3NjEwNjU4NzZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ram stick"
+    },
+    {
+      "id": "ssd-1",
+      "description": "A Samsung 980 Pro NVMe SSD.",
+      "imageUrl": "https://images.unsplash.com/photo-1602526215099-19d4d14797d6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzc2QlMjBkcml2ZXxlbnwwfHx8fDE3NjEwNjk4NTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ssd drive"
+    },
+    {
+      "id": "cpu-2",
+      "description": "An AMD Ryzen 9 processor chip.",
+      "imageUrl": "https://images.unsplash.com/photo-1757356747785-106e3c5f399a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwcm9jZXNzb3IlMjBjaGlwfGVufDB8fHx8MTc2MTE1MDYxNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "processor chip"
+    },
+    {
+      "id": "gpu-2",
+      "description": "An AMD Radeon RX 7900 XTX graphics card.",
+      "imageUrl": "https://images.unsplash.com/photo-1591488320449-011701bb6704?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxncmFwaGljcyUyMGNhcmR8ZW58MHx8fHwxNzYxMTMyNzk0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "graphics card"
+    }
+  ]
 }
