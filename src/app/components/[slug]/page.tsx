@@ -26,10 +26,10 @@ export default function ComponentPage({ params }: { params: { slug: string } }) 
   const storeMap = new Map(stores.map(s => [s.id, s.name]));
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid md:grid-cols-5 gap-8">
-        <div className="md:col-span-2">
-          <Card className="overflow-hidden sticky top-24">
+    <div className="container mx-auto px-4 py-8 md:py-12">
+      <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
+        <div className="lg:col-span-2">
+          <Card className="overflow-hidden sticky top-24 shadow-lg">
             <div className="relative aspect-square w-full">
               <Image
                 src={component.imageUrl}
@@ -37,41 +37,42 @@ export default function ComponentPage({ params }: { params: { slug: string } }) 
                 fill
                 className="object-cover"
                 data-ai-hint={component.imageHint}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
             </div>
           </Card>
         </div>
 
-        <div className="md:col-span-3 space-y-8">
+        <div className="lg:col-span-3 space-y-8">
           <div>
-            <Badge variant="secondary" className="mb-2">{component.category}</Badge>
+            <Badge variant="outline" className="mb-2">{component.category}</Badge>
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{component.name}</h1>
             <p className="text-lg text-muted-foreground">{component.brand} - {component.sku}</p>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>Price Comparison</CardTitle>
-              <CardDescription>Prices from leading online retailers.</CardDescription>
+              <CardTitle>Comparación de Precios</CardTitle>
+              <CardDescription>Precios de los principales minoristas en línea.</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Store</TableHead>
-                    <TableHead className="text-right">Price</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+                    <TableHead>Tienda</TableHead>
+                    <TableHead className="text-right">Precio</TableHead>
+                    <TableHead className="text-right">Acción</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {component.prices.map((price) => (
                     <TableRow key={price.storeId}>
-                      <TableCell className="font-medium">{storeMap.get(price.storeId) || 'Unknown Store'}</TableCell>
+                      <TableCell className="font-medium">{storeMap.get(price.storeId) || 'Tienda Desconocida'}</TableCell>
                       <TableCell className="text-right font-semibold text-primary">${price.price.toFixed(2)}</TableCell>
                       <TableCell className="text-right">
                         <Button asChild variant="ghost" size="sm">
                           <Link href={price.url} target="_blank" rel="noopener noreferrer">
-                            Go to store <ExternalLink className="ml-2 h-4 w-4" />
+                            Ir a la tienda <ExternalLink className="ml-2 h-4 w-4" />
                           </Link>
                         </Button>
                       </TableCell>
@@ -84,8 +85,8 @@ export default function ComponentPage({ params }: { params: { slug: string } }) 
           
           <Card>
             <CardHeader>
-              <CardTitle>Price History</CardTitle>
-              <CardDescription>30-day price trend for this component.</CardDescription>
+              <CardTitle>Historial de Precios</CardTitle>
+              <CardDescription>Tendencia de precios de 30 días para este componente.</CardDescription>
             </CardHeader>
             <CardContent>
                 <PriceHistoryChart data={component.priceHistory} />
@@ -94,14 +95,14 @@ export default function ComponentPage({ params }: { params: { slug: string } }) 
 
           <Card>
             <CardHeader>
-              <CardTitle>Specifications</CardTitle>
+              <CardTitle>Especificaciones</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                 {Object.entries(component.specs).map(([key, value]) => (
                   <div key={key} className="text-sm">
-                    <p className="text-muted-foreground">{key}</p>
-                    <p className="font-medium">{value}</p>
+                    <p className="font-semibold">{key}</p>
+                    <p className="text-muted-foreground">{value}</p>
                   </div>
                 ))}
               </div>
@@ -110,17 +111,17 @@ export default function ComponentPage({ params }: { params: { slug: string } }) 
 
           <Card>
             <CardHeader>
-              <CardTitle>Set Price Alert</CardTitle>
-              <CardDescription>Get notified when the price drops below your target.</CardDescription>
+              <CardTitle>Crear Alerta de Precio</CardTitle>
+              <CardDescription>Recibe una notificación cuando el precio baje de tu objetivo.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex gap-2">
                 <div className="relative flex-grow">
                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                   <Input type="number" placeholder="Your target price" className="pl-6" />
+                   <Input type="number" placeholder="Tu precio objetivo" className="pl-6" />
                 </div>
                 <Button>
-                  <Bell className="mr-2 h-4 w-4" /> Set Alert
+                  <Bell className="mr-2 h-4 w-4" /> Crear Alerta
                 </Button>
               </div>
             </CardContent>

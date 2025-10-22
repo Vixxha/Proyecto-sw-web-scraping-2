@@ -6,9 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ComponentCard from '@/components/component-card';
 import { components as allComponents } from '@/lib/data';
-import { Search } from 'lucide-react';
+import { Search, SlidersHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
 
 const categories = ['All', 'CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'Power Supply', 'Case'];
 const brands = ['All', 'Intel', 'AMD', 'NVIDIA', 'ASUS', 'Corsair', 'Samsung', 'Gigabyte', 'MSI', 'Crucial', 'SeaSonic', 'NZXT'];
@@ -30,8 +32,8 @@ export default function ComponentsPage() {
   const FilterControls = () => (
      <div className="space-y-6">
        <div>
-         <Label htmlFor="search-input" className="mb-2 block text-sm font-medium">Buscar Componente</Label>
-         <div className="relative">
+         <Label htmlFor="search-input">Buscar Componente</Label>
+         <div className="relative mt-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               id="search-input"
@@ -44,9 +46,9 @@ export default function ComponentsPage() {
           </div>
       </div>
       <div>
-        <Label htmlFor="category-select" className="mb-2 block text-sm font-medium">Categoría</Label>
+        <Label htmlFor="category-select">Categoría</Label>
         <Select value={category} onValueChange={setCategory}>
-          <SelectTrigger id="category-select" className="w-full">
+          <SelectTrigger id="category-select" className="w-full mt-2">
             <SelectValue placeholder="Seleccionar categoría" />
           </SelectTrigger>
           <SelectContent>
@@ -57,9 +59,9 @@ export default function ComponentsPage() {
         </Select>
       </div>
       <div>
-        <Label htmlFor="brand-select" className="mb-2 block text-sm font-medium">Marca</Label>
+        <Label htmlFor="brand-select">Marca</Label>
         <Select value={brand} onValueChange={setBrand}>
-          <SelectTrigger id="brand-select" className="w-full">
+          <SelectTrigger id="brand-select" className="w-full mt-2">
             <SelectValue placeholder="Seleccionar marca" />
           </SelectTrigger>
           <SelectContent>
@@ -84,7 +86,7 @@ export default function ComponentsPage() {
       </section>
 
       <div className="grid lg:grid-cols-4 gap-8 items-start">
-        <aside className="lg:col-span-1 sticky top-24">
+        <aside className="hidden lg:block lg:col-span-1 sticky top-24">
           <Card>
             <CardHeader>
                 <CardTitle>Filtros</CardTitle>
@@ -96,6 +98,19 @@ export default function ComponentsPage() {
         </aside>
 
         <main className="lg:col-span-3">
+          <div className="flex justify-between items-center mb-6 lg:hidden">
+            <p className="text-sm text-muted-foreground">{filteredComponents.length} resultados</p>
+             <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline"><SlidersHorizontal className="mr-2 h-4 w-4" /> Filtros</Button>
+                </SheetTrigger>
+                <SheetContent>
+                    <div className="mt-8">
+                      <FilterControls />
+                    </div>
+                </SheetContent>
+              </Sheet>
+          </div>
           {filteredComponents.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredComponents.map((component) => (
@@ -113,3 +128,4 @@ export default function ComponentsPage() {
     </div>
   );
 }
+

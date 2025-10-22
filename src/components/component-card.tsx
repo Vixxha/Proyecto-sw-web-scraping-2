@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Component } from '@/lib/types';
@@ -16,37 +16,41 @@ export default function ComponentCard({ component }: ComponentCardProps) {
     : null;
 
   return (
-    <Card className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-      <CardHeader className="p-0">
-        <div className="relative aspect-square w-full">
-          <Image
-            src={component.imageUrl}
-            alt={component.name}
-            fill
-            className="object-cover"
-            data-ai-hint={component.imageHint}
-          />
-        </div>
-      </CardHeader>
-      <CardContent className="p-4 flex-grow">
-        <div className="flex justify-between items-start mb-2">
-            <Badge variant="secondary">{component.category}</Badge>
-            {bestPrice !== null && (
-              <p className="text-xl font-bold text-primary">
-                ${bestPrice.toFixed(2)}
-              </p>
-            )}
-        </div>
-        <CardTitle className="text-lg leading-tight mt-2 mb-1 h-12 line-clamp-2">{component.name}</CardTitle>
-        <p className="text-sm text-muted-foreground">{component.brand}</p>
-      </CardContent>
-      <CardFooter className="p-4 pt-0">
-        <Button asChild className="w-full" variant="outline">
-          <Link href={`/components/${component.slug}`}>
-            View Details <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
-      </CardFooter>
+    <Card className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5">
+      <Link href={`/components/${component.slug}`} className="flex flex-col h-full">
+        <CardHeader className="p-0">
+          <div className="relative aspect-square w-full">
+            <Image
+              src={component.imageUrl}
+              alt={component.name}
+              fill
+              className="object-cover"
+              data-ai-hint={component.imageHint}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            />
+          </div>
+        </CardHeader>
+        <CardContent className="p-4 flex-grow flex flex-col">
+          <div className="flex justify-between items-start mb-2">
+              <Badge variant="secondary">{component.category}</Badge>
+              {bestPrice !== null && (
+                <p className="text-xl font-bold text-primary">
+                  ${bestPrice.toFixed(2)}
+                </p>
+              )}
+          </div>
+          <h3 className="text-base font-semibold leading-tight mt-1 mb-1 h-12 line-clamp-2 flex-grow">{component.name}</h3>
+          <p className="text-sm text-muted-foreground">{component.brand}</p>
+        </CardContent>
+        <CardFooter className="p-4 pt-0 mt-auto">
+          <Button className="w-full" variant="outline" asChild>
+             {/* This inner link is for the button's functionality, outer link makes the card clickable */}
+            <Link href={`/components/${component.slug}`}>
+                Ver Detalles <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </CardFooter>
+      </Link>
     </Card>
   );
 }
