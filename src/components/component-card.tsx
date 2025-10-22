@@ -11,7 +11,7 @@ interface ComponentCardProps {
 }
 
 export default function ComponentCard({ component }: ComponentCardProps) {
-  const bestPrice = component.prices.length > 0
+  const bestPrice = component.prices && component.prices.length > 0
     ? Math.min(...component.prices.map(p => p.price))
     : null;
 
@@ -26,7 +26,6 @@ export default function ComponentCard({ component }: ComponentCardProps) {
               fill
               className="object-cover"
               data-ai-hint={component.imageHint}
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
           </div>
         </CardHeader>

@@ -37,7 +37,6 @@ export default function ComponentPage({ params }: { params: { slug: string } }) 
                 fill
                 className="object-cover"
                 data-ai-hint={component.imageHint}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
             </div>
           </Card>
