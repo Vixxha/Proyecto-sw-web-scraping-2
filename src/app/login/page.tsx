@@ -3,6 +3,11 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import {
+  AuthErrorCodes,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -24,23 +29,25 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Logo } from "@/components/logo"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/firebase"
 
 const loginSchema = z.object({
-  correo: z.string().email("Invalid email address."),
-  contraseña: z.string().min(1, "Password is required."),
+  correo: z.string().email("Correo inválido."),
+  contraseña: z.string().min(1, "La contraseña es requerida."),
 })
 
 const registerSchema = z.object({
-  nombre: z.string().min(1, "Name is required."),
-  apellidos: z.string().min(1, "Last name is required."),
-  correo: z.string().email("Invalid email address."),
+  nombre: z.string().min(1, "El nombre es requerido."),
+  apellidos: z.string().min(1, "El apellido es requerido."),
+  correo: z.string().email("Correo inválido."),
   contraseña: z
     .string()
-    .min(8, "Password must be at least 8 characters."),
+    .min(8, "La contraseña debe tener al menos 8 caracteres."),
 })
 
 export default function LoginPage() {
   const { toast } = useToast()
+  const auth = useAuth()
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -57,20 +64,52 @@ export default function LoginPage() {
     },
   })
 
-  function onLoginSubmit(values: z.infer<typeof loginSchema>) {
-    console.log("Login submitted:", values)
-    toast({
-      title: "Login Successful",
-      description: "Welcome back!",
-    })
+  async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
+    try {
+      await signInWithEmailAndPassword(auth, values.correo, values.contraseña)
+      toast({
+        title: "Inicio de Sesión Exitoso",
+        description: "¡Bienvenido de vuelta!",
+      })
+      window.location.href = "/"
+    } catch (error: any) {
+      console.error("Login Error", error)
+      let description = "Ocurrió un error inesperado. Por favor, inténtalo de nuevo."
+      if (error.code === AuthErrorCodes.INVALID_LOGIN_CREDENTIALS) {
+        description = "Credenciales inválidas. Por favor, revisa tu correo y contraseña."
+      }
+      toast({
+        variant: "destructive",
+        title: "Error al Iniciar Sesión",
+        description,
+      })
+    }
   }
 
-  function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
-    console.log("Register submitted:", values)
-     toast({
-      title: "Registration Successful",
-      description: "Your account has been created.",
-    })
+  async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
+    try {
+      await createUserWithEmailAndPassword(
+        auth,
+        values.correo,
+        values.contraseña
+      )
+      toast({
+        title: "Registro Exitoso",
+        description: "Tu cuenta ha sido creada. ¡Bienvenido!",
+      })
+      window.location.href = "/"
+    } catch (error: any) {
+      console.error("Register Error", error)
+      let description = "Ocurrió un error inesperado. Por favor, inténtalo de nuevo."
+      if (error.code === AuthErrorCodes.EMAIL_EXISTS) {
+        description = "Este correo electrónico ya está en uso. Por favor, intenta con otro."
+      }
+      toast({
+        variant: "destructive",
+        title: "Error en el Registro",
+        description,
+      })
+    }
   }
 
   return (
@@ -87,9 +126,9 @@ export default function LoginPage() {
         <TabsContent value="login">
           <Card>
             <CardHeader>
-              <CardTitle>Welcome Back</CardTitle>
+              <CardTitle>Bienvenido de vuelta</CardTitle>
               <CardDescription>
-                Enter your credentials to access your account.
+                Ingresa tus credenciales para acceder a tu cuenta.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -107,7 +146,7 @@ export default function LoginPage() {
                         <FormControl>
                           <Input
                             type="email"
-                            placeholder="you@example.com"
+                            placeholder="tu@ejemplo.com"
                             {...field}
                           />
                         </FormControl>
@@ -128,8 +167,8 @@ export default function LoginPage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full">
-                    Iniciar Sesión
+                  <Button type="submit" className="w-full" disabled={loginForm.formState.isSubmitting}>
+                    {loginForm.formState.isSubmitting ? "Iniciando..." : "Iniciar Sesión"}
                   </Button>
                 </form>
               </Form>
@@ -139,9 +178,9 @@ export default function LoginPage() {
         <TabsContent value="register">
           <Card>
             <CardHeader>
-              <CardTitle>Create an Account</CardTitle>
+              <CardTitle>Crea una Cuenta</CardTitle>
               <CardDescription>
-                Get started by creating a new account.
+                Empieza creando una nueva cuenta.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -158,7 +197,7 @@ export default function LoginPage() {
                             <FormItem>
                                 <FormLabel>Nombre</FormLabel>
                                 <FormControl>
-                                <Input placeholder="John" {...field} />
+                                <Input placeholder="Juan" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -171,7 +210,7 @@ export default function LoginPage() {
                             <FormItem>
                                 <FormLabel>Apellidos</FormLabel>
                                 <FormControl>
-                                <Input placeholder="Doe" {...field} />
+                                <Input placeholder="Pérez" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -187,7 +226,7 @@ export default function LoginPage() {
                         <FormControl>
                           <Input
                             type="email"
-                            placeholder="you@example.com"
+                            placeholder="tu@ejemplo.com"
                             {...field}
                           />
                         </FormControl>
@@ -208,8 +247,8 @@ export default function LoginPage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full">
-                    Crear Cuenta
+                  <Button type="submit" className="w-full" disabled={registerForm.formState.isSubmitting}>
+                    {registerForm.formState.isSubmitting ? "Creando..." : "Crear Cuenta"}
                   </Button>
                 </form>
               </Form>
