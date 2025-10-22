@@ -15,16 +15,18 @@ export interface PriceHistoryPoint {
   price: number;
 }
 
+export type Category = 'CPU' | 'GPU' | 'Motherboard' | 'RAM' | 'Storage' | 'Power Supply' | 'Case';
+
 export interface Component {
   id: string;
-  slug: string;
   name: string;
   sku: string;
   brand: string;
-  category: 'CPU' | 'GPU' | 'Motherboard' | 'RAM' | 'Storage' | 'Power Supply' | 'Case';
+  category: Category;
   imageUrl: string;
-  imageHint: string;
-  prices: PriceEntry[];
-  priceHistory: PriceHistoryPoint[];
-  specs: { [key: string]: string };
+  imageHint?: string;
+  prices?: PriceEntry[];
+  priceHistory?: PriceHistoryPoint[];
+  specs?: { [key: string]: string };
+  slug?: string;
 }
