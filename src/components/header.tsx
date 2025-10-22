@@ -10,8 +10,8 @@ import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { href: "/", label: "Search", icon: Search },
-  { href: "/compatibility", label: "Compatibility", icon: Cpu },
+  { href: "/components", label: "Buscar", icon: Search },
+  { href: "/compatibility", label: "Compatibilidad", icon: Cpu },
 ];
 
 export function Header() {

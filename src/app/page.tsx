@@ -1,174 +1,120 @@
-"use client";
-
-import { useState, useMemo } from 'react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import ComponentCard from '@/components/component-card';
-import { components as allComponents } from '@/lib/data';
-import type { Component } from '@/lib/types';
-import { Search, SlidersHorizontal } from 'lucide-react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
+import { Cpu, Search, Dices, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { components } from '@/lib/data';
+import ComponentCard from '@/components/component-card';
 
-const categories = ['All', 'CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'Power Supply', 'Case'];
-const brands = ['All', 'Intel', 'AMD', 'NVIDIA', 'ASUS', 'Corsair', 'Samsung', 'Gigabyte', 'MSI', 'Crucial', 'SeaSonic', 'NZXT'];
-
-export default function Home() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [category, setCategory] = useState('All');
-  const [brand, setBrand] = useState('All');
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-
-  const filteredComponents = useMemo(() => {
-    return allComponents.filter((component) => {
-      const matchesSearch = component.name.toLowerCase().includes(searchQuery.toLowerCase()) || component.sku.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = category === 'All' || component.category === category;
-      const matchesBrand = brand === 'All' || component.brand === brand;
-      return matchesSearch && matchesCategory && matchesBrand;
-    });
-  }, [searchQuery, category, brand]);
-
-  const FilterControls = () => (
-    <div className="space-y-6">
-       <div>
-        <Label htmlFor="search-input-mobile" className="mb-2 block text-sm font-medium">Search</Label>
-         <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              id="search-input-mobile"
-              type="text"
-              placeholder="Search by name or SKU..."
-              className="pl-10 w-full"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-      </div>
-      <div>
-        <Label htmlFor="category-select" className="mb-2 block text-sm font-medium">Category</Label>
-        <Select value={category} onValueChange={setCategory}>
-          <SelectTrigger id="category-select" className="w-full">
-            <SelectValue placeholder="Select category" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((cat) => (
-              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div>
-        <Label htmlFor="brand-select" className="mb-2 block text-sm font-medium">Brand</Label>
-        <Select value={brand} onValueChange={setBrand}>
-          <SelectTrigger id="brand-select" className="w-full">
-            <SelectValue placeholder="Select brand" />
-          </SelectTrigger>
-          <SelectContent>
-            {brands.map((b) => (
-              <SelectItem key={b} value={b}>{b}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-  );
+export default function HomePage() {
+  const featuredComponents = components.slice(0, 3);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-       <section className="text-center py-8">
-        <h1 className="text-4xl md:text-5xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
-          Find Your Perfect PC Part
-        </h1>
-        <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-          Compare prices from top retailers and build your dream PC for less.
-        </p>
-      </section>
-
-      <div className="grid lg:grid-cols-4 gap-8 items-start">
-        {/* Desktop Filters */}
-        <aside className="hidden lg:block lg:col-span-1 sticky top-24">
-            <Card>
-                <CardContent className="pt-6">
-                    <FilterControls />
-                </CardContent>
-            </Card>
-        </aside>
-
-        {/* Products Grid */}
-        <main className="lg:col-span-3">
-          {/* Mobile Filters Trigger */}
-           <div className="lg:hidden mb-6 flex items-center gap-4">
-             <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                type="text"
-                placeholder="Search components..."
-                className="pl-10 w-full"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                />
-            </div>
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <SlidersHorizontal className="h-4 w-4" />
-                   <span className="sr-only">Filters</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Filters</SheetTitle>
-                </SheetHeader>
-                <div className="py-6">
-                  <div className="space-y-6">
-                      <div>
-                        <Label htmlFor="category-select-mobile" className="mb-2 block text-sm font-medium">Category</Label>
-                        <Select value={category} onValueChange={setCategory}>
-                          <SelectTrigger id="category-select-mobile" className="w-full">
-                            <SelectValue placeholder="Select category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories.map((cat) => (
-                              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="brand-select-mobile" className="mb-2 block text-sm font-medium">Brand</Label>
-                        <Select value={brand} onValueChange={setBrand}>
-                          <SelectTrigger id="brand-select-mobile" className="w-full">
-                            <SelectValue placeholder="Select brand" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {brands.map((b) => (
-                              <SelectItem key={b} value={b}>{b}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+    <div className="flex flex-col min-h-dvh">
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="w-full py-20 md:py-32 lg:py-40 bg-gradient-to-br from-background to-muted/50">
+          <div className="container px-4 md:px-6">
+            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:gap-24 items-center">
+              <div className="flex flex-col justify-center space-y-4">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent-foreground">
+                  Tu Guía Inteligente para Armar tu PC
+                </h1>
+                <p className="max-w-[600px] text-muted-foreground md:text-xl">
+                  Compara precios de componentes, verifica la compatibilidad con IA y encuentra las mejores ofertas para construir la PC de tus sueños.
+                </p>
+                <div className="flex flex-col gap-2 min-[400px]:flex-row">
+                  <Button asChild size="lg">
+                    <Link href="/components">
+                      <Search className="mr-2" /> Empezar a Buscar
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" size="lg">
+                    <Link href="/compatibility">
+                      <Cpu className="mr-2" /> Verificador de Compatibilidad
+                    </Link>
+                  </Button>
                 </div>
-              </SheetContent>
-            </Sheet>
+              </div>
+              <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl">
+                 <Image
+                  src="https://images.unsplash.com/photo-1593640408182-31c70c8268f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxnYW1pbmclMjBwY3xlbnwwfHx8fDE3NjExMzMyNTF8MA&ixlib=rb-4.1.0&q=80&w=1080"
+                  alt="Hero PC Build"
+                  fill
+                  className="object-cover"
+                  data-ai-hint="gaming pc"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent"></div>
+              </div>
+            </div>
           </div>
+        </section>
 
-          {filteredComponents.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredComponents.map((component) => (
+        {/* Featured Components Section */}
+        <section className="w-full py-12 md:py-24">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Componentes Destacados</h2>
+                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                  Explora los componentes más populares y con mejores precios del momento.
+                </p>
+              </div>
+            </div>
+            <div className="mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 pt-12">
+              {featuredComponents.map((component) => (
                 <ComponentCard key={component.id} component={component} />
               ))}
             </div>
-          ) : (
-            <div className="text-center py-16 col-span-full">
-              <p className="text-xl font-medium text-muted-foreground">No components found.</p>
-              <p className="text-muted-foreground mt-2">Try adjusting your search or filters.</p>
+             <div className="text-center mt-12">
+                <Button asChild variant="outline">
+                    <Link href="/components">
+                        Ver todos los componentes <ArrowRight className="ml-2" />
+                    </Link>
+                </Button>
+             </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="w-full py-12 md:py-24 bg-muted/50">
+          <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
+            <div className="space-y-3">
+              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
+                Todo lo que necesitas para tu próxima PC
+              </h2>
+              <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                Desde la comparación de precios hasta la verificación de compatibilidad con IA, te tenemos cubierto.
+              </p>
             </div>
-          )}
-        </main>
-      </div>
+            <div className="mx-auto w-full max-w-sm space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-center">
+                <Card>
+                    <CardContent className="flex flex-col items-center text-center p-6">
+                        <Search className="h-10 w-10 mb-4 text-primary" />
+                        <h3 className="text-lg font-bold">Comparación de Precios</h3>
+                        <p className="text-sm text-muted-foreground">Encuentra el mejor precio para cada componente en diferentes tiendas.</p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardContent className="flex flex-col items-center text-center p-6">
+                        <Cpu className="h-10 w-10 mb-4 text-primary" />
+                        <h3 className="text-lg font-bold">Compatibilidad con IA</h3>
+                        <p className="text-sm text-muted-foreground">Nuestra IA te ayuda a asegurar que tus componentes funcionarán juntos.</p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardContent className="flex flex-col items-center text-center p-6">
+                        <Dices className="h-10 w-10 mb-4 text-primary" />
+                        <h3 className="text-lg font-bold">Amplia Selección</h3>
+                        <p className="text-sm text-muted-foreground">Explora un catálogo extenso de CPUs, GPUs, placas base y más.</p>
+                    </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
