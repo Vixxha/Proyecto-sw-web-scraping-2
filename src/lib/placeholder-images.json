@@ -3,79 +3,79 @@
     {
       "id": "cpu-1",
       "description": "An Intel Core i9 processor chip.",
-      "imageUrl": "https://images.unsplash.com/photo-1629196232321-ee1a51ac7f98?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxJbnRlbCUyMENvcmUlMjBpOSUyMGNwdXxlbnwwfHx8fDE3NjE3NjI1NzZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://m.media-amazon.com/images/I/51G-S2b2P-L._AC_SL1500_.jpg",
       "imageHint": "Intel processor"
     },
     {
       "id": "gpu-1",
       "description": "An NVIDIA GeForce RTX 4090 graphics card.",
-      "imageUrl": "https://images.unsplash.com/photo-1672153549221-576621cf33a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxOVklESUElMjBSVFglMjA0MDkwfGVufDB8fHx8MTc2MTc2MjYxNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://m.media-amazon.com/images/I/81B-j-5V+iL._AC_SL1500_.jpg",
       "imageHint": "NVIDIA graphics card"
     },
     {
       "id": "motherboard-1",
       "description": "An ASUS ROG Maximus motherboard.",
-      "imageUrl": "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxnYW1pbmclMjBwY3xlbnwwfHx8fDE3NjExMzMyNTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://m.media-amazon.com/images/I/81B-k2V9pOL._AC_SL1500_.jpg",
       "imageHint": "gaming motherboard"
     },
     {
       "id": "ram-1",
       "description": "Corsair Vengeance DDR5 RAM sticks.",
-      "imageUrl": "https://images.unsplash.com/photo-1631039958136-e415391c5386?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjb3JzYWlyJTIwcmFtfGVufDB8fHx8MTc2MTc2Mjc2MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://m.media-amazon.com/images/I/51KzL9Q-D6L._AC_SL1500_.jpg",
       "imageHint": "Corsair RAM"
     },
     {
       "id": "ssd-1",
       "description": "A Samsung 980 Pro NVMe SSD.",
-      "imageUrl": "https://images.unsplash.com/photo-1631043334698-c13b28d7e01f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzYW1zdW5nJTIwc3NkfGVufDB8fHx8MTc2MTc2MjgwM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://m.media-amazon.com/images/I/714i-1-x42L._AC_SL1500_.jpg",
       "imageHint": "Samsung SSD"
     },
     {
       "id": "cpu-2",
       "description": "An AMD Ryzen 9 processor chip.",
-      "imageUrl": "https://images.unsplash.com/photo-1629196232321-ee1a51ac7f98?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxJbnRlbCUyMENvcmUlMjBpOSUyMGNwdXxlbnwwfHx8fDE3NjE3NjI1NzZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://m.media-amazon.com/images/I/51G-S2b2P-L._AC_SL1500_.jpg",
       "imageHint": "AMD processor"
     },
     {
       "id": "gpu-2",
       "description": "An AMD Radeon RX 7900 XTX graphics card.",
-      "imageUrl": "https://images.unsplash.com/photo-1672153549221-576621cf33a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxOVklESUElMjBSVFglMjA0MDkwfGVufDB8fHx8MTc2MTc2MjYxNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://m.media-amazon.com/images/I/71Y1QmudLoL._AC_SL1500_.jpg",
       "imageHint": "AMD graphics card"
     },
     {
       "id": "motherboard-2",
       "description": "A Gigabyte AORUS motherboard.",
-      "imageUrl": "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxnYW1pbmclMjBwY3xlbnwwfHx8fDE3NjExMzMyNTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://m.media-amazon.com/images/I/81B-k2V9pOL._AC_SL1500_.jpg",
       "imageHint": "Gigabyte motherboard"
     },
     {
       "id": "ram-2",
       "description": "Crucial Ballistix DDR4 RAM sticks.",
-      "imageUrl": "https://images.unsplash.com/photo-1631039958136-e415391c5386?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjb3JzYWlyJTIwcmFtfGVufDB8fHx8MTc2MTc2Mjc2MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://m.media-amazon.com/images/I/51KzL9Q-D6L._AC_SL1500_.jpg",
       "imageHint": "Crucial RAM"
     },
     {
       "id": "psu-1",
       "description": "A SeaSonic FOCUS power supply unit.",
-      "imageUrl": "https://images.unsplash.com/photo-1605651202778-6439a340a581?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwb3dlciUyMHN1cHBseXxlbnwwfHx8fDE3NjE3NjI4NzF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://m.media-amazon.com/images/I/71Y1QmudLoL._AC_SL1500_.jpg",
       "imageHint": "power supply"
     },
     {
       "id": "cpu-3",
       "description": "An Intel Core i5 processor chip.",
-      "imageUrl": "https://images.unsplash.com/photo-1629196232321-ee1a51ac7f98?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxJbnRlbCUyMENvcmUlMjBpOSUyMGNwdXxlbnwwfHx8fDE3NjE3NjI1NzZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://m.media-amazon.com/images/I/51G-S2b2P-L._AC_SL1500_.jpg",
       "imageHint": "Intel processor"
     },
     {
       "id": "case-1",
       "description": "An NZXT H510 computer case.",
-      "imageUrl": "https://images.unsplash.com/photo-1587855049254-351f4e55fe2a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxOWhYVfGVufDB8fHx8MTc2MTc2MjkxNXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://m.media-amazon.com/images/I/51G-S2b2P-L._AC_SL1500_.jpg",
       "imageHint": "computer case"
     },
     {
       "id": "motherboard-3",
       "description": "An MSI MAG Mortar motherboard.",
-      "imageUrl": "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxnYW1pbmclMjBwY3xlbnwwfHx8fDE3NjExMzMyNTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://m.media-amazon.com/images/I/81B-k2V9pOL._AC_SL1500_.jpg",
       "imageHint": "MSI motherboard"
     }
   ]
