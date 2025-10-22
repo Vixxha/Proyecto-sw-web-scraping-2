@@ -6,9 +6,11 @@ import Link from 'next/link';
 import { components } from '@/lib/data';
 import ComponentCard from '@/components/component-card';
 import { Badge } from '@/components/ui/badge';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function HomePage() {
   const featuredComponents = components.slice(0, 4);
+  const heroImage = PlaceHolderImages.find(p => p.id === 'motherboard-1');
 
   return (
     <div className="flex flex-col min-h-dvh">
@@ -39,11 +41,11 @@ export default function HomePage() {
               </div>
               <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl group">
                  <Image
-                  src="https://images.unsplash.com/photo-1593640408182-31c70c8268f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxnYW1pbmclMjBwY3xlbnwwfHx8fDE3NjExMzMyNTF8MA&ixlib=rb-4.1.0&q=80&w=1080"
+                  src={heroImage?.imageUrl || "https://picsum.photos/seed/hero/1280/720"}
                   alt="Hero PC Build"
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  data-ai-hint="gaming pc"
+                  data-ai-hint={heroImage?.imageHint || 'gaming pc'}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent"></div>
               </div>
