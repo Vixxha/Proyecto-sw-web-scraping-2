@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Search, Dices, User as UserIcon, LogOut } from "lucide-react";
+import { Menu, Search, Dices, User as UserIcon, LogOut, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -30,7 +30,10 @@ export function Header() {
   const auth = useAuth();
 
   const handleLogout = async () => {
-    await auth.signOut();
+    if (auth) {
+      await auth.signOut();
+      window.location.href = "/login";
+    }
   };
 
   const NavLinks = ({ className }: { className?: string }) => (
@@ -72,13 +75,20 @@ export function Header() {
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">
-                  {user.displayName || "Usuario"}
+                  {user.displayName || user.email?.split('@')[0] || "Usuario"}
                 </p>
                 <p className="text-xs leading-none text-muted-foreground">
                   {user.email}
                 </p>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/admin">
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                <span>Dashboard</span>
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
@@ -90,8 +100,8 @@ export function Header() {
     }
 
     return (
-      <Button variant="ghost" size="sm" asChild>
-        <Link href="/login">Login</Link>
+      <Button asChild>
+        <Link href="/login">Iniciar Sesión</Link>
       </Button>
     );
   };
