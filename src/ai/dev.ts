@@ -1,4 +1,4 @@
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/ai-powered-part-compatibility.ts';
+// Se ha eliminado la importación del flujo de compatibilidad.

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Search, Cpu } from "lucide-react";
+import { Menu, Search, Dices } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/components", label: "Buscar", icon: Search },
-  { href: "/compatibility", label: "Compatibilidad", icon: Cpu },
+  { href: "/build", label: "Arma tu PC", icon: Dices },
 ];
 
 export function Header() {

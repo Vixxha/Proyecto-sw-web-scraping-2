@@ -22,7 +22,7 @@ export default function HomePage() {
                   Construye la PC de Tus Sueños, Sin Complicaciones
                 </h1>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                  Compara precios de miles de componentes, verifica la compatibilidad con nuestro asistente de IA y encuentra las mejores ofertas de las tiendas más confiables.
+                  Compara precios de miles de componentes, arma tu propia configuración y encuentra las mejores ofertas de las tiendas más confiables.
                 </p>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Button asChild size="lg">
@@ -31,8 +31,8 @@ export default function HomePage() {
                     </Link>
                   </Button>
                   <Button asChild variant="outline" size="lg">
-                    <Link href="/compatibility">
-                      <Cpu className="mr-2" /> Verificador IA
+                    <Link href="/build">
+                      <Dices className="mr-2" /> Arma tu PC
                     </Link>
                   </Button>
                 </div>
@@ -87,7 +87,7 @@ export default function HomePage() {
                     Tu Aliado #1 para Armar tu PC
                  </h2>
                  <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                    Desde la comparación de precios hasta la verificación de compatibilidad con IA, tenemos todo lo que necesitas en un solo lugar.
+                    Desde la comparación de precios hasta el armado de tu propia configuración, tenemos todo lo que necesitas en un solo lugar.
                  </p>
               </div>
             </div>
@@ -101,14 +101,14 @@ export default function HomePage() {
                 </Card>
                  <Card className="border-0 bg-transparent shadow-none">
                     <CardContent className="flex flex-col items-center text-center p-6">
-                        <Cpu className="h-12 w-12 mb-4 text-primary" />
-                        <h3 className="text-xl font-bold">Compatibilidad con IA</h3>
-                        <p className="text-sm text-muted-foreground mt-2">Nuestra IA analiza tus componentes y te alerta sobre posibles problemas de compatibilidad al instante.</p>
+                        <Dices className="h-12 w-12 mb-4 text-primary" />
+                        <h3 className="text-xl font-bold">Arma tu Configuración</h3>
+                        <p className="text-sm text-muted-foreground mt-2">Selecciona tus componentes y crea la PC de tus sueños con nuestra herramienta intuitiva.</p>
                     </CardContent>
                 </Card>
                  <Card className="border-0 bg-transparent shadow-none">
                     <CardContent className="flex flex-col items-center text-center p-6">
-                        <Dices className="h-12 w-12 mb-4 text-primary" />
+                        <Cpu className="h-12 w-12 mb-4 text-primary" />
                         <h3 className="text-xl font-bold">Catálogo Extenso</h3>
                         <p className="text-sm text-muted-foreground mt-2">Explora un catálogo masivo y actualizado de CPUs, GPUs, placas base, y mucho más.</p>
                     </CardContent>
