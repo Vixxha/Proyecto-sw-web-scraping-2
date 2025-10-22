@@ -1,0 +1,201 @@
+/**
+ * @file Firestore Security Rules
+ * @description This ruleset enforces a role-based access control model with an admin role and user-specific data ownership.
+ *
+ * Data Structure:
+ * - /components/{componentId}: Stores information about PC components. Accessible to admins for CRUD operations.
+ * - /stores/{storeId}: Stores information about online stores. Accessible to admins for CRUD operations.
+ * - /categories/{categoryId}: Stores categories of PC components. Accessible to admins for CRUD operations.
+ * - /brands/{brandId}: Stores information about PC component brands. Accessible to admins for CRUD operations.
+ * - /prices/{priceId}: Stores pricing information for components at different stores. Accessible to admins for CRUD operations.
+ * - /roles_admin/{userId}: Documents in this collection indicate admin privileges for the corresponding user. Only admins can manage this collection.
+ * - /users/{userId}: Stores user profiles. Users can only create their own profiles, and admins can manage all profiles.
+ *
+ * Key Security Decisions:
+ * - Admin Role: Users listed in `/roles_admin/{userId}` have full CRUD access to components, stores, categories, brands, and prices.
+ * - User Ownership: Users can only create their own user document in `/users/{userId}`.
+ * - No User Listing: Listing all users is disallowed for security reasons.
+ *
+ * Denormalization for Authorization:
+ * - Admin Role: The presence of a document in `/roles_admin/{userId}` grants admin privileges. This avoids complex queries to determine admin status.
+ *
+ * Structural Segregation:
+ * - Admin Roles: Admin user IDs are stored in a separate `/roles_admin/{userId}` collection to clearly define and manage admin privileges.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Allows admins to perform CRUD operations on components.
+     * @path /components/{componentId}
+     * @allow (create) User with ID 'admin_user' in /roles_admin can create a component.
+     * @deny (create) User without ID in /roles_admin cannot create a component.
+     * @allow (update) User with ID 'admin_user' in /roles_admin can update a component.
+     * @deny (update) User without ID in /roles_admin cannot update a component.
+     * @allow (delete) User with ID 'admin_user' in /roles_admin can delete a component.
+     * @deny (delete) User without ID in /roles_admin cannot delete a component.
+     * @allow (get) Any user can read a component.
+     * @allow (list) Any user can list components.
+     * @principle Enforces admin-only access for writes and public read access for components.
+     */
+    match /components/{componentId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Allows admins to perform CRUD operations on stores.
+     * @path /stores/{storeId}
+     * @allow (create) User with ID 'admin_user' in /roles_admin can create a store.
+     * @deny (create) User without ID in /roles_admin cannot create a store.
+     * @allow (update) User with ID 'admin_user' can update a store.
+     * @deny (update) User without ID in /roles_admin cannot update a store.
+     * @allow (delete) User with ID 'admin_user' can delete a store.
+     * @deny (delete) User without ID in /roles_admin cannot delete a store.
+     * @allow (get) Any user can read a store.
+     * @allow (list) Any user can list stores.
+     * @principle Enforces admin-only access for writes and public read access for stores.
+     */
+    match /stores/{storeId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Allows admins to perform CRUD operations on categories.
+     * @path /categories/{categoryId}
+     * @allow (create) User with ID 'admin_user' in /roles_admin can create a category.
+     * @deny (create) User without ID in /roles_admin cannot create a category.
+     * @allow (update) User with ID 'admin_user' can update a category.
+     * @deny (update) User without ID in /roles_admin cannot update a category.
+     * @allow (delete) User with ID 'admin_user' can delete a category.
+     * @deny (delete) User without ID in /roles_admin cannot delete a category.
+     * @allow (get) Any user can read a category.
+     * @allow (list) Any user can list categories.
+     * @principle Enforces admin-only access for writes and public read access for categories.
+     */
+    match /categories/{categoryId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Allows admins to perform CRUD operations on brands.
+     * @path /brands/{brandId}
+     * @allow (create) User with ID 'admin_user' in /roles_admin can create a brand.
+     * @deny (create) User without ID in /roles_admin cannot create a brand.
+     * @allow (update) User with ID 'admin_user' can update a brand.
+     * @deny (update) User without ID in /roles_admin cannot update a brand.
+     * @allow (delete) User with ID 'admin_user' can delete a brand.
+     * @deny (delete) User without ID in /roles_admin cannot delete a brand.
+     * @allow (get) Any user can read a brand.
+     * @allow (list) Any user can list brands.
+     * @principle Enforces admin-only access for writes and public read access for brands.
+     */
+    match /brands/{brandId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Allows admins to perform CRUD operations on prices.
+     * @path /prices/{priceId}
+     * @allow (create) User with ID 'admin_user' in /roles_admin can create a price.
+     * @deny (create) User without ID in /roles_admin cannot create a price.
+     * @allow (update) User with ID 'admin_user' can update a price.
+     * @deny (update) User without ID in /roles_admin cannot update a price.
+     * @allow (delete) User with ID 'admin_user' can delete a price.
+     * @deny (delete) User without ID in /roles_admin cannot delete a price.
+     * @allow (get) Any user can read a price.
+     * @allow (list) Any user can list prices.
+     * @principle Enforces admin-only access for writes and public read access for prices.
+     */
+    match /prices/{priceId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Allows admins to manage admin roles by creating and deleting documents in this collection.
+     * @path /roles_admin/{userId}
+     * @allow (create) User with ID 'admin_user' in /roles_admin can create an admin role.
+     * @deny (create) User without ID in /roles_admin cannot create an admin role.
+     * @allow (update) Admins cannot update documents in this collection (only creation/deletion is allowed).
+     * @deny (update) Non-admins cannot update documents in this collection.
+     * @allow (delete) User with ID 'admin_user' in /roles_admin can delete an admin role.
+     * @deny (delete) User without ID in /roles_admin cannot delete an admin role.
+     * @allow (get) User with ID 'admin_user' in /roles_admin can get an admin role.
+     * @deny (get) User without ID in /roles_admin cannot get an admin role.
+     * @allow (list) User with ID 'admin_user' in /roles_admin can list admin roles.
+     * @deny (list) User without ID in /roles_admin cannot list admin roles.
+     * @principle Enforces admin-only access for managing admin roles.
+     */
+    match /roles_admin/{userId} {
+      allow get, list: if isAdmin();
+      allow create: if isAdmin();
+      allow update: if false;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Allows users to create their own user document. Admins can perform CRUD operations on all user documents.
+     * @path /users/{userId}
+     * @allow (create) User can create their own user document.
+     * @deny (create) User cannot create a user document for another user.
+     * @allow (update) Admin can update any user document.
+     * @deny (update) User cannot update another user's document.
+     * @allow (delete) Admin can delete any user document.
+     * @deny (delete) User cannot delete another user's document.
+     * @allow (get) Admin can get any user document.
+     * @deny (get) User cannot get another user's document.
+     * @allow (list) Only admins can list user documents.
+     * @deny (list) Users cannot list all user documents.
+     * @principle Enforces user-ownership for creation and admin-only access for other operations.
+     */
+    match /users/{userId} {
+      allow get: if isAdmin() || isOwner(userId);
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    // ---- Helper functions ----
+
+    /**
+     * @description Checks if the current user is signed in.
+     * @return {boolean} True if the user is signed in, false otherwise.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the current user is the owner of the resource.
+     * @param {string} userId The user ID to compare with the request's authentication UID.
+     * @return {boolean} True if the user is the owner, false otherwise.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the current user is an admin.
+     * @return {boolean} True if the user is an admin, false otherwise.
+     */
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+  }
+}

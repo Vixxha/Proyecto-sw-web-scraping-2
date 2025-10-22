@@ -1,0 +1,379 @@
+{
+  "entities": {
+    "Component": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Component",
+      "type": "object",
+      "description": "Represents a PC component with its specifications and pricing information.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the component."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the component."
+        },
+        "sku": {
+          "type": "string",
+          "description": "Stock Keeping Unit (SKU) of the component."
+        },
+        "categoryId": {
+          "type": "string",
+          "description": "Reference to Category. (Relationship: Category 1:N Component)"
+        },
+        "brandId": {
+          "type": "string",
+          "description": "Reference to Brand. (Relationship: Brand 1:N Component)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the component."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the component's image.",
+          "format": "uri"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the component was added to the database.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the component was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "sku",
+        "categoryId",
+        "brandId",
+        "description",
+        "imageUrl",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Price": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Price",
+      "type": "object",
+      "description": "Represents the price of a component at a specific store.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the price entry."
+        },
+        "componentId": {
+          "type": "string",
+          "description": "Reference to Component. (Relationship: Component 1:N Price)"
+        },
+        "storeId": {
+          "type": "string",
+          "description": "Reference to Store. (Relationship: Store 1:N Price)"
+        },
+        "price": {
+          "type": "number",
+          "description": "Price of the component at the store."
+        },
+        "url": {
+          "type": "string",
+          "description": "URL to the component's page on the store's website.",
+          "format": "uri"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the price was recorded.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "componentId",
+        "storeId",
+        "price",
+        "url",
+        "createdAt"
+      ]
+    },
+    "Store": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Store",
+      "type": "object",
+      "description": "Represents an online store that sells PC components.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the store."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the store."
+        },
+        "baseUrl": {
+          "type": "string",
+          "description": "Base URL of the store's website.",
+          "format": "uri"
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "URL of the store's logo.",
+          "format": "uri"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Indicates whether the store is currently active for scraping."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "baseUrl",
+        "logoUrl",
+        "active"
+      ]
+    },
+    "Category": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Category",
+      "type": "object",
+      "description": "Represents a category of PC components (e.g., CPU, GPU, RAM).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the category."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the category."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the category."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description"
+      ]
+    },
+    "Brand": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Brand",
+      "type": "object",
+      "description": "Represents a brand of PC components (e.g., Intel, AMD, NVIDIA).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the brand."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the brand."
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "URL of the brand's logo.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "logoUrl"
+      ]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "First name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Last name of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        },
+        "roleId": {
+          "type": "string",
+          "description": "Reference to Role. (Relationship: Role 1:N User)"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "roleId"
+      ]
+    },
+    "Role": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Role",
+      "type": "object",
+      "description": "Represents a role within the application (e.g., admin, user).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the role."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the role."
+        },
+        "permissions": {
+          "type": "array",
+          "description": "List of permissions associated with the role.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "permissions"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/components/{componentId}",
+        "definition": {
+          "entityName": "Component",
+          "schema": {
+            "$ref": "#/backend/entities/Component"
+          },
+          "description": "Stores information about PC components.",
+          "params": [
+            {
+              "name": "componentId",
+              "description": "Unique identifier for the component."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/stores/{storeId}",
+        "definition": {
+          "entityName": "Store",
+          "schema": {
+            "$ref": "#/backend/entities/Store"
+          },
+          "description": "Stores information about online stores.",
+          "params": [
+            {
+              "name": "storeId",
+              "description": "Unique identifier for the store."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/categories/{categoryId}",
+        "definition": {
+          "entityName": "Category",
+          "schema": {
+            "$ref": "#/backend/entities/Category"
+          },
+          "description": "Stores categories of PC components.",
+          "params": [
+            {
+              "name": "categoryId",
+              "description": "Unique identifier for the category."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/brands/{brandId}",
+        "definition": {
+          "entityName": "Brand",
+          "schema": {
+            "$ref": "#/backend/entities/Brand"
+          },
+          "description": "Stores information about PC component brands.",
+          "params": [
+            {
+              "name": "brandId",
+              "description": "Unique identifier for the brand."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/prices/{priceId}",
+        "definition": {
+          "entityName": "Price",
+          "schema": {
+            "$ref": "#/backend/entities/Price"
+          },
+          "description": "Stores pricing information for components at different stores.",
+          "params": [
+            {
+              "name": "priceId",
+              "description": "Unique identifier for the price entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user IDs with admin roles. Existence of a document grants admin privileges.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "Unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "Unique identifier for the user."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to support a PC component price comparison application with features like component search, price comparison, price alerts, and an admin panel. Authorization Independence is achieved through DBAC with a dedicated `/roles/{roleId}` collection and path-based ownership, along with denormalization of the 'members' map where collaborative access is needed. QAPs (Rules are not Filters) are supported by segregating data with different access needs into separate collections and employing membership maps for collaborative data access, ensuring secure list operations. The root collections include `components`, `stores`, `categories`, `brands`, and `prices`. An admin dashboard is supported through the `roles` collection, where specific user IDs are stored, indicating their admin privileges."
+  }
+}
