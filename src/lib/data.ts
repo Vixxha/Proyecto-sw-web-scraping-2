@@ -1,4 +1,5 @@
 import type { Component, Store, PriceHistoryPoint } from './types';
+import { PlaceHolderImages } from './placeholder-images';
 
 export const stores: Store[] = [
   { id: 'store-1', name: 'PC Parts Plus', logoUrl: '/logos/pc-parts-plus.png' },
@@ -21,6 +22,8 @@ const generatePriceHistory = (basePrice: number): PriceHistoryPoint[] => {
   return history;
 };
 
+const placeholderImageMap = new Map(PlaceHolderImages.map(p => [p.id, p]));
+
 export const components: Component[] = [
   {
     id: '1',
@@ -29,7 +32,7 @@ export const components: Component[] = [
     sku: 'BX8071513900K',
     brand: 'Intel',
     category: 'CPU',
-    imageUrl: 'https://picsum.photos/seed/101/600/600',
+    imageUrl: placeholderImageMap.get('cpu-1')?.imageUrl || 'https://picsum.photos/seed/101/600/600',
     imageHint: 'processor chip',
     prices: [
       { storeId: 'store-1', price: 589.99, url: '#' },
@@ -51,7 +54,7 @@ export const components: Component[] = [
     sku: 'RTX4090-FOUNDERS',
     brand: 'NVIDIA',
     category: 'GPU',
-    imageUrl: 'https://picsum.photos/seed/102/600/400',
+    imageUrl: placeholderImageMap.get('gpu-1')?.imageUrl || 'https://picsum.photos/seed/102/600/400',
     imageHint: 'graphics card',
     prices: [
       { storeId: 'store-1', price: 1599.99, url: '#' },
@@ -72,7 +75,7 @@ export const components: Component[] = [
     sku: 'ROG-MAX-Z790-HERO',
     brand: 'ASUS',
     category: 'Motherboard',
-    imageUrl: 'https://picsum.photos/seed/103/600/600',
+    imageUrl: placeholderImageMap.get('motherboard-1')?.imageUrl || 'https://picsum.photos/seed/103/600/600',
     imageHint: 'motherboard circuit',
     prices: [
       { storeId: 'store-1', price: 629.99, url: '#' },
@@ -93,7 +96,7 @@ export const components: Component[] = [
     sku: 'CMK32GX5M2B5200C40',
     brand: 'Corsair',
     category: 'RAM',
-    imageUrl: 'https://picsum.photos/seed/104/600/400',
+    imageUrl: placeholderImageMap.get('ram-1')?.imageUrl || 'https://picsum.photos/seed/104/600/400',
     imageHint: 'ram stick',
     prices: [
       { storeId: 'store-1', price: 99.99, url: '#' },
@@ -115,7 +118,7 @@ export const components: Component[] = [
     sku: 'MZ-V8P2T0BW',
     brand: 'Samsung',
     category: 'Storage',
-    imageUrl: 'https://picsum.photos/seed/105/600/400',
+    imageUrl: placeholderImageMap.get('ssd-1')?.imageUrl || 'https://picsum.photos/seed/105/600/400',
     imageHint: 'ssd drive',
     prices: [
       { storeId: 'store-1', price: 169.99, url: '#' },
@@ -137,7 +140,7 @@ export const components: Component[] = [
     sku: '100-100000514WOF',
     brand: 'AMD',
     category: 'CPU',
-    imageUrl: 'https://picsum.photos/seed/106/600/600',
+    imageUrl: placeholderImageMap.get('cpu-2')?.imageUrl || 'https://picsum.photos/seed/106/600/600',
     imageHint: 'processor chip',
     prices: [
       { storeId: 'store-1', price: 549.0, url: '#' },
@@ -159,7 +162,7 @@ export const components: Component[] = [
     sku: 'RX7900XTX-GAMING',
     brand: 'AMD',
     category: 'GPU',
-    imageUrl: 'https://picsum.photos/seed/107/600/400',
+    imageUrl: placeholderImageMap.get('gpu-2')?.imageUrl || 'https://picsum.photos/seed/107/600/400',
     imageHint: 'graphics card',
     prices: [
       { storeId: 'store-1', price: 999.99, url: '#' },
