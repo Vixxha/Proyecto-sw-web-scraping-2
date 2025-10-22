@@ -70,6 +70,14 @@ export function PCBuilder() {
       <div className="lg:col-span-2 space-y-4">
         {componentCategories.map(({ id, name, icon, allowMultiple }) => {
           const selectedItems = selectedComponents[id];
+          
+          const getButtonText = () => {
+            if (allowMultiple) {
+                return selectedItems.length > 0 ? 'Añadir otro' : 'Elegir';
+            }
+            return selectedItems.length > 0 ? 'Cambiar' : 'Elegir';
+          };
+
           return (
             <Card key={id} className="shadow-none border">
               <CardHeader className="flex flex-row items-center justify-between p-4">
@@ -80,9 +88,9 @@ export function PCBuilder() {
                 </div>
                  <Dialog>
                     <DialogTrigger asChild>
-                       <Button variant={(selectedItems.length > 0 && !allowMultiple) ? "outline" : "default"}>
+                       <Button variant={!allowMultiple && selectedItems.length > 0 ? 'outline' : 'default'}>
                          <PlusCircle className="mr-2 h-4 w-4" />
-                         { (selectedItems.length > 0 && !allowMultiple) ? 'Cambiar' : 'Elegir'}
+                         {getButtonText()}
                        </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl h-[80vh]">
@@ -155,4 +163,3 @@ export function PCBuilder() {
     </div>
   );
 }
-
