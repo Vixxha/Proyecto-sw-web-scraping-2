@@ -33,7 +33,7 @@
     {
       "id": "cpu-2",
       "description": "An AMD Ryzen 9 processor chip.",
-      "imageUrl": "https://m.media-amazon.com/images/I/51G-S2b2P-L._AC_SL1500_.jpg",
+      "imageUrl": "https://m.media-amazon.com/images/I/616VM20+AzL._AC_UF894,1000_QL80_.jpg",
       "imageHint": "AMD processor"
     },
     {
@@ -45,37 +45,37 @@
     {
       "id": "motherboard-2",
       "description": "A Gigabyte AORUS motherboard.",
-      "imageUrl": "https://m.media-amazon.com/images/I/81B-k2V9pOL._AC_SL1500_.jpg",
+      "imageUrl": "https://m.media-amazon.com/images/I/810-S23NnGL._AC_SL1500_.jpg",
       "imageHint": "Gigabyte motherboard"
     },
     {
       "id": "ram-2",
       "description": "Crucial Ballistix DDR4 RAM sticks.",
-      "imageUrl": "https://m.media-amazon.com/images/I/51KzL9Q-D6L._AC_SL1500_.jpg",
+      "imageUrl": "https://m.media-amazon.com/images/I/81yq1wPxmAL._AC_SL1500_.jpg",
       "imageHint": "Crucial RAM"
     },
     {
       "id": "psu-1",
       "description": "A SeaSonic FOCUS power supply unit.",
-      "imageUrl": "https://m.media-amazon.com/images/I/71Y1QmudLoL._AC_SL1500_.jpg",
+      "imageUrl": "https://m.media-amazon.com/images/I/71w4B2c5oNL._AC_SL1500_.jpg",
       "imageHint": "power supply"
     },
     {
       "id": "cpu-3",
       "description": "An Intel Core i5 processor chip.",
-      "imageUrl": "https://m.media-amazon.com/images/I/51G-S2b2P-L._AC_SL1500_.jpg",
+      "imageUrl": "https://m.media-amazon.com/images/I/61bK343jI6L._AC_SL1500_.jpg",
       "imageHint": "Intel processor"
     },
     {
       "id": "case-1",
       "description": "An NZXT H510 computer case.",
-      "imageUrl": "https://m.media-amazon.com/images/I/51G-S2b2P-L._AC_SL1500_.jpg",
+      "imageUrl": "https://m.media-amazon.com/images/I/51PHj2g2YgL._AC_SL1000_.jpg",
       "imageHint": "computer case"
     },
     {
       "id": "motherboard-3",
       "description": "An MSI MAG Mortar motherboard.",
-      "imageUrl": "https://m.media-amazon.com/images/I/81B-k2V9pOL._AC_SL1500_.jpg",
+      "imageUrl": "https://m.media-amazon.com/images/I/71p3fG3x-gL._AC_SL1500_.jpg",
       "imageHint": "MSI motherboard"
     }
   ]
