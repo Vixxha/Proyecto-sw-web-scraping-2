@@ -1,180 +1,9 @@
-/**
- * @file Firestore Security Rules
- * @description This ruleset enforces a role-based access control model with an admin role and user-specific data ownership.
- *
- * Data Structure:
- * - /components/{componentId}: Stores information about PC components. Accessible to admins for CRUD operations.
- * - /stores/{storeId}: Stores information about online stores. Accessible to admins for CRUD operations.
- * - /categories/{categoryId}: Stores categories of PC components. Accessible to admins for CRUD operations.
- * - /brands/{brandId}: Stores information about PC component brands. Accessible to admins for CRUD operations.
- * - /prices/{priceId}: Stores pricing information for components at different stores. Accessible to admins for CRUD operations.
- * - /roles_admin/{userId}: Documents in this collection indicate admin privileges for the corresponding user. Only admins can manage this collection.
- * - /users/{userId}: Stores user profiles. Users can only create their own profiles, and admins can manage all profiles.
- *
- * Key Security Decisions:
- * - Admin Role: Users listed in `/roles_admin/{userId}` have full CRUD access to components, stores, categories, brands, and prices.
- * - User Ownership: Users can only create their own user document in `/users/{userId}`.
- * - No User Listing: Listing all users is disallowed for security reasons.
- *
- * Denormalization for Authorization:
- * - Admin Role: The presence of a document in `/roles_admin/{userId}` grants admin privileges. This avoids complex queries to determine admin status.
- *
- * Structural Segregation:
- * - Admin Roles: Admin user IDs are stored in a separate `/roles_admin/{userId}` collection to clearly define and manage admin privileges.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows admins to perform CRUD operations on components.
-     * @path /components/{componentId}
-     * @allow (create) User with ID 'admin_user' in /roles_admin can create a component.
-     * @deny (create) User without ID in /roles_admin cannot create a component.
-     * @allow (update) User with ID 'admin_user' in /roles_admin can update a component.
-     * @deny (update) User without ID in /roles_admin cannot update a component.
-     * @allow (delete) User with ID 'admin_user' in /roles_admin can delete a component.
-     * @deny (delete) User without ID in /roles_admin cannot delete a component.
-     * @allow (get) Any user can read a component.
-     * @allow (list) Any user can list components.
-     * @principle Enforces admin-only access for writes and public read access for components.
-     */
-    match /components/{componentId} {
-      allow get, list: if true;
-      allow create: if isAdmin();
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
-    }
-
-    /**
-     * @description Allows admins to perform CRUD operations on stores.
-     * @path /stores/{storeId}
-     * @allow (create) User with ID 'admin_user' in /roles_admin can create a store.
-     * @deny (create) User without ID in /roles_admin cannot create a store.
-     * @allow (update) User with ID 'admin_user' can update a store.
-     * @deny (update) User without ID in /roles_admin cannot update a store.
-     * @allow (delete) User with ID 'admin_user' can delete a store.
-     * @deny (delete) User without ID in /roles_admin cannot delete a store.
-     * @allow (get) Any user can read a store.
-     * @allow (list) Any user can list stores.
-     * @principle Enforces admin-only access for writes and public read access for stores.
-     */
-    match /stores/{storeId} {
-      allow get, list: if true;
-      allow create: if isAdmin();
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
-    }
-
-    /**
-     * @description Allows admins to perform CRUD operations on categories.
-     * @path /categories/{categoryId}
-     * @allow (create) User with ID 'admin_user' in /roles_admin can create a category.
-     * @deny (create) User without ID in /roles_admin cannot create a category.
-     * @allow (update) User with ID 'admin_user' can update a category.
-     * @deny (update) User without ID in /roles_admin cannot update a category.
-     * @allow (delete) User with ID 'admin_user' can delete a category.
-     * @deny (delete) User without ID in /roles_admin cannot delete a category.
-     * @allow (get) Any user can read a category.
-     * @allow (list) Any user can list categories.
-     * @principle Enforces admin-only access for writes and public read access for categories.
-     */
-    match /categories/{categoryId} {
-      allow get, list: if true;
-      allow create: if isAdmin();
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
-    }
-
-    /**
-     * @description Allows admins to perform CRUD operations on brands.
-     * @path /brands/{brandId}
-     * @allow (create) User with ID 'admin_user' in /roles_admin can create a brand.
-     * @deny (create) User without ID in /roles_admin cannot create a brand.
-     * @allow (update) User with ID 'admin_user' can update a brand.
-     * @deny (update) User without ID in /roles_admin cannot update a brand.
-     * @allow (delete) User with ID 'admin_user' can delete a brand.
-     * @deny (delete) User without ID in /roles_admin cannot delete a brand.
-     * @allow (get) Any user can read a brand.
-     * @allow (list) Any user can list brands.
-     * @principle Enforces admin-only access for writes and public read access for brands.
-     */
-    match /brands/{brandId} {
-      allow get, list: if true;
-      allow create: if isAdmin();
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
-    }
-
-    /**
-     * @description Allows admins to perform CRUD operations on prices.
-     * @path /prices/{priceId}
-     * @allow (create) User with ID 'admin_user' in /roles_admin can create a price.
-     * @deny (create) User without ID in /roles_admin cannot create a price.
-     * @allow (update) User with ID 'admin_user' can update a price.
-     * @deny (update) User without ID in /roles_admin cannot update a price.
-     * @allow (delete) User with ID 'admin_user' can delete a price.
-     * @deny (delete) User without ID in /roles_admin cannot delete a price.
-     * @allow (get) Any user can read a price.
-     * @allow (list) Any user can list prices.
-     * @principle Enforces admin-only access for writes and public read access for prices.
-     */
-    match /prices/{priceId} {
-      allow get, list: if true;
-      allow create: if isAdmin();
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
-    }
-
-    /**
-     * @description Allows admins to manage admin roles by creating and deleting documents in this collection.
-     * @path /roles_admin/{userId}
-     * @allow (create) User with ID 'admin_user' in /roles_admin can create an admin role.
-     * @deny (create) User without ID in /roles_admin cannot create an admin role.
-     * @allow (update) Admins cannot update documents in this collection (only creation/deletion is allowed).
-     * @deny (update) Non-admins cannot update documents in this collection.
-     * @allow (delete) User with ID 'admin_user' in /roles_admin can delete an admin role.
-     * @deny (delete) User without ID in /roles_admin cannot delete an admin role.
-     * @allow (get) User with ID 'admin_user' in /roles_admin can get an admin role.
-     * @deny (get) User without ID in /roles_admin cannot get an admin role.
-     * @allow (list) User with ID 'admin_user' in /roles_admin can list admin roles.
-     * @deny (list) User without ID in /roles_admin cannot list admin roles.
-     * @principle Enforces admin-only access for managing admin roles.
-     */
-    match /roles_admin/{userId} {
-      allow get, list: if isAdmin();
-      allow create: if isAdmin();
-      allow update: if false;
-      allow delete: if isAdmin() && resource != null;
-    }
-
-    /**
-     * @description Allows users to create their own user document. Admins can perform CRUD operations on all user documents.
-     * @path /users/{userId}
-     * @allow (create) User can create their own user document.
-     * @deny (create) User cannot create a user document for another user.
-     * @allow (update) Admin can update any user document.
-     * @deny (update) User cannot update another user's document.
-     * @allow (delete) Admin can delete any user document.
-     * @deny (delete) User cannot delete another user's document.
-     * @allow (get) Admin can get any user document.
-     * @deny (get) User cannot get another user's document.
-     * @allow (list) Only admins can list user documents.
-     * @deny (list) Users cannot list all user documents.
-     * @principle Enforces user-ownership for creation and admin-only access for other operations.
-     */
-    match /users/{userId} {
-      allow get: if isAdmin() || isOwner(userId);
-      allow list: if isAdmin();
-      allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
-    }
-
-    // ---- Helper functions ----
-
-    /**
-     * @description Checks if the current user is signed in.
+     * @description Checks if the user is signed in.
      * @return {boolean} True if the user is signed in, false otherwise.
      */
     function isSignedIn() {
@@ -182,8 +11,16 @@ service cloud.firestore {
     }
 
     /**
-     * @description Checks if the current user is the owner of the resource.
-     * @param {string} userId The user ID to compare with the request's authentication UID.
+     * @description Checks if the user is an admin.
+     * @return {boolean} True if the user is an admin, checking for existence.
+     */
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+
+    /**
+     * @description Checks if the request is authenticated and the user ID matches the requested ID.
+     * @param {string} userId - The user ID to check against.
      * @return {boolean} True if the user is the owner, false otherwise.
      */
     function isOwner(userId) {
@@ -191,11 +28,144 @@ service cloud.firestore {
     }
 
     /**
-     * @description Checks if the current user is an admin.
-     * @return {boolean} True if the user is an admin, false otherwise.
+     * @description Checks if the user is the owner of the existing document.
+     * @param {string} userId - The user ID to check against.
+     * @return {boolean} True if the user is the owner, false otherwise.
      */
-    function isAdmin() {
-      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    function isExistingOwner(userId) {
+        return isOwner(userId) && resource.data != null;
+    }
+
+    /**
+     * @description Rules for the /components/{componentId} collection.
+     * @path /components/{componentId}
+     * @allow (create) Signed-in user can create a component (admins in the future).
+     * @deny (create) Non-signed-in user cannot create a component.
+     * @allow (get) Any user can read a component.
+     */
+    match /components/{componentId} {
+      // Anyone can read components
+      allow get: if true;
+      allow list: if true;
+
+      // Only admins can create, update, or delete components
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    /**
+     * @description Rules for the /stores/{storeId} collection.
+     * @path /stores/{storeId}
+     * @allow (create) Signed-in user can create a store (admins in the future).
+     * @deny (create) Non-signed-in user cannot create a store.
+     * @allow (get) Any user can read a store.
+     */
+    match /stores/{storeId} {
+      // Anyone can read stores
+      allow get: if true;
+      allow list: if true;
+
+      // Only admins can create, update, or delete stores
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    /**
+     * @description Rules for the /categories/{categoryId} collection.
+     * @path /categories/{categoryId}
+     * @allow (create) Signed-in user can create a category (admins in the future).
+     * @deny (create) Non-signed-in user cannot create a category.
+     */
+    match /categories/{categoryId} {
+      // Anyone can read categories
+      allow get: if true;
+      allow list: if true;
+
+      // Only admins can create, update, or delete categories
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    /**
+     * @description Rules for the /brands/{brandId} collection.
+     * @path /brands/{brandId}
+     * @allow (create) Signed-in user can create a brand (admins in the future).
+     * @deny (create) Non-signed-in user cannot create a brand.
+     */
+    match /brands/{brandId} {
+      // Anyone can read brands
+      allow get: if true;
+      allow list: if true;
+
+      // Only admins can create, update, or delete brands
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    /**
+     * @description Rules for the /prices/{priceId} collection.
+     * @path /prices/{priceId}
+     * @allow (create) Signed-in user can create a price (admins in the future).
+     * @deny (create) Non-signed-in user cannot create a price.
+     */
+    match /prices/{priceId} {
+      // Anyone can read prices
+      allow get: if true;
+      allow list: if true;
+
+      // Only admins can create, update, or delete prices
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    /**
+     * @description Rules for the /roles_admin/{userId} collection.
+     * @path /roles_admin/{userId}
+     * @allow (create) Only the user themselves can create their admin role.
+     * @deny (create) Non-signed-in user cannot create an admin role.
+     * @allow (get) Only the user themselves can get their admin role.
+     * @deny (update) Nobody can update an admin role doc.
+     * @deny (delete) Only admins can delete an admin role document.
+     */
+    match /roles_admin/{userId} {
+      // Only the user can create their admin role
+      allow create: if isOwner(userId);
+      allow get: if isOwner(userId);
+
+      // Only admins can delete an admin role document
+      allow delete: if isAdmin();
+
+      // No updates allowed
+      allow update: if false;
+      allow list: if false;
+    }
+
+    /**
+     * @description Rules for the /users/{userId} collection.
+     * @path /users/{userId}
+     * @allow (create) Signed-in user can create their own user document.
+     * @deny (create) Non-signed-in user cannot create a user document.
+     */
+    match /users/{userId} {
+      // Signed-in user can create their own user document
+      allow create: if request.auth.uid == userId;
+
+      // Only the user themselves can read their profile
+      allow get: if isOwner(userId);
+
+      // Only the user themselves can update their profile
+      allow update: if isOwner(userId);
+
+      // Only the user themselves can delete their profile
+      allow delete: if isOwner(userId);
+
+      // Disable listing of users for privacy
+      allow list: if false;
     }
   }
 }
