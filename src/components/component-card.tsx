@@ -43,11 +43,8 @@ export default function ComponentCard({ component }: ComponentCardProps) {
           <p className="text-sm text-muted-foreground">{component.brand}</p>
         </CardContent>
         <CardFooter className="p-4 pt-0 mt-auto">
-          <Button className="w-full" variant="outline" asChild>
-             {/* This inner link is for the button's functionality, outer link makes the card clickable */}
-            <Link href={`/components/${component.slug}`}>
-                Ver Detalles <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
+          <Button className="w-full" variant="outline" tabIndex={-1}>
+            Ver Detalles <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </CardFooter>
       </Link>
