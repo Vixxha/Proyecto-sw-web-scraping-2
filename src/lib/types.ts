@@ -21,7 +21,7 @@ export interface Component {
   name: string;
   sku: string;
   brand: string;
-  category: 'CPU' | 'GPU' | 'Motherboard' | 'RAM' | 'Storage';
+  category: 'CPU' | 'GPU' | 'Motherboard' | 'RAM' | 'Storage' | 'Power Supply' | 'Case';
   imageUrl: string;
   imageHint: string;
   prices: PriceEntry[];

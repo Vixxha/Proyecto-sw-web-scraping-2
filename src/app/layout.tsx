@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
-      <body className={cn('min-h-screen bg-background font-body antialiased', inter.variable)}>
+      <body className={cn('min-h-screen bg-background font-sans antialiased', inter.variable)}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <div className="relative flex min-h-dvh flex-col bg-background">
             <Header />
