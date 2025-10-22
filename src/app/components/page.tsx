@@ -29,8 +29,8 @@ export default function ComponentsPage() {
     });
   }, [searchQuery, category, brand]);
 
-  const FilterControls = () => (
-     <div className="space-y-6">
+  const filterControlsContent = (
+    <div className="space-y-6">
        <div>
          <Label htmlFor="search-input">Buscar Componente</Label>
          <div className="relative mt-2">
@@ -92,7 +92,7 @@ export default function ComponentsPage() {
                 <CardTitle>Filtros</CardTitle>
             </CardHeader>
             <CardContent>
-              <FilterControls />
+              {filterControlsContent}
             </CardContent>
           </Card>
         </aside>
@@ -106,7 +106,7 @@ export default function ComponentsPage() {
                 </SheetTrigger>
                 <SheetContent>
                     <div className="mt-8">
-                      <FilterControls />
+                      {filterControlsContent}
                     </div>
                 </SheetContent>
               </Sheet>
@@ -128,4 +128,3 @@ export default function ComponentsPage() {
     </div>
   );
 }
-
