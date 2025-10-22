@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { collection, doc, serverTimestamp } from 'firebase/firestore';
 import type { Component } from '@/lib/types';
 import {
   Table,
@@ -52,56 +52,38 @@ export default function AdminDashboardPage() {
   }
 
   const handleFormSubmit = async (componentData: Omit<Component, 'id'>) => {
-    try {
-        if (editingComponent) {
-            // Update existing component
-            const componentRef = doc(firestore, 'components', editingComponent.id);
-            await updateDoc(componentRef, {
-                ...componentData,
-                updatedAt: serverTimestamp(),
-            });
-            toast({
-                title: 'Componente actualizado',
-                description: 'El componente ha sido actualizado correctamente.',
-            });
-        } else {
-            // Add new component
-            await addDoc(collection(firestore, 'components'), {
-                ...componentData,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-            });
-            toast({
-                title: 'Componente añadido',
-                description: 'El nuevo componente ha sido guardado correctamente.',
-            });
-        }
-        handleCloseForm();
-    } catch (error) {
-        console.error('Error saving component: ', error);
+    if (editingComponent) {
+        // Update existing component
+        const componentRef = doc(firestore, 'components', editingComponent.id);
+        updateDocumentNonBlocking(componentRef, {
+            ...componentData,
+            updatedAt: serverTimestamp(),
+        });
         toast({
-            variant: 'destructive',
-            title: 'Error al guardar',
-            description: `No se pudo guardar el componente. ${error instanceof Error ? error.message : ''}`,
+            title: 'Componente actualizado',
+            description: 'El componente ha sido actualizado correctamente.',
+        });
+    } else {
+        // Add new component
+        addDocumentNonBlocking(collection(firestore, 'components'), {
+            ...componentData,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        });
+        toast({
+            title: 'Componente añadido',
+            description: 'El nuevo componente ha sido guardado correctamente.',
         });
     }
+    handleCloseForm();
   };
 
   const handleDeleteComponent = async (componentId: string) => {
-    try {
-        await deleteDoc(doc(firestore, 'components', componentId));
-        toast({
-            title: 'Componente eliminado',
-            description: 'El componente ha sido eliminado permanentemente.',
-        });
-    } catch (error) {
-        console.error('Error deleting component: ', error);
-        toast({
-            variant: 'destructive',
-            title: 'Error al eliminar',
-            description: 'No se pudo eliminar el componente.',
-        });
-    }
+    deleteDocumentNonBlocking(doc(firestore, 'components', componentId));
+    toast({
+        title: 'Componente eliminado',
+        description: 'El componente ha sido eliminado permanentemente.',
+    });
   };
 
   if (isUserLoading || !user) {
