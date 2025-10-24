@@ -31,17 +31,19 @@ export default function ComponentCard({ component }: ComponentCardProps) {
             />
           </div>
         </CardHeader>
-        <CardContent className="p-4 flex-grow flex flex-col">
-          <div className="flex justify-between items-start mb-2">
-              <Badge variant="secondary">{component.category}</Badge>
-              {bestPrice !== null && (
-                <p className="text-xl font-bold text-primary">
-                  ${bestPrice.toLocaleString('es-CL')}
-                </p>
-              )}
+        <CardContent className="p-4 flex-grow flex flex-col justify-between">
+          <div>
+            <div className="flex justify-between items-start mb-2">
+                <Badge variant="secondary">{component.category}</Badge>
+                {bestPrice !== null && (
+                  <p className="text-xl font-bold text-primary">
+                    ${bestPrice.toLocaleString('es-CL')}
+                  </p>
+                )}
+            </div>
+            <h3 className="text-base font-semibold leading-tight mt-1 mb-1 h-12 line-clamp-2">{component.name}</h3>
+            <p className="text-sm text-muted-foreground">{component.brand}</p>
           </div>
-          <h3 className="text-base font-semibold leading-tight mt-1 mb-1 h-12 line-clamp-2 flex-grow">{component.name}</h3>
-          <p className="text-sm text-muted-foreground">{component.brand}</p>
         </CardContent>
         <CardFooter className="p-4 pt-0 mt-auto">
            <Button className="w-full" variant="outline" tabIndex={-1}>
