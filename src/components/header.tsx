@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Search, Dices } from "lucide-react";
+import { Menu, Search, Dices, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 const navLinks = [
   { href: "/components", label: "Buscar", icon: Search },
   { href: "/build", label: "Arma tu PC", icon: Dices },
+  { href: "/ai-builder", label: "Asistente IA", icon: Bot },
 ];
 
 export function Header() {
@@ -24,10 +25,11 @@ export function Header() {
           key={link.href}
           href={link.href}
           className={cn(
-            "transition-colors hover:text-foreground/80",
+            "transition-colors hover:text-foreground/80 flex items-center gap-2",
             pathname === link.href ? "text-foreground" : "text-foreground/60"
           )}
         >
+          <link.icon className="h-4 w-4" />
           {link.label}
         </Link>
       ))}
@@ -74,10 +76,11 @@ export function Header() {
                           key={link.href}
                           href={link.href}
                           className={cn(
-                            "transition-colors hover:text-foreground/80",
+                            "transition-colors hover:text-foreground/80 text-lg flex items-center gap-3",
                             pathname === link.href ? "text-foreground" : "text-foreground/60"
                           )}
                         >
+                          <link.icon className="h-5 w-5" />
                           {link.label}
                         </Link>
                       ))}
@@ -88,9 +91,7 @@ export function Header() {
         
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="w-full flex-1 md:w-auto md:flex-none">
-             <Button asChild>
-                <Link href="/login">Iniciar Sesión</Link>
-            </Button>
+             {/* Login button can be re-added here if needed */}
           </div>
           <nav className="flex items-center">
             <ThemeToggle />
