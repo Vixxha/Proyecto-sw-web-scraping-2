@@ -24,15 +24,14 @@ export default function ComponentCard({ component }: ComponentCardProps) {
             <Image
               src={component.imageUrl}
               alt={component.name}
-              width={600}
-              height={600}
+              fill
               className="w-full h-full object-cover"
               data-ai-hint={component.imageHint}
             />
           </div>
         </CardHeader>
         <CardContent className="p-4 flex-grow flex flex-col justify-between">
-          <div>
+          <div className="flex-grow">
             <div className="flex justify-between items-start mb-2">
                 <Badge variant="secondary">{component.category}</Badge>
                 {bestPrice !== null && (
