@@ -26,7 +26,7 @@ export default function ComponentCard({ component }: ComponentCardProps) {
               alt={component.name}
               width={600}
               height={600}
-              className="object-contain w-full h-full p-4"
+              className="object-cover w-full h-full"
               data-ai-hint={component.imageHint}
             />
           </div>
