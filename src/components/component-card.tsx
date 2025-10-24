@@ -20,13 +20,13 @@ export default function ComponentCard({ component }: ComponentCardProps) {
     <Card className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5">
       <Link href={`/components/${component.slug}`} className="flex flex-col h-full">
         <CardHeader className="p-0">
-          <div className="relative aspect-square w-full">
+          <div className="relative aspect-square w-full bg-muted/30">
             <Image
               src={component.imageUrl}
               alt={component.name}
               width={600}
               height={600}
-              className="object-cover w-full h-full"
+              className="object-contain w-full h-full p-4"
               data-ai-hint={component.imageHint}
             />
           </div>

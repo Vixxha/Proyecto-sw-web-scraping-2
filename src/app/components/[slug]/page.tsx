@@ -31,13 +31,13 @@ export default function ComponentPage({ params }: { params: { slug: string } }) 
       <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
         <div className="lg:col-span-2">
           <Card className="overflow-hidden sticky top-24 shadow-lg">
-            <div className="relative aspect-square w-full">
+            <div className="relative aspect-square w-full bg-muted/30">
               <Image
                 src={component.imageUrl}
                 alt={component.name}
                 width={600}
                 height={600}
-                className="object-cover w-full h-full"
+                className="object-contain w-full h-full p-4"
                 data-ai-hint={component.imageHint}
               />
             </div>
