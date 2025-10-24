@@ -26,12 +26,8 @@ export interface Component {
   imageUrl: string;
   imageHint?: string;
   description?: string;
-  // These are now optional as they are not part of the core component document
-  prices?: PriceEntry[];
-  priceHistory?: PriceHistoryPoint[];
-  specs?: { [key: string]: string };
-  slug?: string;
-  // Timestamps from firestore
-  createdAt?: any;
-  updatedAt?: any;
+  prices: PriceEntry[];
+  priceHistory: PriceHistoryPoint[];
+  specs: { [key: string]: string };
+  slug: string;
 }

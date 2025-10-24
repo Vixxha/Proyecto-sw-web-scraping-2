@@ -24,8 +24,9 @@ export default function ComponentCard({ component }: ComponentCardProps) {
             <Image
               src={component.imageUrl}
               alt={component.name}
-              fill
-              className="object-cover"
+              width={600}
+              height={600}
+              className="object-cover w-full h-full"
               data-ai-hint={component.imageHint}
             />
           </div>
