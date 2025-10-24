@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Cpu, Search, Dices, ArrowRight } from 'lucide-react';
@@ -7,9 +8,17 @@ import { components } from '@/lib/data';
 import ComponentCard from '@/components/component-card';
 import { Badge } from '@/components/ui/badge';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+
 
 export default function HomePage() {
-  const featuredComponents = components.slice(0, 4);
+  const featuredComponents = components.slice(0, 8);
   const heroImage = PlaceHolderImages.find(p => p.id === 'motherboard-1');
 
   return (
@@ -65,10 +74,26 @@ export default function HomePage() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pt-12">
-              {featuredComponents.map((component) => (
-                <ComponentCard key={component.id} component={component} />
-              ))}
+            <div className="relative pt-12">
+               <Carousel
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+                className="w-full"
+              >
+                <CarouselContent>
+                  {featuredComponents.map((component) => (
+                    <CarouselItem key={component.id} className="sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                       <div className="p-1 h-full">
+                         <ComponentCard component={component} />
+                       </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 hidden sm:flex" />
+                <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 hidden sm:flex" />
+              </Carousel>
             </div>
              <div className="text-center mt-12">
                 <Button asChild size="lg">
