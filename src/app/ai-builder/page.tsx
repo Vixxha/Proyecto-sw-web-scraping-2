@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import type { BuildPcOutput } from '@/ai/flows/build-pc-schema';
 
 const componentMap = new Map(allComponents.map(c => [c.slug, c]));
 
@@ -31,7 +32,7 @@ const categoryIcons: Record<Category, React.ReactNode> = {
 
 export default function AIBuilderPage() {
   const [prompt, setPrompt] = useState('');
-  const [suggestedBuild, setSuggestedBuild] = useState<Record<string, string> | null>(null);
+  const [suggestedBuild, setSuggestedBuild] = useState<BuildPcOutput['build'] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 

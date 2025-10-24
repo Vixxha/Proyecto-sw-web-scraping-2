@@ -5,13 +5,12 @@
  * @fileOverview Flujo de Genkit para generar una configuración de PC basada en la descripción del usuario.
  *
  * - buildPc - La función principal que invoca el flujo de IA.
- * - BuildPcInput - El tipo de entrada para la descripción del usuario.
- * - BuildPcOutput - El tipo de salida que contiene la configuración de PC generada.
  */
 
 import { ai } from '@/ai/genkit';
 import { components } from '@/lib/data';
-import { z } from 'genkit';
+import { BuildPcInputSchema, BuildPcOutputSchema, type BuildPcInput, type BuildPcOutput } from './build-pc-schema';
+
 
 // Simplificamos los datos de los componentes para que sean más fáciles de procesar por el modelo.
 const componentContext = JSON.stringify(components.map(c => ({
@@ -22,22 +21,6 @@ const componentContext = JSON.stringify(components.map(c => ({
     price: Math.min(...c.prices.map(p => p.price)) || 0,
     specs: c.specs
 })));
-
-export const BuildPcInputSchema = z.string();
-export type BuildPcInput = z.infer<typeof BuildPcInputSchema>;
-
-export const BuildPcOutputSchema = z.object({
-  build: z.object({
-    CPU: z.string().describe('El slug del componente de CPU seleccionado.'),
-    Motherboard: z.string().describe('El slug del componente de Placa Madre seleccionado.'),
-    RAM: z.string().describe('El slug del componente de RAM seleccionado.'),
-    GPU: z.string().describe('El slug del componente de Tarjeta de Video seleccionada.'),
-    Storage: z.string().describe('El slug del componente de Almacenamiento seleccionado.'),
-    'Power Supply': z.string().describe('El slug del componente de Fuente de Poder seleccionado.'),
-    Case: z.string().describe('El slug del componente de Gabinete seleccionado.'),
-  }).describe('Un objeto que contiene los slugs de los componentes seleccionados para cada categoría.'),
-});
-export type BuildPcOutput = z.infer<typeof BuildPcOutputSchema>;
 
 
 export async function buildPc(input: BuildPcInput): Promise<BuildPcOutput> {
