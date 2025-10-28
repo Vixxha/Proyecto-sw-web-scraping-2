@@ -1,4 +1,8 @@
 
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Cpu, Search, Dices, ArrowRight } from 'lucide-react';
@@ -14,13 +18,23 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import { Input } from '@/components/ui/input';
 
 
 export default function HomePage() {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
   const featuredComponents = components.slice(0, 8);
   const heroImage = {
       imageUrl: "https://images.unsplash.com/photo-1542729716-6d1890d980ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxnYW1pbmclMjBtb3RoZXJib2FyZHxlbnwwfHx8fDE3NjEzMzA3MTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
       imageHint: "gaming motherboard"
+  };
+
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/components?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
   };
 
   return (
@@ -37,7 +51,19 @@ export default function HomePage() {
                 <p className="max-w-[600px] text-muted-foreground md:text-xl">
                   Compara precios de miles de componentes, arma tu propia configuración y encuentra las mejores ofertas de las tiendas más confiables.
                 </p>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
+                <form onSubmit={handleSearch} className="mt-4 flex w-full max-w-lg items-center space-x-2">
+                  <Input
+                    type="text"
+                    placeholder="Ej: 'GeForce RTX 4090'..."
+                    className="flex-1"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <Button type="submit">
+                    <Search className="mr-2 h-4 w-4" /> Buscar
+                  </Button>
+                </form>
+                <div className="flex flex-col gap-2 min-[400px]:flex-row pt-4">
                   <Button asChild size="lg">
                     <Link href="/components">
                       <Cpu className="mr-2" /> Explorar Componentes

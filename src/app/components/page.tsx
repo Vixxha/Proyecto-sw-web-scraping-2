@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ComponentCard from '@/components/component-card';
@@ -17,9 +18,17 @@ const categories = ['All', 'CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'Power
 const brands = ['All', 'Intel', 'AMD', 'NVIDIA', 'ASUS', 'Corsair', 'Samsung', 'Gigabyte', 'MSI', 'Crucial', 'SeaSonic', 'NZXT'];
 
 export default function ComponentsPage() {
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('All');
   const [brand, setBrand] = useState('All');
+  
+  useEffect(() => {
+    const queryFromUrl = searchParams.get('search');
+    if (queryFromUrl) {
+      setSearchQuery(queryFromUrl);
+    }
+  }, [searchParams]);
 
   const filteredComponents = useMemo(() => {
     return allComponents.filter((component) => {
