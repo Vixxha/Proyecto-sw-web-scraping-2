@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { components } from '@/lib/data';
 import ComponentCard from '@/components/component-card';
 import { Badge } from '@/components/ui/badge';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import {
   Carousel,
   CarouselContent,
@@ -19,7 +18,10 @@ import {
 
 export default function HomePage() {
   const featuredComponents = components.slice(0, 8);
-  const heroImage = PlaceHolderImages.find(p => p.id === 'motherboard-1');
+  const heroImage = {
+      imageUrl: "https://images.unsplash.com/photo-1542729716-6d1890d980ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxnYW1pbmclMjBtb3RoZXJib2FyZHxlbnwwfHx8fDE3NjEzMzA3MTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      imageHint: "gaming motherboard"
+  };
 
   return (
     <div className="flex flex-col min-h-dvh">
