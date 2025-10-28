@@ -2,6 +2,7 @@
 
 import { TrendingUp } from "lucide-react"
 import { CartesianGrid, Line, LineChart, XAxis, YAxis, Legend } from "recharts"
+import React, { useState } from 'react';
 
 import {
   Card,
@@ -37,16 +38,26 @@ const chartConfig = {
 }
 
 export default function PriceHistoryChart({ data }: PriceHistoryChartProps) {
+  const [activeChart, setActiveChart] = useState<string | null>(null);
+
   return (
     <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
         <LineChart
-        accessibilityLayer
-        data={data}
-        margin={{
-            left: 12,
-            right: 12,
-            top: 12
-        }}
+            accessibilityLayer
+            data={data}
+            margin={{
+                left: 12,
+                right: 12,
+                top: 12
+            }}
+            onMouseMove={(state) => {
+              if (state.isTooltipActive && state.activePayload?.[0]) {
+                setActiveChart(state.activePayload[0].dataKey);
+              }
+            }}
+            onMouseLeave={() => {
+              setActiveChart(null);
+            }}
         >
         <CartesianGrid vertical={false} />
         <XAxis
@@ -101,6 +112,7 @@ export default function PriceHistoryChart({ data }: PriceHistoryChartProps) {
             strokeWidth={2}
             dot={false}
             name="Precio Normal"
+            strokeOpacity={activeChart === null || activeChart === 'normalPrice' ? 1 : 0.25}
         />
         <Line
             dataKey="offerPrice"
@@ -109,6 +121,7 @@ export default function PriceHistoryChart({ data }: PriceHistoryChartProps) {
             strokeWidth={2}
             dot={false}
             name="Precio Oferta"
+            strokeOpacity={activeChart === null || activeChart === 'offerPrice' ? 1 : 0.25}
         />
         </LineChart>
     </ChartContainer>
