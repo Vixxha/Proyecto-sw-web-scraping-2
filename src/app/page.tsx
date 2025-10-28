@@ -41,6 +41,7 @@ const TypewriterPlaceholder = ({ onSearch }: { onSearch: (query: string) => void
     const handleTyping = () => {
       const fullText = placeholderTexts[placeholderIndex];
       let newCharIndex = charIndex;
+      let timeout = isDeleting ? 50 : 120;
 
       if (isDeleting) {
         setCurrentPlaceholder(fullText.substring(0, newCharIndex - 1));
@@ -53,13 +54,15 @@ const TypewriterPlaceholder = ({ onSearch }: { onSearch: (query: string) => void
 
       if (!isDeleting && newCharIndex === fullText.length) {
         // Pause at the end of the text
-        typingTimeoutRef.current = setTimeout(() => setIsDeleting(true), 2000);
+        timeout = 2000;
+        setIsDeleting(true);
       } else if (isDeleting && newCharIndex === 0) {
         setIsDeleting(false);
         setPlaceholderIndex((prevIndex) => (prevIndex + 1) % placeholderTexts.length);
-      } else {
-         typingTimeoutRef.current = setTimeout(handleTyping, isDeleting ? 50 : 120);
+        timeout = 120;
       }
+      
+      typingTimeoutRef.current = setTimeout(handleTyping, timeout);
     };
     
     typingTimeoutRef.current = setTimeout(handleTyping, 120);
@@ -70,7 +73,7 @@ const TypewriterPlaceholder = ({ onSearch }: { onSearch: (query: string) => void
       }
     };
 
-  }, [charIndex, isDeleting, placeholderIndex, isFocused]);
+  }, [charIndex, isDeleting, placeholderIndex, isFocused, placeholderTexts]);
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -239,4 +242,4 @@ export default function HomePage() {
   );
 }
 
-      
+    
