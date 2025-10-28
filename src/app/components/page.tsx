@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -16,6 +16,12 @@ import { Button } from '@/components/ui/button';
 
 const categories = ['All', 'CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'Power Supply', 'Case'];
 const brands = ['All', 'Intel', 'AMD', 'NVIDIA', 'ASUS', 'Corsair', 'Samsung', 'Gigabyte', 'MSI', 'Crucial', 'SeaSonic', 'NZXT'];
+const placeholderTexts = [
+    "Ej: 'GeForce RTX 4090'...",
+    "Ej: 'AMD Ryzen 9 7950X'...",
+    "Ej: 'Gabinete ATX blanco'...",
+    "Ej: 'Fuente de poder 750W'...",
+  ];
 
 export default function ComponentsPage() {
   const searchParams = useSearchParams();
@@ -23,12 +29,58 @@ export default function ComponentsPage() {
   const [category, setCategory] = useState('All');
   const [brand, setBrand] = useState('All');
   
+  const [currentPlaceholder, setCurrentPlaceholder] = useState('');
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     const queryFromUrl = searchParams.get('search');
     if (queryFromUrl) {
       setSearchQuery(queryFromUrl);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (isInputFocused) return;
+
+    const handleTyping = () => {
+      const fullText = placeholderTexts[placeholderIndex];
+      let newCharIndex = charIndex;
+      let timeout = isDeleting ? 50 : 120;
+
+      if (isDeleting) {
+        setCurrentPlaceholder(fullText.substring(0, newCharIndex - 1));
+        newCharIndex--;
+      } else {
+        setCurrentPlaceholder(fullText.substring(0, newCharIndex + 1));
+        newCharIndex++;
+      }
+      setCharIndex(newCharIndex);
+
+      if (!isDeleting && newCharIndex === fullText.length) {
+        timeout = 2000;
+        setIsDeleting(true);
+      } else if (isDeleting && newCharIndex === 0) {
+        setIsDeleting(false);
+        setPlaceholderIndex((prevIndex) => (prevIndex + 1) % placeholderTexts.length);
+        timeout = 120;
+      }
+      
+      typingTimeoutRef.current = setTimeout(handleTyping, timeout);
+    };
+    
+    typingTimeoutRef.current = setTimeout(handleTyping, 120);
+
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+
+  }, [charIndex, isDeleting, placeholderIndex, isInputFocused, placeholderTexts]);
 
   const filteredComponents = useMemo(() => {
     return allComponents.filter((component) => {
@@ -48,10 +100,12 @@ export default function ComponentsPage() {
             <Input
               id="search-input"
               type="text"
-              placeholder="Buscar por nombre o SKU..."
+              placeholder={isInputFocused ? "Buscar por nombre o SKU..." : currentPlaceholder}
               className="pl-10 w-full"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsInputFocused(true)}
+              onBlur={() => setIsInputFocused(false)}
             />
           </div>
       </div>
