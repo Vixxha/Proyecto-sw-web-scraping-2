@@ -12,7 +12,8 @@ export interface PriceEntry {
 
 export interface PriceHistoryPoint {
   date: string;
-  price: number;
+  normalPrice: number;
+  offerPrice: number;
 }
 
 export type Category = 'CPU' | 'GPU' | 'Motherboard' | 'RAM' | 'Storage' | 'Power Supply' | 'Case';

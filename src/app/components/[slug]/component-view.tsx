@@ -10,41 +10,36 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import PriceHistoryChart from '@/components/price-history-chart';
-import { Bell, ExternalLink } from 'lucide-react';
+import { Bell, CalendarIcon, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import type { Component, PriceHistoryPoint } from '@/lib/types';
+import type { Component } from '@/lib/types';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export default function ComponentView({ component }: { component: Component }) {
-  const [timeRange, setTimeRange] = useState<'30d' | '90d' | '1y'>('30d');
+  const oneYearAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 1));
+  const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
+    from: oneYearAgo,
+    to: new Date()
+  });
 
   const filteredPriceHistory = useMemo(() => {
-    const now = new Date();
-    let days;
-    switch (timeRange) {
-      case '90d':
-        days = 90;
-        break;
-      case '1y':
-        days = 365;
-        break;
-      default:
-        days = 30;
-    }
-    
-    const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    return component.priceHistory.filter(point => {
+        const pointDate = new Date(point.date);
+        const fromDate = dateRange.from ? new Date(dateRange.from.setHours(0,0,0,0)) : null;
+        const toDate = dateRange.to ? new Date(dateRange.to.setHours(23,59,59,999)): null;
 
-    return component.priceHistory.filter(point => new Date(point.date) >= startDate);
-
-  }, [timeRange, component.priceHistory]);
+        if (fromDate && pointDate < fromDate) return false;
+        if (toDate && pointDate > toDate) return false;
+        
+        return true;
+    });
+  }, [dateRange, component.priceHistory]);
 
   const storeMap = new Map(stores.map(s => [s.id, s.name]));
-
-  const timeRanges: { label: string; value: '30d' | '90d' | '1y' }[] = [
-    { label: '30 días', value: '30d' },
-    { label: '90 días', value: '90d' },
-    { label: '1 año', value: '1y' },
-  ];
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
@@ -111,21 +106,53 @@ export default function ComponentView({ component }: { component: Component }) {
                     <CardTitle>Historial de Precios</CardTitle>
                     <CardDescription>Tendencia de precios para este componente.</CardDescription>
                   </div>
-                  <div className="flex items-center gap-2 rounded-md bg-muted p-1">
-                      {timeRanges.map((range) => (
+                  <div className="flex items-center gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
                         <Button
-                            key={range.value}
-                            variant="ghost"
-                            size="sm"
-                            className={cn(
-                                'px-3 py-1 text-xs sm:text-sm',
-                                timeRange === range.value ? 'bg-background shadow-sm' : 'hover:bg-background/50'
-                            )}
-                            onClick={() => setTimeRange(range.value)}
+                          variant={"outline"}
+                          className={cn(
+                            "w-[150px] justify-start text-left font-normal",
+                            !dateRange.from && "text-muted-foreground"
+                          )}
                         >
-                            {range.label}
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {dateRange.from ? format(dateRange.from, "LLL dd, y", { locale: es }) : <span>Desde</span>}
                         </Button>
-                      ))}
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={dateRange.from}
+                          onSelect={(date) => setDateRange(prev => ({...prev, from: date}))}
+                          initialFocus
+                          locale={es}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                     <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-[150px] justify-start text-left font-normal",
+                            !dateRange.to && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {dateRange.to ? format(dateRange.to, "LLL dd, y", { locale: es }) : <span>Hasta</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={dateRange.to}
+                          onSelect={(date) => setDateRange(prev => ({...prev, to: date}))}
+                          initialFocus
+                          locale={es}
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
               </div>
             </CardHeader>

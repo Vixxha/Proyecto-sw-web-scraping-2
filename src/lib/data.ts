@@ -13,10 +13,15 @@ const generatePriceHistory = (basePrice: number): PriceHistoryPoint[] => {
   let currentDate = new Date();
   currentDate.setDate(currentDate.getDate() - 365); // Generate data for 1 year
   for (let i = 0; i < 365; i++) {
-    const fluctuation = (Math.random() - 0.5) * (basePrice * 0.1);
+    const fluctuation = (Math.random() - 0.5) * (basePrice * 0.05); // Smaller fluctuation
+    const normalPrice = Math.round(basePrice + fluctuation);
+    const offerFluctuation = Math.random() * (basePrice * 0.08); // Offer is always lower
+    const offerPrice = Math.round(normalPrice - offerFluctuation);
+    
     history.push({
       date: currentDate.toISOString().split('T')[0],
-      price: Math.round(basePrice + fluctuation),
+      normalPrice: normalPrice,
+      offerPrice: offerPrice,
     });
     currentDate.setDate(currentDate.getDate() + 1);
   }
