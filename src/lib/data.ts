@@ -1,3 +1,4 @@
+
 import type { Component, Store, PriceHistoryPoint } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
@@ -24,7 +25,7 @@ const generatePriceHistory = (basePrice: number): PriceHistoryPoint[] => {
 
 const placeholderImageMap = new Map(PlaceHolderImages.map(p => [p.id, p]));
 
-export const components: Component[] = [
+const rawComponents: Omit<Component, 'priceHistory' | 'imageUrl' | 'imageHint'>[] = [
   {
     id: '1',
     slug: 'intel-core-i9-13900k',
@@ -32,14 +33,11 @@ export const components: Component[] = [
     sku: 'BX8071513900K',
     brand: 'Intel',
     category: 'CPU',
-    imageUrl: placeholderImageMap.get('cpu-1')?.imageUrl!,
-    imageHint: placeholderImageMap.get('cpu-1')?.imageHint,
     prices: [
       { storeId: 'store-1', price: 589990, url: '#' },
       { storeId: 'store-2', price: 599990, url: '#' },
       { storeId: 'store-3', price: 585000, url: '#' },
     ],
-    priceHistory: generatePriceHistory(590000),
     specs: {
       Cores: '24 (8P + 16E)',
       Threads: '32',
@@ -54,13 +52,10 @@ export const components: Component[] = [
     sku: 'RTX4090-FOUNDERS',
     brand: 'NVIDIA',
     category: 'GPU',
-    imageUrl: placeholderImageMap.get('gpu-1')?.imageUrl!,
-    imageHint: placeholderImageMap.get('gpu-1')?.imageHint,
     prices: [
       { storeId: 'store-1', price: 1599990, url: '#' },
       { storeId: 'store-2', price: 1649990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(1620000),
     specs: {
       'CUDA Cores': '16384',
       'Boost Clock': '2.52 GHz',
@@ -75,13 +70,10 @@ export const components: Component[] = [
     sku: 'ROG-MAX-Z790-HERO',
     brand: 'ASUS',
     category: 'Motherboard',
-    imageUrl: placeholderImageMap.get('motherboard-1')?.imageUrl!,
-    imageHint: placeholderImageMap.get('motherboard-1')?.imageHint,
     prices: [
       { storeId: 'store-1', price: 629990, url: '#' },
       { storeId: 'store-3', price: 619990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(625000),
     specs: {
       Chipset: 'Intel Z790',
       'Memory Support': 'DDR5',
@@ -96,14 +88,11 @@ export const components: Component[] = [
     sku: 'CMK32GX5M2B5200C40',
     brand: 'Corsair',
     category: 'RAM',
-    imageUrl: placeholderImageMap.get('ram-1')?.imageUrl!,
-    imageHint: placeholderImageMap.get('ram-1')?.imageHint,
     prices: [
       { storeId: 'store-1', price: 99990, url: '#' },
       { storeId: 'store-2', price: 104990, url: '#' },
       { storeId: 'store-3', price: 97990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(100000),
     specs: {
       Capacity: '32GB (2 x 16GB)',
       Speed: 'DDR5 5200MHz',
@@ -118,14 +107,11 @@ export const components: Component[] = [
     sku: 'MZ-V8P2T0BW',
     brand: 'Samsung',
     category: 'Storage',
-    imageUrl: placeholderImageMap.get('ssd-1')?.imageUrl!,
-    imageHint: placeholderImageMap.get('ssd-1')?.imageHint,
     prices: [
       { storeId: 'store-1', price: 169990, url: '#' },
       { storeId: 'store-2', price: 175990, url: '#' },
       { storeId: 'store-3', price: 169990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(172000),
     specs: {
       Capacity: '2TB',
       Interface: 'PCIe 4.0 NVMe',
@@ -140,14 +126,11 @@ export const components: Component[] = [
     sku: '100-100000514WOF',
     brand: 'AMD',
     category: 'CPU',
-    imageUrl: placeholderImageMap.get('cpu-2')?.imageUrl!,
-    imageHint: placeholderImageMap.get('cpu-2')?.imageHint,
     prices: [
       { storeId: 'store-1', price: 549000, url: '#' },
       { storeId: 'store-2', price: 559990, url: '#' },
       { storeId: 'store-3', price: 545500, url: '#' },
     ],
-    priceHistory: generatePriceHistory(550000),
     specs: {
       Cores: '16',
       Threads: '32',
@@ -162,13 +145,10 @@ export const components: Component[] = [
     sku: 'RX7900XTX-GAMING',
     brand: 'AMD',
     category: 'GPU',
-    imageUrl: placeholderImageMap.get('gpu-2')?.imageUrl!,
-    imageHint: placeholderImageMap.get('gpu-2')?.imageHint,
     prices: [
       { storeId: 'store-1', price: 999990, url: '#' },
       { storeId: 'store-2', price: 979990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(985000),
     specs: {
         'Stream Processors': '6144',
         'Game Clock': '2.3 GHz',
@@ -183,13 +163,10 @@ export const components: Component[] = [
     sku: 'Z790-AORUS-ELITE-AX',
     brand: 'Gigabyte',
     category: 'Motherboard',
-    imageUrl: placeholderImageMap.get('motherboard-2')?.imageUrl!,
-    imageHint: placeholderImageMap.get('motherboard-2')?.imageHint,
     prices: [
       { storeId: 'store-1', price: 259990, url: '#' },
       { storeId: 'store-2', price: 249990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(255000),
     specs: {
       Chipset: 'Intel Z790',
       'Memory Support': 'DDR5',
@@ -204,13 +181,10 @@ export const components: Component[] = [
     sku: 'BL2K8G32C16U4B',
     brand: 'Crucial',
     category: 'RAM',
-    imageUrl: placeholderImageMap.get('ram-2')?.imageUrl!,
-    imageHint: placeholderImageMap.get('ram-2')?.imageHint,
     prices: [
       { storeId: 'store-1', price: 74990, url: '#' },
       { storeId: 'store-3', price: 72990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(74000),
     specs: {
       Capacity: '16GB (2 x 8GB)',
       Speed: 'DDR4 3200MHz',
@@ -225,13 +199,10 @@ export const components: Component[] = [
     sku: 'SSR-750FX',
     brand: 'SeaSonic',
     category: 'Power Supply',
-    imageUrl: placeholderImageMap.get('psu-1')?.imageUrl!,
-    imageHint: placeholderImageMap.get('psu-1')?.imageHint,
     prices: [
       { storeId: 'store-1', price: 129990, url: '#' },
       { storeId: 'store-2', price: 134990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(132000),
     specs: {
       Wattage: '750W',
       '80+ Rating': 'Gold',
@@ -246,14 +217,11 @@ export const components: Component[] = [
     sku: 'BX8071513600K',
     brand: 'Intel',
     category: 'CPU',
-    imageUrl: placeholderImageMap.get('cpu-3')?.imageUrl!,
-    imageHint: placeholderImageMap.get('cpu-3')?.imageHint,
     prices: [
       { storeId: 'store-1', price: 319990, url: '#' },
       { storeId: 'store-2', price: 329990, url: '#' },
       { storeId: 'store-3', price: 315000, url: '#' },
     ],
-    priceHistory: generatePriceHistory(320000),
     specs: {
         Cores: '14 (6P + 8E)',
         Threads: '20',
@@ -268,13 +236,10 @@ export const components: Component[] = [
     sku: 'CA-H510B-W1',
     brand: 'NZXT',
     category: 'Case',
-    imageUrl: placeholderImageMap.get('case-1')?.imageUrl!,
-    imageHint: placeholderImageMap.get('case-1')?.imageHint,
     prices: [
       { storeId: 'store-1', price: 69990, url: '#' },
       { storeId: 'store-3', price: 68990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(70000),
     specs: {
         Type: 'ATX Mid Tower',
         'Side Panel': 'Tempered Glass',
@@ -289,13 +254,10 @@ export const components: Component[] = [
     sku: 'MAG-B660M-MORTAR-WIFI-DDR4',
     brand: 'MSI',
     category: 'Motherboard',
-    imageUrl: placeholderImageMap.get('motherboard-3')?.imageUrl!,
-    imageHint: placeholderImageMap.get('motherboard-3')?.imageHint,
     prices: [
       { storeId: 'store-1', price: 159990, url: '#' },
       { storeId: 'store-2', price: 164990, url: '#' },
     ],
-    priceHistory: generatePriceHistory(162000),
     specs: {
       Chipset: 'Intel B660',
       'Memory Support': 'DDR4',
@@ -304,3 +266,41 @@ export const components: Component[] = [
     },
   },
 ];
+
+const getImageForComponent = (slug: string, category: string) => {
+    let imageId;
+    if (slug.includes('i9') || slug.includes('13900')) imageId = 'cpu-1';
+    else if (slug.includes('i5') || slug.includes('13600')) imageId = 'cpu-3';
+    else if (slug.includes('ryzen-9')) imageId = 'cpu-2';
+    else if (slug.includes('4090')) imageId = 'gpu-1';
+    else if (slug.includes('7900')) imageId = 'gpu-2';
+    else if (slug.includes('maximus')) imageId = 'motherboard-1';
+    else if (slug.includes('aorus')) imageId = 'motherboard-2';
+    else if (slug.includes('mortar')) imageId = 'motherboard-3';
+    else if (slug.includes('vengeance')) imageId = 'ram-1';
+    else if (slug.includes('ballistix')) imageId = 'ram-2';
+    else if (slug.includes('980-pro')) imageId = 'ssd-1';
+    else if (slug.includes('focus-plus')) imageId = 'psu-1';
+    else if (slug.includes('h510')) imageId = 'case-1';
+    else {
+        // Fallback
+        const categoryImages = PlaceHolderImages.filter(p => p.imageHint.includes(category.toLowerCase()));
+        if (categoryImages.length > 0) return categoryImages[0];
+    }
+
+    return placeholderImageMap.get(imageId || '') || PlaceHolderImages[0];
+}
+
+
+export const components: Component[] = rawComponents.map(component => {
+    const bestPrice = Math.min(...component.prices.map(p => p.price));
+    const imageInfo = getImageForComponent(component.slug, component.category);
+    return {
+        ...component,
+        priceHistory: generatePriceHistory(bestPrice),
+        imageUrl: imageInfo.imageUrl,
+        imageHint: imageInfo.imageHint,
+    };
+});
+
+    
