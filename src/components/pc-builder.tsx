@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import type { Component } from '@/lib/types';
+import type { Component, PriceEntry } from '@/lib/types';
 import { Cpu, Dices, HardDrive, MemoryStick, Video, Power, PcCase, PlusCircle, Trash2, Download } from 'lucide-react';
 import ComponentPicker from './component-picker';
 import Image from 'next/image';
@@ -54,9 +54,13 @@ export function PCBuilder() {
     });
   };
 
+  const getBestPriceEntry = (component: Component): PriceEntry | null => {
+    if (!component?.prices || component.prices.length === 0) return null;
+    return component.prices.reduce((best, current) => current.price < best.price ? current : best, component.prices[0]);
+  };
+  
   const getBestPrice = (component: Component) => {
-    if (!component?.prices || component.prices.length === 0) return 0;
-    return Math.min(...component.prices.map(p => p.price));
+    return getBestPriceEntry(component)?.price || 0;
   };
 
   const totalPrice = useMemo(() => {
@@ -67,23 +71,30 @@ export function PCBuilder() {
 
   const handleDownloadXLSX = () => {
     const dataForSheet = Object.entries(selectedComponents).flatMap(([category, components]) => 
-        components.map(component => ({
-            'Categoría': category,
-            'Componente': component.name,
-            'Marca': component.brand,
-            'Precio': getBestPrice(component),
-        }))
+        components.map(component => {
+            const bestPriceEntry = getBestPriceEntry(component);
+            return {
+                'Categoría': category,
+                'Componente': component.name,
+                'Marca': component.brand,
+                'Precio': bestPriceEntry?.price || 0,
+                'Link': bestPriceEntry?.url || 'N/A',
+            };
+        })
     );
     
-    dataForSheet.push({
-        'Categoría': '',
-        'Componente': '',
-        'Marca': 'Total',
-        'Precio': totalPrice,
-    });
+    if (dataForSheet.length > 0) {
+      dataForSheet.push({
+          'Categoría': '',
+          'Componente': '',
+          'Marca': 'Total',
+          'Precio': totalPrice,
+          'Link': '',
+      });
+    }
 
     const worksheet = XLSX.utils.json_to_sheet(dataForSheet, {
-        header: ['Categoría', 'Componente', 'Marca', 'Precio']
+        header: ['Categoría', 'Componente', 'Marca', 'Precio', 'Link']
     });
 
     // Set column widths
@@ -92,6 +103,7 @@ export function PCBuilder() {
         { wch: 50 }, // Componente
         { wch: 20 }, // Marca
         { wch: 15 }, // Precio
+        { wch: 50 }, // Link
     ];
 
     const workbook = XLSX.utils.book_new();
@@ -189,7 +201,7 @@ export function PCBuilder() {
               <span className="text-xl font-bold">Precio Total Estimado:</span>
               <span className="text-2xl font-bold text-primary">${totalPrice.toLocaleString('es-CL')}</span>
             </div>
-            <div className="w-full flex flex-col sm:flex-row gap-2">
+            <div className="w-full flex flex-col gap-2">
                 <Button className="w-full" size="lg" disabled={totalPrice === 0}>
                     Guardar Configuración
                 </Button>
