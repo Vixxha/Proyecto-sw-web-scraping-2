@@ -73,7 +73,7 @@ const TypewriterPlaceholder = ({ onSearch }: { onSearch: (query: string) => void
       }
     };
 
-  }, [charIndex, isDeleting, placeholderIndex, isFocused, placeholderTexts]);
+  }, [charIndex, isDeleting, placeholderIndex, isFocused]);
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -241,5 +241,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
