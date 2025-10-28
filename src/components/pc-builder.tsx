@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import type { Component } from '@/lib/types';
-import { Cpu, Dices, HardDrive, MemoryStick, Video, Power, PcCase, PlusCircle, Trash2 } from 'lucide-react';
+import { Cpu, Dices, HardDrive, MemoryStick, Video, Power, PcCase, PlusCircle, Trash2, Download } from 'lucide-react';
 import ComponentPicker from './component-picker';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import * as XLSX from 'xlsx';
 
 type Category = 'CPU' | 'Motherboard' | 'RAM' | 'GPU' | 'Storage' | 'Power Supply' | 'Case';
 
@@ -53,17 +54,51 @@ export function PCBuilder() {
     });
   };
 
+  const getBestPrice = (component: Component) => {
+    if (!component?.prices || component.prices.length === 0) return 0;
+    return Math.min(...component.prices.map(p => p.price));
+  };
+
   const totalPrice = useMemo(() => {
     return Object.values(selectedComponents).flat().reduce((total, component) => {
-      if (component) {
-        const bestPrice = component.prices.length > 0
-          ? Math.min(...component.prices.map(p => p.price))
-          : 0;
-        return total + bestPrice;
-      }
-      return total;
+      return total + getBestPrice(component);
     }, 0);
   }, [selectedComponents]);
+
+  const handleDownloadXLSX = () => {
+    const dataForSheet = Object.entries(selectedComponents).flatMap(([category, components]) => 
+        components.map(component => ({
+            'Categoría': category,
+            'Componente': component.name,
+            'Marca': component.brand,
+            'Precio': getBestPrice(component),
+        }))
+    );
+    
+    dataForSheet.push({
+        'Categoría': '',
+        'Componente': '',
+        'Marca': 'Total',
+        'Precio': totalPrice,
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(dataForSheet, {
+        header: ['Categoría', 'Componente', 'Marca', 'Precio']
+    });
+
+    // Set column widths
+    worksheet['!cols'] = [
+        { wch: 20 }, // Categoría
+        { wch: 50 }, // Componente
+        { wch: 20 }, // Marca
+        { wch: 15 }, // Precio
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Mi Configuración');
+    
+    XLSX.writeFile(workbook, 'configuracion-pc.xlsx');
+  };
 
   return (
     <div className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
@@ -114,7 +149,7 @@ export function PCBuilder() {
                         </div>
                         <div className="flex items-center gap-4">
                             <p className="text-lg font-bold text-primary">
-                                ${(Math.min(...selected.prices.map(p => p.price)) || 0).toLocaleString('es-CL')}
+                                ${getBestPrice(selected).toLocaleString('es-CL')}
                             </p>
                             <Button variant="ghost" size="icon" onClick={() => handleRemoveComponent(id, index)}>
                                 <Trash2 className="h-5 w-5 text-destructive" />
@@ -154,9 +189,15 @@ export function PCBuilder() {
               <span className="text-xl font-bold">Precio Total Estimado:</span>
               <span className="text-2xl font-bold text-primary">${totalPrice.toLocaleString('es-CL')}</span>
             </div>
-            <Button className="w-full" size="lg" disabled={totalPrice === 0}>
-                Guardar Configuración
-            </Button>
+            <div className="w-full flex flex-col sm:flex-row gap-2">
+                <Button className="w-full" size="lg" disabled={totalPrice === 0}>
+                    Guardar Configuración
+                </Button>
+                <Button className="w-full" size="lg" variant="outline" onClick={handleDownloadXLSX} disabled={totalPrice === 0}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Descargar XLSX
+                </Button>
+            </div>
           </CardFooter>
         </Card>
       </div>
