@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,20 +20,92 @@ import {
 } from "@/components/ui/carousel"
 import { Input } from '@/components/ui/input';
 
+const TypewriterPlaceholder = ({ onSearch }: { onSearch: (query: string) => void }) => {
+  const placeholderTexts = [
+    "Ej: 'GeForce RTX 4090'...",
+    "Ej: 'AMD Ryzen 9 7950X'...",
+    "Ej: 'Gabinete ATX blanco'...",
+    "Ej: 'Fuente de poder 750W'...",
+  ];
+  const [currentPlaceholder, setCurrentPlaceholder] = useState('');
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (isFocused) return;
+
+    const handleTyping = () => {
+      const fullText = placeholderTexts[placeholderIndex];
+      let newCharIndex = charIndex;
+
+      if (isDeleting) {
+        setCurrentPlaceholder(fullText.substring(0, newCharIndex - 1));
+        newCharIndex--;
+      } else {
+        setCurrentPlaceholder(fullText.substring(0, newCharIndex + 1));
+        newCharIndex++;
+      }
+      setCharIndex(newCharIndex);
+
+      if (!isDeleting && newCharIndex === fullText.length) {
+        // Pause at the end of the text
+        typingTimeoutRef.current = setTimeout(() => setIsDeleting(true), 2000);
+      } else if (isDeleting && newCharIndex === 0) {
+        setIsDeleting(false);
+        setPlaceholderIndex((prevIndex) => (prevIndex + 1) % placeholderTexts.length);
+      } else {
+         typingTimeoutRef.current = setTimeout(handleTyping, isDeleting ? 50 : 120);
+      }
+    };
+    
+    typingTimeoutRef.current = setTimeout(handleTyping, 120);
+
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+
+  }, [charIndex, isDeleting, placeholderIndex, isFocused]);
+
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSearch(searchQuery);
+  };
+  
+  return (
+      <form onSubmit={handleFormSubmit} className="mt-4 flex w-full max-w-lg items-center space-x-2">
+        <Input
+          type="text"
+          placeholder={isFocused ? "Ej: 'GeForce RTX 4090'..." : currentPlaceholder}
+          className="flex-1"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+        />
+        <Button type="submit">
+          <Search className="mr-2 h-4 w-4" /> Buscar
+        </Button>
+      </form>
+  );
+};
 
 export default function HomePage() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
   const featuredComponents = components.slice(0, 8);
   const heroImage = {
       imageUrl: "https://images.unsplash.com/photo-1542729716-6d1890d980ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxnYW1pbmclMjBtb3RoZXJib2FyZHxlbnwwfHx8fDE3NjEzMzA3MTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
       imageHint: "gaming motherboard"
   };
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/components?search=${encodeURIComponent(searchQuery.trim())}`);
+  const handleSearch = (query: string) => {
+    if (query.trim()) {
+      router.push(`/components?search=${encodeURIComponent(query.trim())}`);
     }
   };
 
@@ -51,18 +123,9 @@ export default function HomePage() {
                 <p className="max-w-[600px] text-muted-foreground md:text-xl">
                   Compara precios de miles de componentes, arma tu propia configuración y encuentra las mejores ofertas de las tiendas más confiables.
                 </p>
-                <form onSubmit={handleSearch} className="mt-4 flex w-full max-w-lg items-center space-x-2">
-                  <Input
-                    type="text"
-                    placeholder="Ej: 'GeForce RTX 4090'..."
-                    className="flex-1"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  <Button type="submit">
-                    <Search className="mr-2 h-4 w-4" /> Buscar
-                  </Button>
-                </form>
+                
+                <TypewriterPlaceholder onSearch={handleSearch} />
+
                 <div className="flex flex-col gap-2 min-[400px]:flex-row pt-4">
                   <Button asChild size="lg">
                     <Link href="/components">
@@ -175,3 +238,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+      
