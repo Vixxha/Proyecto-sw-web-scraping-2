@@ -17,7 +17,7 @@ export default function ComponentCard({ component }: ComponentCardProps) {
     : null;
 
   return (
-    <Card className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+    <Card className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 hover:scale-105">
       <Link href={`/components/${component.slug}`} className="flex flex-col h-full">
         <CardHeader className="p-0">
           <div className="relative aspect-square w-full bg-muted/30">
