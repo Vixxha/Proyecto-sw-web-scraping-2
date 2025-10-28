@@ -40,7 +40,7 @@ export default function HomePage() {
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Button asChild size="lg">
                     <Link href="/components">
-                      <Search className="mr-2" /> Explorar Componentes
+                      <Cpu className="mr-2" /> Explorar Componentes
                     </Link>
                   </Button>
                   <Button asChild variant="outline" size="lg">

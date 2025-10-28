@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Search, Dices, Bot } from "lucide-react";
+import { Menu, Cpu, Dices, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -10,7 +10,7 @@ import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { href: "/components", label: "Buscar", icon: Search },
+  { href: "/components", label: "Explorar", icon: Cpu },
   { href: "/build", label: "Arma tu PC", icon: Dices },
   { href: "/ai-builder", label: "Asistente IA", icon: Bot },
 ];
