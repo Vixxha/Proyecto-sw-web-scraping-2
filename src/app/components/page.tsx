@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -9,7 +10,7 @@ import { components as allComponents } from '@/lib/data';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 
 const categories = ['All', 'CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'Power Supply', 'Case'];
@@ -76,7 +77,7 @@ export default function ComponentsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <section className="text-center py-8">
+      <section className="text-center py-8 animate-fade-in">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
           Explorar Componentes
         </h1>
@@ -105,9 +106,12 @@ export default function ComponentsPage() {
                   <Button variant="outline"><SlidersHorizontal className="mr-2 h-4 w-4" /> Filtros</Button>
                 </SheetTrigger>
                 <SheetContent>
-                    <div className="mt-8">
-                      {filterControlsContent}
-                    </div>
+                  <SheetHeader>
+                    <SheetTitle>Filtros</SheetTitle>
+                  </SheetHeader>
+                  <div className="py-8">
+                    {filterControlsContent}
+                  </div>
                 </SheetContent>
               </Sheet>
           </div>
