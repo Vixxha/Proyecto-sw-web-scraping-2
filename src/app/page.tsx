@@ -25,12 +25,12 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-dvh">
-      <main className="flex-1">
+      <main className="flex-1 animate-fade-in">
         {/* Hero Section */}
         <section className="w-full py-20 md:py-32 lg:py-40 bg-gradient-to-br from-background to-muted/50">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:gap-24 items-center">
-              <div className="flex flex-col justify-center space-y-4">
+              <div className="flex flex-col justify-center space-y-4 animate-slide-up-delay-1">
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent-foreground">
                   Construye la PC de Tus Sueños, Sin Complicaciones
                 </h1>
@@ -50,7 +50,7 @@ export default function HomePage() {
                   </Button>
                 </div>
               </div>
-              <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl group">
+              <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl group animate-slide-up-delay-2">
                  <Image
                   src={heroImage?.imageUrl || "https://picsum.photos/seed/hero/1280/720"}
                   alt="Hero PC Build"
@@ -121,21 +121,21 @@ export default function HomePage() {
               </div>
             </div>
             <div className="mx-auto grid justify-center gap-8 sm:grid-cols-2 lg:grid-cols-3 pt-12">
-                <Card className="border-0 bg-transparent shadow-none">
+                <Card className="border-0 bg-transparent shadow-none animate-slide-up-delay-1">
                     <CardContent className="flex flex-col items-center text-center p-6">
                         <Search className="h-12 w-12 mb-4 text-primary" />
                         <h3 className="text-xl font-bold">Compara Precios</h3>
                         <p className="text-sm text-muted-foreground mt-2">Ahorra dinero encontrando el mejor precio para cada componente entre docenas de tiendas líderes.</p>
                     </CardContent>
                 </Card>
-                 <Card className="border-0 bg-transparent shadow-none">
+                 <Card className="border-0 bg-transparent shadow-none animate-slide-up-delay-2">
                     <CardContent className="flex flex-col items-center text-center p-6">
                         <Dices className="h-12 w-12 mb-4 text-primary" />
                         <h3 className="text-xl font-bold">Arma tu Configuración</h3>
                         <p className="text-sm text-muted-foreground mt-2">Selecciona tus componentes y crea la PC de tus sueños con nuestra herramienta intuitiva.</p>
                     </CardContent>
                 </Card>
-                 <Card className="border-0 bg-transparent shadow-none">
+                 <Card className="border-0 bg-transparent shadow-none animate-slide-up-delay-3">
                     <CardContent className="flex flex-col items-center text-center p-6">
                         <Cpu className="h-12 w-12 mb-4 text-primary" />
                         <h3 className="text-xl font-bold">Catálogo Extenso</h3>

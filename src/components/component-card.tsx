@@ -17,7 +17,7 @@ export default function ComponentCard({ component }: ComponentCardProps) {
     : null;
 
   return (
-    <Card className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5">
+    <Card className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <Link href={`/components/${component.slug}`} className="flex flex-col h-full">
         <CardHeader className="p-0">
           <div className="relative aspect-square w-full bg-muted/30">
@@ -30,8 +30,8 @@ export default function ComponentCard({ component }: ComponentCardProps) {
             />
           </div>
         </CardHeader>
-        <CardContent className="p-4 flex-grow flex flex-col justify-between">
-          <div className="flex-grow">
+        <CardContent className="p-4 flex-grow">
+          <div>
             <div className="flex justify-between items-start mb-2">
                 <Badge variant="secondary">{component.category}</Badge>
                 {bestPrice !== null && (
@@ -40,7 +40,7 @@ export default function ComponentCard({ component }: ComponentCardProps) {
                   </p>
                 )}
             </div>
-            <h3 className="text-base font-semibold leading-tight mt-1 mb-1 h-12 line-clamp-2">{component.name}</h3>
+            <h3 className="text-base font-semibold leading-tight mt-1 h-12 line-clamp-2">{component.name}</h3>
             <p className="text-sm text-muted-foreground">{component.brand}</p>
           </div>
         </CardContent>
