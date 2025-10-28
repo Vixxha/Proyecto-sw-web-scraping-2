@@ -1,4 +1,7 @@
 
+'use client';
+
+import { useState, useMemo } from 'react';
 import { components, stores } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
@@ -10,21 +13,47 @@ import { Badge } from '@/components/ui/badge';
 import PriceHistoryChart from '@/components/price-history-chart';
 import { Bell, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
-
-export async function generateStaticParams() {
-  return components.map((component) => ({
-    slug: component.slug,
-  }));
-}
+import { cn } from '@/lib/utils';
+import type { PriceHistoryPoint } from '@/lib/types';
 
 export default function ComponentPage({ params }: { params: { slug: string } }) {
-  const component = components.find((c) => c.slug === params.slug);
+  const [timeRange, setTimeRange] = useState<'30d' | '90d' | '1y'>('30d');
+  
+  const component = useMemo(() => {
+    return components.find((c) => c.slug === params.slug);
+  }, [params.slug]);
 
   if (!component) {
     notFound();
   }
 
+  const filteredPriceHistory = useMemo(() => {
+    const now = new Date();
+    let days;
+    switch (timeRange) {
+      case '90d':
+        days = 90;
+        break;
+      case '1y':
+        days = 365;
+        break;
+      default:
+        days = 30;
+    }
+    
+    const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+
+    return component.priceHistory.filter(point => new Date(point.date) >= startDate);
+
+  }, [timeRange, component.priceHistory]);
+
   const storeMap = new Map(stores.map(s => [s.id, s.name]));
+
+  const timeRanges: { label: string; value: '30d' | '90d' | '1y' }[] = [
+    { label: '30 días', value: '30d' },
+    { label: '90 días', value: '90d' },
+    { label: '1 año', value: '1y' },
+  ];
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
@@ -86,11 +115,31 @@ export default function ComponentPage({ params }: { params: { slug: string } }) 
           
           <Card>
             <CardHeader>
-              <CardTitle>Historial de Precios</CardTitle>
-              <CardDescription>Tendencia de precios de 30 días para este componente.</CardDescription>
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                  <div>
+                    <CardTitle>Historial de Precios</CardTitle>
+                    <CardDescription>Tendencia de precios para este componente.</CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-md bg-muted p-1">
+                      {timeRanges.map((range) => (
+                        <Button
+                            key={range.value}
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                                'px-3 py-1 text-xs sm:text-sm',
+                                timeRange === range.value ? 'bg-background shadow-sm' : 'hover:bg-background/50'
+                            )}
+                            onClick={() => setTimeRange(range.value)}
+                        >
+                            {range.label}
+                        </Button>
+                      ))}
+                  </div>
+              </div>
             </CardHeader>
             <CardContent>
-                <PriceHistoryChart data={component.priceHistory} />
+                <PriceHistoryChart data={filteredPriceHistory} />
             </CardContent>
           </Card>
 

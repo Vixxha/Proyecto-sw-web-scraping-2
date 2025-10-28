@@ -11,8 +11,8 @@ export const stores: Store[] = [
 const generatePriceHistory = (basePrice: number): PriceHistoryPoint[] => {
   const history: PriceHistoryPoint[] = [];
   let currentDate = new Date();
-  currentDate.setDate(currentDate.getDate() - 30);
-  for (let i = 0; i < 30; i++) {
+  currentDate.setDate(currentDate.getDate() - 365); // Generate data for 1 year
+  for (let i = 0; i < 365; i++) {
     const fluctuation = (Math.random() - 0.5) * (basePrice * 0.1);
     history.push({
       date: currentDate.toISOString().split('T')[0],
@@ -285,7 +285,7 @@ const getImageForComponent = (slug: string, category: string) => {
     else {
         // Fallback
         const categoryImages = PlaceHolderImages.filter(p => p.imageHint.includes(category.toLowerCase()));
-        if (categoryImages.length > 0) return categoryImages[0];
+        if (categoryImages.length > 0) return categoryImages[Math.floor(Math.random() * categoryImages.length)];
     }
 
     return placeholderImageMap.get(imageId || '') || PlaceHolderImages[0];
@@ -302,5 +302,3 @@ export const components: Component[] = rawComponents.map(component => {
         imageHint: imageInfo.imageHint,
     };
 });
-
-    
