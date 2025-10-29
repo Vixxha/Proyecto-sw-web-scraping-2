@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Component as Product } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -13,8 +13,7 @@ import ProductActions from './product-actions';
 import { useToast } from '@/hooks/use-toast';
 import { FirestorePermissionError, errorEmitter } from '@/firebase';
 import Image from 'next/image';
-import { components } from '@/lib/data'; // Import local data
-import { addDoc, collection, doc, serverTimestamp, updateDoc, deleteDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, serverTimestamp, updateDoc, deleteDoc, query } from 'firebase/firestore';
 
 // We reuse the Component type but alias it as Product for semantic clarity
 type ProductWithId = Product & { id: string };
@@ -25,18 +24,24 @@ export default function ProductList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithId | null>(null);
 
-  // Use local data for display
-  const [products, setProducts] = useState<ProductWithId[]>(components as ProductWithId[]);
-  const isLoading = false; // Data is loaded statically
-  const error = null; // No Firestore error for local data
+  const productsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'products'));
+  }, [firestore]);
+  
+  const { data: products, isLoading, error } = useCollection<ProductWithId>(productsQuery);
+
 
   const handleFormSubmit = (formData: ProductFormData) => {
     if (!firestore) return;
 
     const operation = editingProduct ? 'update' : 'create';
     const imageUrl = formData.imageUrl || 'https://picsum.photos/seed/default/600/600';
+    
+    // Convert price and stock ensuring they are numbers
     const price = Number(formData.price) || 0;
     const stock = Number(formData.stock) || 0;
+
 
     const promise = editingProduct
       ? (() => {
@@ -50,7 +55,7 @@ export default function ProductList() {
                 requestResourceData: productUpdate
               });
               errorEmitter.emit('permission-error', contextualError);
-              throw contextualError;
+              throw contextualError; // Re-throw to be caught by the final .catch
             });
         })()
       : (() => {
@@ -61,11 +66,10 @@ export default function ProductList() {
             stock,
             createdAt: serverTimestamp(),
             slug: formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-            prices: [{ storeId: 'store-1', price: price, url: '#' }],
+            prices: [{ storeId: 'store-1', price: price, url: '#' }], // Add a default price
             priceHistory: [],
             imageUrl,
             imageHint: 'product',
-            specs: {}
           };
           return addDoc(collectionRef, newProduct)
             .catch(err => {
@@ -75,19 +79,24 @@ export default function ProductList() {
                 requestResourceData: newProduct
               });
               errorEmitter.emit('permission-error', contextualError);
-              throw contextualError;
+              throw contextualError; // Re-throw to be caught by the final .catch
             });
         })();
 
     promise.then(() => {
       toast({
         title: `Producto ${operation === 'update' ? 'actualizado' : 'creado'}`,
-        description: `${formData.name} ha sido ${operation === 'update' ? 'actualizado' : 'añadido'} a Firestore. Refresca para ver los cambios si estás conectado a la DB.`
+        description: `${formData.name} ha sido guardado en la base de datos.`
       });
       setIsFormOpen(false);
       setEditingProduct(null);
     }).catch(err => {
-      // The detailed error is handled by the global error listener
+      // The global error handler will catch this, but we can add a toast as well
+       toast({
+          variant: 'destructive',
+          title: 'Error de Permisos',
+          description: 'No tienes permiso para realizar esta acción.',
+        });
     });
   };
 
@@ -102,7 +111,6 @@ export default function ProductList() {
 
     deleteDoc(productRef)
       .then(() => {
-        setProducts(prev => prev.filter(p => p.id !== productId));
         toast({
           title: 'Producto eliminado',
           description: `${productName} ha sido eliminado.`
@@ -111,7 +119,6 @@ export default function ProductList() {
       .catch(err => {
         const contextualError = new FirestorePermissionError({ path: productRef.path, operation: 'delete' });
         errorEmitter.emit('permission-error', contextualError);
-        // The detailed error is handled by the global error listener
       });
   };
 
@@ -136,7 +143,7 @@ export default function ProductList() {
           ) : error ? (
              <div className="text-center py-10 text-red-600">
                 <p className="font-bold">Error al cargar productos</p>
-                <p className="text-sm text-muted-foreground">No se pudieron cargar los productos desde la base de datos.</p>
+                <p className="text-sm text-muted-foreground">{(error as Error).message || 'No se pudieron cargar los productos desde la base de datos.'}</p>
             </div>
           ) : products && products.length > 0 ? (
             <Table>
@@ -193,4 +200,3 @@ export default function ProductList() {
     </>
   );
 }
-    

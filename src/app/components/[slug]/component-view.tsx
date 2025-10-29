@@ -31,10 +31,13 @@ export default function ComponentView({ initialComponent }: { initialComponent: 
   const [isScraping, setIsScraping] = useState(false);
   const { toast } = useToast();
   
-  // For local display, we use the initial component and manage a local state for updates.
-  const [component, setComponent] = useState(initialComponent);
-  const isComponentLoading = false; // Data is passed directly
-  
+  const componentDocRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'products', initialComponent.id);
+  }, [firestore, initialComponent.id]);
+
+  const { data: component, isLoading: isComponentLoading } = useDoc<Component>(componentDocRef);
+
   const oneYearAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 1));
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
     from: oneYearAgo,
@@ -56,9 +59,7 @@ export default function ComponentView({ initialComponent }: { initialComponent: 
         );
 
         if (newPrices.length > 0) {
-            // This would update Firestore. For the local simulation, we update the state.
-            // await updateDoc(productRef, { prices: arrayUnion(...newPrices) });
-            setComponent(prev => ({ ...prev, prices: [...prev.prices, ...newPrices] }));
+            await updateDoc(productRef, { prices: arrayUnion(...newPrices) });
             
              toast({
               title: 'Precios actualizados',
@@ -91,7 +92,7 @@ export default function ComponentView({ initialComponent }: { initialComponent: 
   };
 
   const filteredPriceHistory = useMemo(() => {
-    const history = component?.priceHistory;
+    const history = component?.priceHistory || initialComponent.priceHistory;
     if (!history) return [];
     return history.filter(point => {
         const pointDate = new Date(point.date);
@@ -103,13 +104,13 @@ export default function ComponentView({ initialComponent }: { initialComponent: 
         
         return true;
     });
-  }, [dateRange, component]);
+  }, [dateRange, component, initialComponent]);
 
   const storeMap = new Map(stores.map(s => [s.id, s.name]));
   
-  const displayComponent = component;
+  const displayComponent = component || initialComponent;
 
-  if (isComponentLoading) {
+  if (isComponentLoading && !component) {
     return <ComponentViewSkeleton />;
   }
 
@@ -351,4 +352,3 @@ function ComponentViewSkeleton() {
     </div>
   )
 }
-    

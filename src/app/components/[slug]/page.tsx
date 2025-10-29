@@ -1,27 +1,37 @@
 import { notFound } from 'next/navigation';
 import ComponentView from './component-view';
-import { components } from '@/lib/data'; // Import local data
+import { components } from '@/lib/data'; 
 import type { Component } from '@/lib/types';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { getSdks } from '@/firebase';
 
 
-// This function can be used to generate static paths at build time
 export async function generateStaticParams() {
-  // Generate params from the local data
-  return components.map(component => ({
-    slug: component.slug,
-  }));
+  // Since data is now dynamic, we can't statically generate all paths.
+  // We can generate a few popular ones, or none at all.
+  // For this example, we won't pre-render any paths at build time.
+  // Next.js will render them on-demand.
+  return [];
 }
 
 async function getComponentBySlug(slug: string): Promise<(Component & { id: string }) | null> {
     try {
-        const component = components.find(c => c.slug === slug);
-        if (component) {
-            return component as Component & { id: string };
+        const { firestore } = getSdks();
+        const productsRef = collection(firestore, 'products');
+        const q = query(productsRef, where('slug', '==', slug), limit(1));
+        
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            console.warn(`No component found with slug: ${slug}`);
+            return null;
         }
-        return null;
+
+        const doc = querySnapshot.docs[0];
+        return { id: doc.id, ...doc.data() } as Component & { id: string };
 
     } catch (error) {
-        console.error("Error fetching component by slug from local data:", error);
+        console.error("Error fetching component by slug from Firestore:", error);
         return null;
     }
 }
@@ -37,4 +47,3 @@ export default async function ComponentPage({ params }: { params: { slug: string
   // We pass the full component object to the view
   return <ComponentView initialComponent={component} />;
 }
-    

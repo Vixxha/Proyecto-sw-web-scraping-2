@@ -31,9 +31,9 @@ export const components: Component[] = [
       {"storeId": "store-2", "price": 599000, "url": "#"}
     ],
     "priceHistory": [
-        { "date": "2023-10-01", "normalPrice": 599000, "offerPrice": 589000 },
-        { "date": "2023-11-01", "normalPrice": 595000, "offerPrice": 585000 },
-        { "date": "2023-12-01", "normalPrice": 610000, "offerPrice": 600000 }
+        { "date": "2024-05-01", "normalPrice": 599000, "offerPrice": 589000 },
+        { "date": "2024-06-01", "normalPrice": 595000, "offerPrice": 585000 },
+        { "date": "2024-07-01", "normalPrice": 610000, "offerPrice": 600000 }
     ]
   },
   {
