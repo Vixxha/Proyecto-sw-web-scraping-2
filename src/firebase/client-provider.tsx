@@ -1,18 +1,42 @@
 'use client';
 
-import React, { useMemo, type ReactNode } from 'react';
+import React, { useState, useEffect, type ReactNode } from 'react';
 import { FirebaseProvider } from '@/firebase/provider';
 import { initializeFirebase } from '@/firebase';
+import type { FirebaseApp } from 'firebase/app';
+import type { Auth } from 'firebase/auth';
+import type { Firestore } from 'firebase/firestore';
+import Spinner from '@/components/spinner';
 
 interface FirebaseClientProviderProps {
   children: ReactNode;
 }
 
+interface FirebaseServices {
+  firebaseApp: FirebaseApp;
+  auth: Auth;
+  firestore: Firestore;
+}
+
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  const firebaseServices = useMemo(() => {
+  const [firebaseServices, setFirebaseServices] = useState<FirebaseServices | null>(null);
+
+  useEffect(() => {
     // Initialize Firebase on the client side, once per component mount.
-    return initializeFirebase();
-  }, []); // Empty dependency array ensures this runs only once on mount
+    // This check prevents re-initialization on hot reloads in development.
+    if (!firebaseServices) {
+      setFirebaseServices(initializeFirebase());
+    }
+  }, [firebaseServices]);
+
+  if (!firebaseServices) {
+    // Optional: Render a loading indicator while Firebase is initializing
+    return (
+       <div className="flex h-screen w-full items-center justify-center">
+        <Spinner className="h-12 w-12" />
+      </div>
+    );
+  }
 
   return (
     <FirebaseProvider
