@@ -1,70 +1,85 @@
 /**
- * @fileoverview Firestore Security Rules for ComponentCompares application.
- *
- * Core Philosophy:
- * This ruleset prioritizes secure data access based on user roles and ownership.
- * User data is strictly controlled, with superusers having elevated privileges.
- * The ruleset is designed to be adaptable during prototyping, focusing on authorization.
+ * @file Firestore Security Rules
+ * @description This ruleset enforces a role-based access control model with user-owned data and superuser overrides.
  *
  * Data Structure:
- * - /users/{userId}: Stores individual user profiles. The 'userId' MUST match the authenticated user's UID.
- * - /users/{userId}/sales/{saleId}: Sales records specific to a user.
- * - /products/{productId}: A global collection of product information, with write access restricted.
- * - /sales/{saleId}: A global collection of sales data, intended for querying by superusers.
- * - /audit_logs/{auditLogId}: Stores audit logs of system actions. Write-access should be carefully controlled.
+ * - /users/{userId}: Stores user profiles, accessible only to the user themselves.
+ * - /users/{userId}/sales/{saleId}: Stores sales records for a specific user, accessible only to the user themselves.
+ * - /products/{productId}: Stores product information. Public read access, but only superusers can create, update, or delete products.
+ * - /sales/{saleId}: Stores all sales data. Public read access, but only superusers can create, update, or delete sales records.
+ * - /audit_logs/{auditLogId}: Stores audit logs. Only superusers can read or write audit logs.
  *
  * Key Security Decisions:
- * - Superuser Role: The 'superuser' role grants elevated access to read all sales records and audit logs. This role should be assigned carefully.
- * - User Ownership: Most data access is restricted to the owning user.
- * - Product Creation: Product creation and updates are currently open (TODO), but should be restricted to authorized users in a production setting.
- * - No User Listing: Listing all users is explicitly denied to prevent information exposure.
+ * - User listing is disallowed to protect user privacy.
+ * - Superusers have elevated privileges to manage products, sales, and audit logs.
+ * - Read access to products and sales is public to allow for open data consumption.
  *
  * Denormalization for Authorization:
- *  - The rule doesn't contain denormalization logic, but it would be beneficial to add a `role` field to the `/users/{userId}` document to simplify superuser checks.
- *  - For Products, adding a `creatorId` field during creation allows easier control over modification/deletion.
- *
- * Structural Segregation:
- * - The separation of user-specific sales (/users/{userId}/sales/{saleId}) and global sales (/sales/{saleId}) enables both user-centric views and superuser-level reporting.
+ *  - User roles are denormalized directly onto the /users/{userId} document to avoid costly `get()` calls.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows access to user profiles based on ownership.
-     * @path /users/{userId}
-     * @allow (get, create, update, delete, list) if the request is made by the user with matching userId.
-     * @deny (get, create, update, delete, list) if the request is made by a different user.
-     * @principle Enforces document ownership for all operations.
+     * @description Checks if the user is signed in.
      */
-    match /users/{userId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      allow get: if isOwner(userId);
-      allow list: if false; // Listing all users is not permitted.
-      allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
+    function isSignedIn() {
+      return request.auth != null;
     }
 
     /**
-     * @description Allows a user to manage their own sales records.
+     * @description Checks if the user is the owner of the document, based on the provided userId.
+     */
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the user is a superuser.
+     */
+    function isSuperuser() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superuser';
+    }
+
+    /**
+     * @description Checks if the user is an existing owner of the document.
+     */
+    function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+    }
+    
+    /**
+     * @description Rules for user profiles.
+     * @path /users/{userId}
+     * @allow (create) User 'user_abc' can create their own profile (id matches auth UID).
+     * @allow (get) User 'user_abc' can read their own profile.
+     * @allow (update) User 'user_abc' can update their own profile.
+     * @allow (delete) User 'user_abc' can delete their own profile.
+     * @deny (create) User 'user_abc' cannot create a profile with a different ID.
+     * @deny (get) User 'user_xyz' cannot read 'user_abc' profile.
+     * @principle Enforces document ownership for user profiles.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false; // User listing is disallowed.
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow delete: if isSignedIn() && isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for sales records within a user profile.
      * @path /users/{userId}/sales/{saleId}
-     * @allow (get, create, update, delete, list) if the request is made by the user with matching userId.
-     * @deny (get, create, update, delete, list) if the request is made by a different user.
-     * @principle Restricts access to a user's own sales data.
+     * @allow (create) User 'user_abc' can create a sale record under their profile.
+     * @allow (get) User 'user_abc' can read a sale record under their profile.
+     * @allow (update) User 'user_abc' can update a sale record under their profile.
+     * @allow (delete) User 'user_abc' can delete a sale record under their profile.
+     * @deny (create) User 'user_xyz' cannot create a sale record under 'user_abc' profile.
+     * @deny (get) User 'user_xyz' cannot read a sale record under 'user_abc' profile.
+     * @principle Enforces document ownership for sales records within user profiles.
      */
     match /users/{userId}/sales/{saleId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
       allow create: if isOwner(userId);
@@ -73,57 +88,63 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows public read access to products, but restricts write access.
+     * @description Rules for product information.
      * @path /products/{productId}
-     * @allow (get, list) to anyone.
-     * @deny (create, update, delete) to non-authorized users.
-     * @principle Allows public read access while enforcing owner-only writes.
+     * @allow (get) Any user can read product information.
+     * @allow (list) Any user can list product information.
+     * @allow (create) Only superusers can create products.
+     * @allow (update) Only superusers can update products.
+     * @allow (delete) Only superusers can delete products.
+     * @deny (create) Regular users cannot create products.
+     * @deny (update) Regular users cannot update products.
+     * @principle Public read access with superuser-only writes.
      */
     match /products/{productId} {
-
       allow get: if true;
       allow list: if true;
-      allow create: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-      allow update: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-      allow delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow create: if isSuperuser();
+      allow update: if isSuperuser();
+      allow delete: if isSuperuser();
     }
 
     /**
-     * @description Allows superusers to read all sales records. Write access is not permitted.
+     * @description Rules for sales data.
      * @path /sales/{saleId}
-     * @allow (get, list) if the user is a superuser.
-     * @deny (create, update, delete) to everyone.
-     * @principle Restricts read access to sales data to superusers only, preventing unauthorized modifications.
+     * @allow (get) Any user can read sales data.
+     * @allow (list) Any user can list sales data.
+     * @allow (create) Only superusers can create sales data.
+     * @allow (update) Only superusers can update sales data.
+     * @allow (delete) Only superusers can delete sales data.
+     * @deny (create) Regular users cannot create sales data.
+     * @deny (update) Regular users cannot update sales data.
+     * @principle Public read access with superuser-only writes.
      */
     match /sales/{saleId} {
-        function isSuperUser() {
-          return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superuser';
-        }
-
-        allow get: if request.auth != null && isSuperUser();
-        allow list: if request.auth != null && isSuperUser();
-        allow create: if false;
-        allow update: if false;
-        allow delete: if false;
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSuperuser();
+      allow update: if isSuperuser();
+      allow delete: if isSuperuser();
     }
 
     /**
-     * @description Allows superusers to read audit logs. Write access is restricted.
+     * @description Rules for audit logs.
      * @path /audit_logs/{auditLogId}
-     * @allow (get, list) if the user is a superuser.
-     * @deny (create, update, delete) to everyone.
-     * @principle Restricts audit log access to superusers for security and auditing purposes.
+     * @allow (get) Only superusers can read audit logs.
+     * @allow (list) Only superusers can list audit logs.
+     * @allow (create) Only superusers can create audit logs.
+     * @allow (update) Only superusers can update audit logs.
+     * @allow (delete) Only superusers can delete audit logs.
+     * @deny (create) Regular users cannot create audit logs.
+     * @deny (update) Regular users cannot update audit logs.
+     * @principle Superuser-only access to audit logs.
      */
     match /audit_logs/{auditLogId} {
-      function isSuperUser() {
-          return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superuser';
-      }
-
-      allow get: if request.auth != null && isSuperUser();
-      allow list: if request.auth != null && isSuperUser();
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow get: if isSuperuser();
+      allow list: if isSuperuser();
+      allow create: if isSuperuser();
+      allow update: if isSuperuser();
+      allow delete: if isSuperuser();
     }
   }
 }
