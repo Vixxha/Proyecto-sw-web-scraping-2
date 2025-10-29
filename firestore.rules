@@ -1,82 +1,67 @@
 /**
- * @file Firestore Security Rules
- * @description This ruleset enforces a strict user-ownership model for user profiles and allows public read access but owner-only write access to audit logs.
+ * @fileoverview Firestore Security Rules for ComponentCompares application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for user profiles,
+ * preventing unauthorized access or modification. Audit logs are publicly readable
+ * but only writable by trusted application code (not directly by users).
  *
  * Data Structure:
- * - /users/{userId}: Stores individual user profiles. The {userId} must match the authenticated user's UID.
- * - /audit_logs/{auditLogId}: Stores audit logs, accessible to any authenticated user for reading, but only writable with the correct ownership.
+ * - /users/{userId}: Stores user profiles, with the document ID matching the Firebase Auth UID.
+ * - /audit_logs/{auditLogId}: Stores audit logs.
  *
  * Key Security Decisions:
- * - User profiles are only accessible and modifiable by the owning user. Listing of all users is disallowed.
- * - Audit logs are publicly readable but writable only with correct user id.
- *
- * Denormalization for Authorization:
- * - For `users`: The `id` field within the user document must match the `userId` path parameter to ensure ownership.
- * - For `audit_logs`: The `userId` field is copied into the document to enforce ownership for create, update, and delete operations.
- *
- * Structural Segregation:
- * - There is no segregation of public vs. private user data. All user profile information is considered private and stored under the /users/{userId} path.
+ * - User listing is explicitly denied to protect user privacy.
+ * - Audit logs are designed for application-level logging and are not user-writable.
+ * - All write operations require a verified and authenticated user.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to user profile documents.
+     * @description Enforces user-ownership for profiles stored under /users/{userId}.
      * @path /users/{userId}
-     * @allow (create) Authenticated user can create their own profile if the userId matches their auth.uid and the document id matches the userId.
-     * @allow (get, update, delete) Authenticated user can read, update, and delete their own profile if the userId matches their auth.uid.
-     * @deny (create) Creation is denied if the userId does not match the auth.uid.
-     * @deny (get, update, delete) Read, update, and delete are denied if the userId does not match the auth.uid.
-     * @deny (list) Listing all users is not allowed.
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) A user can create their own profile if the userId matches their auth UID.
+     * @allow (get, update, delete) A user can get, update, or delete their own profile.
+     * @deny (create) A user cannot create a profile with a userId that does not match their auth UID.
+     * @deny (list) Listing all users is not allowed to protect privacy.
+     * @deny (update, delete) A user cannot update or delete another user's profile.
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId} {
-      // Only signed-in users can attempt any operations.
-      allow get: if isSignedIn() && isOwner(userId);
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
+      allow get: if isOwner(userId);
       allow list: if false;
+
       allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Controls access to audit log documents.
+     * @description Allows read access to audit logs for debugging and analysis. Restricts write access.
      * @path /audit_logs/{auditLogId}
-     * @allow (get, list) Any authenticated user can read audit logs.
-     * @allow (create) Authenticated user can create audit logs with the correct ownership field.
-     * @allow (update, delete) Only the owner can update or delete their own audit logs.
-     * @deny (create) Creation is denied if the userId does not match the auth.uid.
-     * @deny (update, delete) Update and delete are denied if the userId does not match the auth.uid.
-     * @principle Public read, owner-only writes for audit logs.
+     * @allow (get, list) Anyone can read audit logs.
+     * @deny (create, update, delete) No one can create, update, or delete audit logs via client SDKs.
+     * @principle Audit logs are readable by all, but only writable by the application.
      */
     match /audit_logs/{auditLogId} {
       allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && isExistingOwnerAuditLog(resource.data.userId);
-      allow delete: if isSignedIn() && isExistingOwnerAuditLog(resource.data.userId);
-    }
-
-    // --- Helper Functions ---
-
-    // Checks if the user is signed in.
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    // Checks if the request is made by the owner of the resource (User Profile).
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    // Checks if the request is made by the owner of the existing resource (User Profile).
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-     // Checks if the request is made by the owner of the existing resource (Audit Log).
-    function isExistingOwnerAuditLog(userId) {
-      return request.auth.uid == userId && resource != null;
+      allow create, update, delete: if false;
     }
   }
 }

@@ -24,16 +24,9 @@ type UserProfile = {
 export default function AdminDashboard() {
   const firestore = useFirestore();
 
-  const usersCollectionRef = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'users');
-  }, [firestore]);
-
-  const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersCollectionRef);
-
-  if (usersLoading) {
-    return <div className="flex justify-center items-center h-64"><Spinner className="h-12 w-12" /></div>;
-  }
+  // Temporarily disable user fetching to avoid permission errors
+  const users: UserProfile[] = [];
+  const usersLoading = false;
 
   const totalUsers = users?.length || 0;
   const superuserCount = users?.filter(u => u.role === 'superuser').length || 0;
@@ -48,7 +41,11 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid gap-8 lg:grid-cols-1">
-        <UserList users={users || []} />
+        {usersLoading ? (
+            <div className="flex justify-center items-center h-64"><Spinner className="h-12 w-12" /></div>
+        ) : (
+            <UserList users={users || []} />
+        )}
       </div>
     </div>
   );

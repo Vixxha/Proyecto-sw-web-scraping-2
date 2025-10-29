@@ -49,10 +49,11 @@ export default function UserList({ users }: UserListProps) {
       <CardHeader>
         <CardTitle>Usuarios</CardTitle>
         <CardDescription>
-          Una lista de todos los usuarios de la plataforma.
+          Una lista de todos los usuarios de la plataforma. (La carga de usuarios está temporalmente desactivada para evitar errores de permisos).
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {users.length > 0 ? (
         <Table>
           <TableHeader>
             <TableRow>
@@ -101,6 +102,11 @@ export default function UserList({ users }: UserListProps) {
             ))}
           </TableBody>
         </Table>
+        ) : (
+          <div className="text-center py-10">
+            <p className="text-muted-foreground">La carga de usuarios está deshabilitada temporalmente.</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
