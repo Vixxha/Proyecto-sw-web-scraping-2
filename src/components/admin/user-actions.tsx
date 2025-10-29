@@ -10,6 +10,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Shield, ShieldOff, UserCog } from 'lucide-react';
+import { useFirestore } from '@/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import { FirestorePermissionError, errorEmitter } from '@/firebase';
 
 interface UserActionsProps {
   user: {
@@ -19,10 +23,42 @@ interface UserActionsProps {
 }
 
 export default function UserActions({ user }: UserActionsProps) {
-  
-  const handleRoleChange = (newRole: 'user' | 'superuser') => {
-    console.log(`Changing user ${user.id} role to ${newRole}`);
-    // Logic to update user role will be added here
+  const firestore = useFirestore();
+  const { toast } = useToast();
+
+  const handleRoleChange = async (newRole: 'user' | 'superuser') => {
+    if (!firestore) return;
+
+    const userDocRef = doc(firestore, 'users', user.id);
+    const roleUpdate = { role: newRole };
+
+    try {
+       updateDoc(userDocRef, roleUpdate)
+        .catch((error) => {
+            const contextualError = new FirestorePermissionError({
+                operation: 'update',
+                path: userDocRef.path,
+                requestResourceData: roleUpdate
+            });
+            errorEmitter.emit('permission-error', contextualError);
+            toast({
+                variant: 'destructive',
+                title: 'Error de Permiso',
+                description: 'No tienes permiso para realizar esta acción.',
+            });
+        });
+        
+      toast({
+        title: 'Rol actualizado',
+        description: `El usuario ha sido actualizado a ${newRole}.`,
+      });
+    } catch (error) {
+       toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No se pudo actualizar el rol del usuario.',
+      });
+    }
   };
 
   return (
@@ -47,7 +83,7 @@ export default function UserActions({ user }: UserActionsProps) {
             Degradar a Usuario
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem>
+        <DropdownMenuItem disabled>
           <UserCog className="mr-2 h-4 w-4" />
           Suspender Usuario (Próximamente)
         </DropdownMenuItem>
