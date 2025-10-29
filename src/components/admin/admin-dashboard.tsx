@@ -22,14 +22,17 @@ type UserProfile = {
 }
 
 export default function AdminDashboard() {
-  const firestore = useFirestore();
+  // NOTA: La siguiente línea está comentada para evitar el error de permisos de Firestore.
+  // La carga de usuarios se reactivará de forma segura en un paso posterior.
+  // const firestore = useFirestore();
+  // const usersQuery = useMemoFirebase(() => {
+  //   if (!firestore) return null;
+  //   return query(collection(firestore, 'users'));
+  // }, [firestore]);
+  // const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
-  const usersQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'users'));
-  }, [firestore]);
-
-  const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
+  const users: UserProfile[] = [];
+  const usersLoading = false; // Se establece en falso para mostrar el estado vacío
 
   const totalUsers = users?.length || 0;
   const superuserCount = users?.filter(u => u.role === 'superuser').length || 0;
@@ -39,8 +42,8 @@ export default function AdminDashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Total de Usuarios" value={totalUsers} icon={Users} />
         <StatCard title="Superusuarios" value={superuserCount} icon={Users} />
-        <StatCard title="Actividad Reciente" value="12" icon={Activity} description="En las últimas 24h" />
-        <StatCard title="Nuevos Registros" value="3" icon={Users} description="Hoy" />
+        <StatCard title="Actividad Reciente" value="0" icon={Activity} description="En las últimas 24h" />
+        <StatCard title="Nuevos Registros" value="0" icon={Users} description="Hoy" />
       </div>
 
       <div className="grid gap-8 lg:grid-cols-1">
