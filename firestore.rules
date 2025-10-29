@@ -1,117 +1,211 @@
 /**
- * @file Firestore Security Rules
- * @description This ruleset enforces a strict user-ownership model for user profiles and their sales records. Products are publicly readable, but write access is not defined in this initial prototyping phase.
- * Audit logs are not secured in this version.
+ * @fileoverview Firestore Security Rules for ComponentCompares application.
+ *
+ * Core Philosophy:
+ * This ruleset prioritizes secure data access based on user roles.
+ * Superusers have broad access for administrative tasks, while regular users
+ * are limited to their own data and public product information. Data shape validation is relaxed for prototyping.
  *
  * Data Structure:
- * - /users/{userId}: Stores user profiles, with the document ID matching the Firebase Auth UID.
- * - /users/{userId}/sales/{saleId}: Stores sales records for a specific user.
- * - /products/{productId}: Stores product information.
- * - /sales/{saleId}: A global collection of all sales.
- * - /audit_logs/{auditLogId}: Stores audit logs.
+ * - /users/{userId}: User profiles, accessible only by the user and superusers.
+ * - /users/{userId}/sales/{saleId}: Sales records for a specific user, accessible only by the user and superusers.
+ * - /products/{productId}: Product information, publicly readable, but only writable by superusers.
+ * - /sales/{saleId}: Global sales records, accessible only by superusers.
+ * - /audit_logs/{auditLogId}: Audit logs, accessible only by superusers.
  *
  * Key Security Decisions:
- * - User profiles and sales records are strictly owned by the user. Only the authenticated user can read, create, update, or delete their own data.
- * - Products are publicly readable, but write permissions are not yet defined.
- * - Listing of the sales subcollection is allowed only by the owner.
- *
- * Denormalization for Authorization:
- * - Sales documents under /users/{userId}/sales/{saleId} MUST contain a `userId` field that matches the {userId} path segment. This is enforced on create and update.
- *
- * Structural Segregation:
- * - Publicly readable product information is stored in a top-level collection (/products/{productId}).
+ * - User listing is disallowed for privacy.
+ * - Public read access is granted for products to enable browsing.
+ * - The rules strictly enforce role-based access for administrative functions.
+ * - Superusers can create, update and delete Products.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to user profile documents.
-     * @path /users/{userId}
-     * @allow (create) Authenticated user with matching UID can create their profile.
-     * @allow (get, update, delete) Authenticated user can access their own profile.
-     * @deny (create) Authenticated user cannot create a profile with a mismatched UID.
-     * @deny (get, update, delete) Authenticated user cannot access another user's profile.
-     * @principle Enforces document ownership for user profiles.
+     * @description Checks if the user is signed in.
+     * @return {boolean} True if the user is signed in, false otherwise.
      */
-    match /users/{userId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
+    function isSignedIn() {
+      return request.auth != null;
     }
 
     /**
-     * @description Controls access to sales records for a specific user.
-     * @path /users/{userId}/sales/{saleId}
-     * @allow (create) Authenticated user can create a sale record under their profile.
-     * @allow (get, update, delete) Authenticated user can access their own sale records.
-     * @deny (create) Authenticated user cannot create a sale record with a mismatched userId.
-     * @deny (get, update, delete) Authenticated user cannot access another user's sale records.
-     * @principle Enforces document ownership for sales records within a user's profile.
+     * @description Checks if the user is the owner of the document.
+     * @param {string} userId - The user ID to compare with the request's auth UID.
+     * @return {boolean} True if the user is the owner, false otherwise.
      */
-    match /users/{userId}/sales/{saleId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Controls access to product documents.
-     * @path /products/{productId}
-     * @allow (get, list) Anyone can read product information.
-     * @deny (create, update, delete) Write access is not defined in this version.
-     * @principle Allows public read access to product information.
-     */
-    match /products/{productId} {
-      allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
 
      /**
-      * @description Controls access to sales documents.
-      * @path /sales/{saleId}
-      * @allow (get, list) Anyone can read sales information.
-      * @deny (create, update, delete) Write access is not defined in this version.
-      */
-     match /sales/{saleId} {
-      allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Define write conditions based on user roles (e.g., superuser).
+     * @description Checks if the user is the existing owner of the document.
+     * @param {string} userId - The user ID to compare with the request's auth UID.
+     * @return {boolean} True if the user is the owner and the document exists, false otherwise.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
     }
 
     /**
-     * @description Controls access to audit log documents.  No security is applied in this version.
+     * @description Checks if the user has the 'superuser' role.
+     * @return {boolean} True if the user is a superuser, false otherwise.
+     */
+    function isSuperuser() {
+      return isSignedIn() && request.auth.token.role == 'superuser';
+    }
+
+    /**
+     * @description Determines if the user is attempting to create themself.
+     * @param {string} userId - The userId in the path
+     * @return {boolean} True if the user is creating their own document.
+     */
+    function isSelfCreate(userId) {
+      return isSignedIn() && request.auth.uid == userId && request.auth.uid == request.resource.data.id;
+    }
+
+
+    /**
+     * @description Rules for user profiles.
+     * @path /users/{userId}
+     * @allow (create) User with UID 'user123' creates their profile.
+     *    - auth.uid: 'user123'
+     *    - request.resource.data.id: 'user123'
+     * @allow (get) User with UID 'user123' reads their profile.
+     *    - auth.uid: 'user123'
+     * @allow (update) Superuser updates any user profile
+     *    - auth.uid: 'superuser456'
+     *    - auth.token.role: 'superuser'
+     * @deny (create) User with UID 'user123' tries to create a profile for 'user456'.
+     *    - auth.uid: 'user123'
+     *    - request.resource.data.id: 'user456'
+     * @deny (update) User with UID 'user123' tries to update another user's profile.
+     *    - auth.uid: 'user123'
+     * @deny (delete) Non-superuser tries to delete a user profile.
+     *    - auth.uid: 'user123'
+     * @principle Enforces user-ownership for profile access and superuser override.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isSuperuser();
+      allow list: if false; // User listing is disallowed.
+      allow create: if isSelfCreate(userId);
+      allow update: if isExistingOwner(userId) || isSuperuser();
+      allow delete: if isSuperuser();
+    }
+
+    /**
+     * @description Rules for sales records under a specific user.
+     * @path /users/{userId}/sales/{saleId}
+     * @allow (create) User with UID 'user123' creates a sale record under their profile.
+     *    - auth.uid: 'user123'
+     * @allow (get) User with UID 'user123' reads a sale record under their profile.
+     *    - auth.uid: 'user123'
+     * @allow (update) Superuser updates any sale record
+     *    - auth.uid: 'superuser456'
+     *    - auth.token.role: 'superuser'
+     * @deny (create) User with UID 'user123' tries to create a sale record under another user's profile.
+     *    - auth.uid: 'user123'
+     * @deny (update) User with UID 'user123' tries to update a sale record under another user's profile.
+     *    - auth.uid: 'user123'
+     * @deny (delete) Non-superuser tries to delete a sale record.
+     *    - auth.uid: 'user123'
+     * @principle Enforces user-ownership for sales records and superuser override.
+     */
+    match /users/{userId}/sales/{saleId} {
+      allow get: if isOwner(userId) || isSuperuser();
+      allow list: if isOwner(userId) || isSuperuser();
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId) || isSuperuser();
+      allow delete: if isSuperuser();
+    }
+
+    /**
+     * @description Rules for product information.
+     * @path /products/{productId}
+     * @allow (get) Any user can read product information.
+     *    - auth.uid: null (unauthenticated user)
+     * @allow (create) Superuser creates a product.
+     *    - auth.uid: 'superuser456'
+     *    - auth.token.role: 'superuser'
+     * @allow (update) Superuser updates any product
+     *    - auth.uid: 'superuser456'
+     *    - auth.token.role: 'superuser'
+     * @deny (create) Non-superuser tries to create a product.
+     *    - auth.uid: 'user123'
+     * @deny (update) Non-superuser tries to update a product.
+     *    - auth.uid: 'user123'
+     * @deny (delete) Non-superuser tries to delete a product.
+     *    - auth.uid: 'user123'
+     * @principle Allows public read access but restricts writes to superusers.
+     */
+    match /products/{productId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSuperuser();
+      allow update: if isSuperuser() && resource != null;
+      allow delete: if isSuperuser() && resource != null;
+    }
+
+    /**
+     * @description Rules for global sales records.
+     * @path /sales/{saleId}
+     * @allow (get) Superuser reads a sale record.
+     *    - auth.uid: 'superuser456'
+     *    - auth.token.role: 'superuser'
+     * @allow (create) Superuser creates a sale record.
+     *    - auth.uid: 'superuser456'
+     *    - auth.token.role: 'superuser'
+     * @allow (update) Superuser updates any sale record
+     *    - auth.uid: 'superuser456'
+     *    - auth.token.role: 'superuser'
+     * @deny (get) Non-superuser tries to read a sale record.
+     *    - auth.uid: 'user123'
+     * @deny (create) Non-superuser tries to create a sale record.
+     *    - auth.uid: 'user123'
+     * @deny (update) Non-superuser tries to update a sale record.
+     *    - auth.uid: 'user123'
+     * @deny (delete) Non-superuser tries to delete a sale record.
+     *    - auth.uid: 'user123'
+     * @principle Restricts access to sales data to superusers only.
+     */
+    match /sales/{saleId} {
+      allow get: if isSuperuser();
+      allow list: if isSuperuser();
+      allow create: if isSuperuser();
+      allow update: if isSuperuser() && resource != null;
+      allow delete: if isSuperuser() && resource != null;
+    }
+
+    /**
+     * @description Rules for audit logs.
      * @path /audit_logs/{auditLogId}
+     * @allow (get) Superuser reads an audit log.
+     *    - auth.uid: 'superuser456'
+     *    - auth.token.role: 'superuser'
+     * @allow (create) Superuser creates an audit log.
+     *    - auth.uid: 'superuser456'
+     *    - auth.token.role: 'superuser'
+     * @allow (update) Superuser updates any audit log
+     *    - auth.uid: 'superuser456'
+     *    - auth.token.role: 'superuser'
+     * @deny (get) Non-superuser tries to read an audit log.
+     *    - auth.uid: 'user123'
+     * @deny (create) Non-superuser tries to create an audit log.
+     *    - auth.uid: 'user123'
+     * @deny (update) Non-superuser tries to update an audit log.
+     *    - auth.uid: 'user123'
+     * @deny (delete) Non-superuser tries to delete an audit log.
+     *    - auth.uid: 'user123'
+     * @principle Restricts access to audit logs to superusers only.
      */
     match /audit_logs/{auditLogId} {
-      allow get, list: if true;
-      allow create, update, delete: if true; // TODO: Implement proper security for audit logs.
+      allow get: if isSuperuser();
+      allow list: if isSuperuser();
+      allow create: if isSuperuser();
+      allow update: if isSuperuser() && resource != null;
+      allow delete: if isSuperuser() && resource != null;
     }
   }
 }
