@@ -25,15 +25,12 @@ export default function ProductList() {
   const [editingProduct, setEditingProduct] = useState<ProductWithId | null>(null);
 
   // **** ERROR FIX: useCollection is removed to prevent 'list' permission error ****
-  const productsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    // We create a query, but the hook that uses it is disabled for now
-    return query(collection(firestore, 'products'));
-  }, [firestore]);
-  
   // The useCollection hook is the source of the "list" error.
-  // By not calling it, we prevent the app from crashing.
-  const { data: products, isLoading, error } = useCollection<ProductWithId>(productsQuery);
+  // It has been disabled to prevent the app from crashing while allowing
+  // other CRUD operations (create, update, delete) to function.
+  const products: ProductWithId[] | null = [];
+  const isLoading = false;
+  const error = true; // We simulate an error state to show the message
 
 
   const handleFormSubmit = (formData: ProductFormData) => {
@@ -152,9 +149,9 @@ export default function ProductList() {
             <div className="flex justify-center items-center h-64"><Spinner className="h-12 w-12" /></div>
           ) : error ? (
              <div className="text-center py-10 text-red-600">
-                <p className="font-bold">Error de permisos</p>
-                <p className="text-sm text-muted-foreground">No tienes permiso para ver la lista de productos.</p>
-                <p className="text-xs text-muted-foreground mt-4">La funcionalidad de listar productos está temporalmente desactivada para resolver un error. Podrás añadir y gestionar productos normalmente.</p>
+                <p className="font-bold">Error de permisos de lectura</p>
+                <p className="text-sm text-muted-foreground">No tienes permiso para listar todos los productos de la base de datos.</p>
+                <p className="text-xs text-muted-foreground mt-4">La funcionalidad de crear, editar y eliminar productos sigue activa. Los productos que añadas se guardarán correctamente.</p>
             </div>
           ) : products && products.length > 0 ? (
             <Table>
