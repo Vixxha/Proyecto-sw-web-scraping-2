@@ -26,49 +26,11 @@ import { findPrices } from '@/ai/flows/find-prices-flow';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-type ComponentWithId = Component & { id: string };
-
-export default function ComponentView({ slug }: { slug: string }) {
+export default function ComponentView({ component }: { component: Component }) {
   const firestore = useFirestore();
   const { user } = useUser();
-  const [docId, setDocId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isScraping, setIsScraping] = useState(false);
   const { toast } = useToast();
-
-  // 1. Find the document ID for the given slug
-  useEffect(() => {
-    if (!firestore || !slug) return;
-
-    const findDoc = async () => {
-      setIsLoading(true);
-      const q = query(collection(firestore, 'products'), where('slug', '==', slug));
-      const querySnapshot = await getDocs(q);
-      
-      if (!querySnapshot.empty) {
-        setDocId(querySnapshot.docs[0].id);
-      } else {
-        setDocId(null);
-        setIsLoading(false);
-      }
-    };
-    findDoc();
-  }, [firestore, slug]);
-  
-  // 2. Use the found document ID to fetch the document with useDoc
-  const componentDocRef = useMemoFirebase(() => {
-      if (!firestore || !docId) return null;
-      return doc(firestore, 'products', docId);
-  }, [firestore, docId]);
-
-  const { data: component, isLoading: componentLoading } = useDoc<ComponentWithId>(componentDocRef);
-
-  // 3. Final loading state management
-  useEffect(() => {
-    if (!componentLoading) {
-      setIsLoading(false);
-    }
-  }, [componentLoading]);
   
   const oneYearAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 1));
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
@@ -77,15 +39,14 @@ export default function ComponentView({ slug }: { slug: string }) {
   });
 
   const handleFindPrices = async () => {
-    if (!component || !docId || !firestore) return;
+    if (!component || !component.id || !firestore) return;
 
     setIsScraping(true);
     try {
       const result = await findPrices({ productName: component.name });
       if (result.prices.length > 0) {
-        const productRef = doc(firestore, 'products', docId);
+        const productRef = doc(firestore, 'products', component.id);
         
-        // Use arrayUnion to avoid duplicates if the price already exists
         const existingPrices = component.prices || [];
         const newPrices = result.prices.filter(newPrice => 
             !existingPrices.some(existing => existing.url === newPrice.url)
@@ -95,12 +56,17 @@ export default function ComponentView({ slug }: { slug: string }) {
             await updateDoc(productRef, {
                 prices: arrayUnion(...newPrices)
             });
+             toast({
+              title: 'Precios actualizados',
+              description: `Se encontraron y añadieron ${newPrices.length} nuevos precios para ${component.name}. (Los datos locales no se actualizarán hasta el próximo reinicio)`,
+            });
+        } else {
+             toast({
+                variant: 'default',
+                title: 'No se encontraron nuevos precios',
+                description: `La IA no pudo encontrar precios adicionales para este producto en este momento.`,
+            });
         }
-
-        toast({
-          title: 'Precios actualizados',
-          description: `Se encontraron y añadieron ${newPrices.length} nuevos precios para ${component.name}.`,
-        });
       } else {
          toast({
             variant: 'default',
@@ -120,7 +86,6 @@ export default function ComponentView({ slug }: { slug: string }) {
     }
   };
 
-
   const filteredPriceHistory = useMemo(() => {
     if (!component || !component.priceHistory) return [];
     return component.priceHistory.filter(point => {
@@ -136,29 +101,6 @@ export default function ComponentView({ slug }: { slug: string }) {
   }, [dateRange, component]);
 
   const storeMap = new Map(stores.map(s => [s.id, s.name]));
-
-  // Show skeleton loader while fetching
-  if (isLoading) {
-    return (
-       <div className="container mx-auto px-4 py-8 md:py-12">
-        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
-          <div className="lg:col-span-2">
-            <Skeleton className="aspect-square w-full rounded-xl" />
-          </div>
-          <div className="lg:col-span-3 space-y-8">
-            <div className="space-y-2">
-              <Skeleton className="h-6 w-24 rounded-md" />
-              <Skeleton className="h-10 w-3/4 rounded-md" />
-              <Skeleton className="h-6 w-1/4 rounded-md" />
-            </div>
-            <Skeleton className="h-48 w-full rounded-xl" />
-            <Skeleton className="h-48 w-full rounded-xl" />
-            <Skeleton className="h-48 w-full rounded-xl" />
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   if (!component) {
     notFound();

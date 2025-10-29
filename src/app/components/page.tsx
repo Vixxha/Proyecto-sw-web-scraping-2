@@ -6,8 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ComponentCard from '@/components/component-card';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query } from 'firebase/firestore';
+import { components as allComponents } from '@/lib/data'; // Use local data
 import type { Component } from '@/lib/types';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import Spinner from '@/components/spinner';
 
 const categories = ['All', 'CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'Power Supply', 'Case'];
-const brands = ['All', 'Intel', 'AMD', 'NVIDIA', 'ASUS', 'Corsair', 'Samsung', 'Gigabyte', 'MSI', 'Crucial', 'SeaSonic', 'NZXT'];
+const brands = ['All', 'Intel', 'AMD', 'NVIDIA', 'ASUS', 'Corsair', 'Samsung', 'Gigabyte', 'MSI', 'Crucial', 'SeaSonic', 'NZXT', 'Lian Li'];
 const placeholderTexts = [
     "Ej: 'GeForce RTX 4090'...",
     "Ej: 'AMD Ryzen 9 7950X'...",
@@ -40,13 +39,14 @@ export default function ComponentsPage() {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const firestore = useFirestore();
-  const productsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'products'));
-  }, [firestore]);
-
-  const { data: allComponents, isLoading: productsLoading } = useCollection<ProductWithId>(productsQuery);
+  // Temporarily use local data
+  const productsLoading = false;
+  // const firestore = useFirestore();
+  // const productsQuery = useMemoFirebase(() => {
+  //   if (!firestore) return null;
+  //   return query(collection(firestore, 'products'));
+  // }, [firestore]);
+  // const { data: allComponents, isLoading: productsLoading } = useCollection<ProductWithId>(productsQuery);
 
   useEffect(() => {
     const queryFromUrl = searchParams.get('search');
@@ -206,7 +206,7 @@ export default function ComponentsPage() {
           ) : (
             <div className="text-center py-16 col-span-full">
               <p className="text-xl font-medium text-muted-foreground">No se encontraron componentes.</p>
-              <p className="text-muted-foreground mt-2">Intenta ajustar tu búsqueda o filtros, o añade nuevos productos desde el panel de administración.</p>
+              <p className="text-muted-foreground mt-2">Intenta ajustar tu búsqueda o filtros.</p>
             </div>
           )}
         </main>
