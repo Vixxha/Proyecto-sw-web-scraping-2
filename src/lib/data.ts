@@ -30,7 +30,7 @@ const generatePriceHistory = (basePrice: number): PriceHistoryPoint[] => {
 
 const placeholderImageMap = new Map(PlaceHolderImages.map(p => [p.id, p]));
 
-const rawComponents: Omit<Component, 'priceHistory' | 'imageUrl' | 'imageHint'>[] = [
+const rawComponents: Omit<Component, 'priceHistory' | 'imageUrl' | 'imageHint' | 'price' | 'stock'>[] = [
   {
     id: '1',
     slug: 'intel-core-i9-13900k',
@@ -302,6 +302,8 @@ export const components: Component[] = rawComponents.map(component => {
     const imageInfo = getImageForComponent(component.slug, component.category);
     return {
         ...component,
+        price: bestPrice,
+        stock: Math.floor(Math.random() * 100), // Mock stock
         priceHistory: generatePriceHistory(bestPrice),
         imageUrl: imageInfo.imageUrl,
         imageHint: imageInfo.imageHint,

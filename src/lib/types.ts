@@ -1,3 +1,4 @@
+
 export interface Store {
   id: string;
   name: string;
@@ -27,8 +28,9 @@ export interface Component {
   imageUrl: string;
   imageHint?: string;
   description?: string;
+  price: number;
+  stock: number;
   prices: PriceEntry[];
   priceHistory: PriceHistoryPoint[];
-  specs: { [key: string]: string };
   slug: string;
 }
