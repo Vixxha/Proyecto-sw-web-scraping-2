@@ -18,9 +18,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, limit } from 'firebase/firestore';
-import Spinner from '@/components/spinner';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { collection, query, where, getDocs, doc } from 'firebase/firestore';
 import { notFound } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -28,27 +27,44 @@ type ComponentWithId = Component & { id: string };
 
 export default function ComponentView({ slug }: { slug: string }) {
   const firestore = useFirestore();
-  const [component, setComponent] = useState<ComponentWithId | null>(null);
+  const [docId, setDocId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const componentQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'products'), where('slug', '==', slug), limit(1));
-  }, [firestore, slug]);
-
-  const { data: componentData, isLoading: componentLoading } = useCollection<ComponentWithId>(componentQuery);
-
+  // 1. Find the document ID for the given slug
   useEffect(() => {
-    // We only set loading to false once the initial fetch is done.
+    if (!firestore || !slug) return;
+
+    const findDoc = async () => {
+      setIsLoading(true);
+      const q = query(collection(firestore, 'products'), where('slug', '==', slug));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        setDocId(querySnapshot.docs[0].id);
+      } else {
+        // If not found, trigger 404 after loading is complete
+        setDocId(null);
+        setIsLoading(false);
+      }
+    };
+    findDoc();
+  }, [firestore, slug]);
+  
+  // 2. Use the found document ID to fetch the document with useDoc
+  const componentDocRef = useMemoFirebase(() => {
+      if (!firestore || !docId) return null;
+      return doc(firestore, 'products', docId);
+  }, [firestore, docId]);
+
+  const { data: component, isLoading: componentLoading } = useDoc<ComponentWithId>(componentDocRef);
+
+  // 3. Final loading state management
+  useEffect(() => {
+    // We are loading as long as we are searching for the docId or the doc itself
     if (!componentLoading) {
       setIsLoading(false);
-      if (componentData && componentData.length > 0) {
-        setComponent(componentData[0]);
-      } else {
-        setComponent(null); // Explicitly set to null if not found
-      }
     }
-  }, [componentData, componentLoading]);
+  }, [componentLoading]);
   
   const oneYearAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 1));
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
@@ -140,8 +156,8 @@ export default function ComponentView({ slug }: { slug: string }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {component.prices && component.prices.map((price) => (
-                    <TableRow key={price.storeId}>
+                  {component.prices && component.prices.map((price, index) => (
+                    <TableRow key={`${price.storeId}-${index}`}>
                       <TableCell className="font-medium">{storeMap.get(price.storeId) || 'Tienda Desconocida'}</TableCell>
                       <TableCell className="text-right font-semibold text-primary">${price.price.toLocaleString('es-CL')}</TableCell>
                       <TableCell className="text-right">
@@ -258,3 +274,5 @@ export default function ComponentView({ slug }: { slug: string }) {
     </div>
   );
 }
+
+    
