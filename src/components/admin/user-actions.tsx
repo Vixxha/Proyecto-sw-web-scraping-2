@@ -27,13 +27,25 @@ export default function UserActions({ user }: UserActionsProps) {
   const { toast } = useToast();
 
   const handleRoleChange = async (newRole: 'user' | 'superuser') => {
-    if (!firestore) return;
+    if (!firestore) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Servicio de base de datos no disponible.',
+        });
+        return;
+    }
 
     const userDocRef = doc(firestore, 'users', user.id);
     const roleUpdate = { role: newRole };
 
-    try {
-       updateDoc(userDocRef, roleUpdate)
+    updateDoc(userDocRef, roleUpdate)
+        .then(() => {
+            toast({
+                title: 'Rol actualizado',
+                description: `El usuario ha sido actualizado a ${newRole}.`,
+            });
+        })
         .catch((error) => {
             const contextualError = new FirestorePermissionError({
                 operation: 'update',
@@ -41,24 +53,14 @@ export default function UserActions({ user }: UserActionsProps) {
                 requestResourceData: roleUpdate
             });
             errorEmitter.emit('permission-error', contextualError);
+            
+            // This toast is for user feedback, as the detailed error is in the dev console
             toast({
                 variant: 'destructive',
                 title: 'Error de Permiso',
                 description: 'No tienes permiso para realizar esta acción.',
             });
         });
-        
-      toast({
-        title: 'Rol actualizado',
-        description: `El usuario ha sido actualizado a ${newRole}.`,
-      });
-    } catch (error) {
-       toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'No se pudo actualizar el rol del usuario.',
-      });
-    }
   };
 
   return (
