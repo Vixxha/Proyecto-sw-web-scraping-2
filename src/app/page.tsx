@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,13 +20,14 @@ import {
 } from "@/components/ui/carousel"
 import { Input } from '@/components/ui/input';
 
+const placeholderTexts = [
+  "Ej: 'GeForce RTX 4090'...",
+  "Ej: 'AMD Ryzen 9 7950X'...",
+  "Ej: 'Gabinete ATX blanco'...",
+  "Ej: 'Fuente de poder 750W'...",
+];
+
 const TypewriterPlaceholder = ({ onSearch }: { onSearch: (query: string) => void }) => {
-  const placeholderTexts = [
-    "Ej: 'GeForce RTX 4090'...",
-    "Ej: 'AMD Ryzen 9 7950X'...",
-    "Ej: 'Gabinete ATX blanco'...",
-    "Ej: 'Fuente de poder 750W'...",
-  ];
   const [currentPlaceholder, setCurrentPlaceholder] = useState('');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
@@ -35,36 +36,38 @@ const TypewriterPlaceholder = ({ onSearch }: { onSearch: (query: string) => void
   const [isFocused, setIsFocused] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
+  const handleTyping = useCallback(() => {
     if (isFocused) return;
-
-    const handleTyping = () => {
-      const fullText = placeholderTexts[placeholderIndex];
-      let newCharIndex = charIndex;
-      let timeout = isDeleting ? 50 : 120;
-
-      if (isDeleting) {
-        setCurrentPlaceholder(fullText.substring(0, newCharIndex - 1));
-        newCharIndex--;
-      } else {
-        setCurrentPlaceholder(fullText.substring(0, newCharIndex + 1));
-        newCharIndex++;
-      }
-      setCharIndex(newCharIndex);
-
-      if (!isDeleting && newCharIndex === fullText.length) {
-        // Pause at the end of the text
-        timeout = 2000;
-        setIsDeleting(true);
-      } else if (isDeleting && newCharIndex === 0) {
-        setIsDeleting(false);
-        setPlaceholderIndex((prevIndex) => (prevIndex + 1) % placeholderTexts.length);
-        timeout = 120;
-      }
-      
-      typingTimeoutRef.current = setTimeout(handleTyping, timeout);
-    };
     
+    const fullText = placeholderTexts[placeholderIndex];
+    let newCharIndex = charIndex;
+    let timeout = isDeleting ? 50 : 120;
+
+    if (isDeleting) {
+      setCurrentPlaceholder(fullText.substring(0, newCharIndex - 1));
+      newCharIndex--;
+    } else {
+      setCurrentPlaceholder(fullText.substring(0, newCharIndex + 1));
+      newCharIndex++;
+    }
+    setCharIndex(newCharIndex);
+
+    if (!isDeleting && newCharIndex === fullText.length) {
+      timeout = 2000;
+      setIsDeleting(true);
+    } else if (isDeleting && newCharIndex === 0) {
+      setIsDeleting(false);
+      setPlaceholderIndex((prevIndex) => (prevIndex + 1) % placeholderTexts.length);
+      timeout = 120;
+    }
+    
+    typingTimeoutRef.current = setTimeout(handleTyping, timeout);
+  }, [charIndex, isDeleting, placeholderIndex, isFocused]);
+
+  useEffect(() => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
     typingTimeoutRef.current = setTimeout(handleTyping, 120);
 
     return () => {
@@ -72,8 +75,8 @@ const TypewriterPlaceholder = ({ onSearch }: { onSearch: (query: string) => void
         clearTimeout(typingTimeoutRef.current);
       }
     };
+  }, [handleTyping]);
 
-  }, [charIndex, isDeleting, placeholderIndex, isFocused]);
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -241,3 +244,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
