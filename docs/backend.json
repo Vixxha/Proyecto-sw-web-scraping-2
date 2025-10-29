@@ -80,6 +80,11 @@
         "stock": {
           "type": "number",
           "description": "Available stock quantity."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the product image.",
+          "format": "uri"
         }
       },
       "required": [

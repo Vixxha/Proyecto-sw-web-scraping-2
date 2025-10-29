@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect } from 'react';
@@ -18,6 +17,7 @@ const productSchema = z.object({
   brand: z.string().min(2, { message: 'La marca es obligatoria.' }),
   category: z.string().min(2, { message: 'La categoría es obligatoria.' }),
   description: z.string().optional(),
+  imageUrl: z.string().url({ message: 'Por favor, introduce una URL válida.' }).optional().or(z.literal('')),
   price: z.preprocess(
     (val) => (val === "" ? undefined : Number(val)),
     z.number({ invalid_type_error: 'El precio debe ser un número.' }).min(0, 'El precio no puede ser negativo.')
@@ -46,6 +46,7 @@ export default function ProductForm({ isOpen, onOpenChange, onSubmit, product }:
       brand: '',
       category: 'CPU', // Default category
       description: '',
+      imageUrl: '',
       price: 0,
       stock: 0,
     },
@@ -59,6 +60,7 @@ export default function ProductForm({ isOpen, onOpenChange, onSubmit, product }:
         brand: product.brand,
         category: product.category,
         description: product.description || '',
+        imageUrl: product.imageUrl || '',
         price: product.price,
         stock: product.stock,
       });
@@ -69,6 +71,7 @@ export default function ProductForm({ isOpen, onOpenChange, onSubmit, product }:
         brand: '',
         category: 'CPU',
         description: '',
+        imageUrl: '',
         price: 0,
         stock: 0,
       });
@@ -106,6 +109,17 @@ export default function ProductForm({ isOpen, onOpenChange, onSubmit, product }:
                 <FormItem>
                   <FormLabel>Descripción</FormLabel>
                   <FormControl><Textarea {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="imageUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>URL de la Imagen</FormLabel>
+                  <FormControl><Input {...field} placeholder="https://..." /></FormControl>
                   <FormMessage />
                 </FormItem>
               )}

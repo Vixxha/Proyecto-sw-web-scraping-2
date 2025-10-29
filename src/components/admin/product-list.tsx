@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -34,21 +33,21 @@ export default function ProductList() {
   
   // The useCollection hook is the source of the "list" error.
   // By not calling it, we prevent the app from crashing.
-  // const { data: products, isLoading, error } = useCollection<Product>(productsQuery);
-  const products: ProductWithId[] | null = [];
-  const isLoading = false;
-  const error = null; // Manually set to null to avoid render error
+  const { data: products, isLoading, error } = useCollection<ProductWithId>(productsQuery);
+
 
   const handleFormSubmit = (formData: ProductFormData) => {
     if (!firestore) return;
 
     const operation = editingProduct ? 'update' : 'create';
+    const imageUrl = formData.imageUrl || 'https://picsum.photos/seed/default/600/600';
 
     const promise = editingProduct
       ? (() => {
           const productRef = doc(firestore, 'products', editingProduct.id);
           const productUpdate = {
             ...formData,
+            imageUrl,
             price: Number(formData.price),
             stock: Number(formData.stock),
           };
@@ -73,7 +72,7 @@ export default function ProductList() {
             slug: formData.name.toLowerCase().replace(/\s+/g, '-'),
             prices: [{ storeId: 'store-1', price: Number(formData.price), url: '#' }],
             priceHistory: [],
-            imageUrl: 'https://picsum.photos/seed/default/600/600',
+            imageUrl,
             imageHint: 'product',
           };
           return addDoc(collectionRef, newProduct)
@@ -197,7 +196,7 @@ export default function ProductList() {
             </Table>
           ) : (
             <div className="text-center py-10">
-              <p className="font-bold text-muted-foreground">La lista de productos está desactivada temporalmente.</p>
+              <p className="font-bold text-muted-foreground">Aún no hay productos en el catálogo.</p>
                <p className="text-sm text-muted-foreground mt-2">Puedes añadir nuevos productos usando el botón de arriba.</p>
             </div>
           )}
