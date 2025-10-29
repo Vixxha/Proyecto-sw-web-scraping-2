@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Cpu, Dices, Bot, User as UserIcon, LogOut } from "lucide-react";
+import { Menu, Cpu, Dices, Bot, User as UserIcon, LogOut, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -20,6 +20,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { signOut } from "firebase/auth";
 import Spinner from "./spinner";
+import { useDoc } from "@/firebase/firestore/use-doc";
+import { doc } from "firebase/firestore";
+import { useFirestore } from "@/firebase/provider";
+import { useMemoFirebase } from "@/firebase/provider";
 
 const navLinks = [
   { href: "/components", label: "Explorar", icon: Cpu },
@@ -30,7 +34,15 @@ const navLinks = [
 export function Header() {
   const pathname = usePathname();
   const auth = useAuth();
+  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+  
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+
+  const { data: userProfile } = useDoc<{role: string}>(userDocRef);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -136,6 +148,14 @@ export function Header() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  {userProfile?.role === 'superuser' && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin/dashboard">
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        <span>Admin Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Cerrar sesión</span>
