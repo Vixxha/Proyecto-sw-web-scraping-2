@@ -19,18 +19,26 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where, getDocs, doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import { notFound } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { findPrices } from '@/ai/flows/find-prices-flow';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-export default function ComponentView({ component }: { component: Component }) {
+export default function ComponentView({ initialComponent }: { initialComponent: Component & { id: string } }) {
   const firestore = useFirestore();
   const { user } = useUser();
   const [isScraping, setIsScraping] = useState(false);
   const { toast } = useToast();
+  
+  // Use a real-time listener to get live updates for the component
+  const componentDocRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'products', initialComponent.id);
+  }, [firestore, initialComponent.id]);
+
+  const { data: component, isLoading: isComponentLoading } = useDoc<Component>(componentDocRef);
   
   const oneYearAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 1));
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
@@ -47,9 +55,12 @@ export default function ComponentView({ component }: { component: Component }) {
       if (result.prices.length > 0) {
         const productRef = doc(firestore, 'products', component.id);
         
-        const existingPrices = component.prices || [];
+        // Fetch the latest document to get the most recent prices
+        const currentDoc = await getDoc(productRef);
+        const existingPrices = currentDoc.data()?.prices || [];
+
         const newPrices = result.prices.filter(newPrice => 
-            !existingPrices.some(existing => existing.url === newPrice.url)
+            !existingPrices.some((existing: { url: string; }) => existing.url === newPrice.url)
         );
 
         if (newPrices.length > 0) {
@@ -58,7 +69,7 @@ export default function ComponentView({ component }: { component: Component }) {
             });
              toast({
               title: 'Precios actualizados',
-              description: `Se encontraron y añadieron ${newPrices.length} nuevos precios para ${component.name}. (Los datos locales no se actualizarán hasta el próximo reinicio)`,
+              description: `Se encontraron y añadieron ${newPrices.length} nuevos precios para ${component.name}.`,
             });
         } else {
              toast({
@@ -87,8 +98,9 @@ export default function ComponentView({ component }: { component: Component }) {
   };
 
   const filteredPriceHistory = useMemo(() => {
-    if (!component || !component.priceHistory) return [];
-    return component.priceHistory.filter(point => {
+    const history = component?.priceHistory || initialComponent.priceHistory;
+    if (!history) return [];
+    return history.filter(point => {
         const pointDate = new Date(point.date);
         const fromDate = dateRange.from ? new Date(dateRange.from.setHours(0,0,0,0)) : null;
         const toDate = dateRange.to ? new Date(dateRange.to.setHours(23,59,59,999)): null;
@@ -98,11 +110,17 @@ export default function ComponentView({ component }: { component: Component }) {
         
         return true;
     });
-  }, [dateRange, component]);
+  }, [dateRange, component, initialComponent]);
 
   const storeMap = new Map(stores.map(s => [s.id, s.name]));
+  
+  const displayComponent = component || initialComponent;
 
-  if (!component) {
+  if (isComponentLoading && !component) {
+    return <ComponentViewSkeleton />;
+  }
+
+  if (!displayComponent) {
     notFound();
   }
 
@@ -113,12 +131,12 @@ export default function ComponentView({ component }: { component: Component }) {
           <Card className="overflow-hidden sticky top-24 shadow-lg">
             <div className="relative aspect-square w-full bg-muted/30">
               <Image
-                src={component.imageUrl}
-                alt={component.name}
+                src={displayComponent.imageUrl}
+                alt={displayComponent.name}
                 width={600}
                 height={600}
                 className="w-full h-full object-cover"
-                data-ai-hint={component.imageHint}
+                data-ai-hint={displayComponent.imageHint}
               />
             </div>
           </Card>
@@ -126,9 +144,9 @@ export default function ComponentView({ component }: { component: Component }) {
 
         <div className="lg:col-span-3 space-y-8">
           <div>
-            <Badge variant="outline" className="mb-2">{component.category}</Badge>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{component.name}</h1>
-            <p className="text-lg text-muted-foreground">{component.brand} - {component.sku}</p>
+            <Badge variant="outline" className="mb-2">{displayComponent.category}</Badge>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{displayComponent.name}</h1>
+            <p className="text-lg text-muted-foreground">{displayComponent.brand} - {displayComponent.sku}</p>
           </div>
 
           <Card>
@@ -151,7 +169,7 @@ export default function ComponentView({ component }: { component: Component }) {
               </div>
             </CardHeader>
             <CardContent>
-              {component.prices && component.prices.length > 0 ? (
+              {displayComponent.prices && displayComponent.prices.length > 0 ? (
                  <Table>
                     <TableHeader>
                       <TableRow>
@@ -161,7 +179,7 @@ export default function ComponentView({ component }: { component: Component }) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {component.prices.map((price, index) => (
+                      {displayComponent.prices.map((price, index) => (
                         <TableRow key={`${price.storeId}-${index}`}>
                           <TableCell className="font-medium">{storeMap.get(price.storeId) || 'Tienda Desconocida'}</TableCell>
                           <TableCell className="text-right font-semibold text-primary">${price.price.toLocaleString('es-CL')}</TableCell>
@@ -255,9 +273,9 @@ export default function ComponentView({ component }: { component: Component }) {
               <CardTitle>Especificaciones</CardTitle>
             </CardHeader>
             <CardContent>
-               {component.specs && Object.keys(component.specs).length > 0 ? (
+               {displayComponent.specs && Object.keys(displayComponent.specs).length > 0 ? (
                   <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                    {Object.entries(component.specs).map(([key, value]) => (
+                    {Object.entries(displayComponent.specs).map(([key, value]) => (
                       <div key={key} className="text-sm">
                         <p className="font-semibold">{key}</p>
                         <p className="text-muted-foreground">{value as string}</p>
@@ -293,4 +311,50 @@ export default function ComponentView({ component }: { component: Component }) {
   );
 }
 
-    
+
+function ComponentViewSkeleton() {
+  return (
+    <div className="container mx-auto px-4 py-8 md:py-12">
+      <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
+        <div className="lg:col-span-2">
+          <Card className="overflow-hidden sticky top-24 shadow-lg">
+            <Skeleton className="aspect-square w-full" />
+          </Card>
+        </div>
+        <div className="lg:col-span-3 space-y-8">
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-24" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-6 w-48" />
+          </div>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-8 w-1/2" />
+              <Skeleton className="h-4 w-3/4" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-24 w-full" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-8 w-1/2" />
+               <Skeleton className="h-4 w-3/4" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-40 w-full" />
+            </CardContent>
+          </Card>
+           <Card>
+            <CardHeader>
+               <Skeleton className="h-8 w-1/3" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-20 w-full" />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}

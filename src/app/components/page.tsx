@@ -6,7 +6,6 @@ import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ComponentCard from '@/components/component-card';
-import { components as allComponents } from '@/lib/data'; // Use local data
 import type { Component } from '@/lib/types';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,9 +13,12 @@ import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import Spinner from '@/components/spinner';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
+
 
 const categories = ['All', 'CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'Power Supply', 'Case'];
-const brands = ['All', 'Intel', 'AMD', 'NVIDIA', 'ASUS', 'Corsair', 'Samsung', 'Gigabyte', 'MSI', 'Crucial', 'SeaSonic', 'NZXT', 'Lian Li'];
+const brands = ['All', 'Intel', 'AMD', 'NVIDIA', 'ASUS', 'Corsair', 'Samsung', 'Gigabyte', 'MSI', 'Crucial', 'SeaSonic', 'NZXT', 'Lian Li', 'Kingston'];
 const placeholderTexts = [
     "Ej: 'GeForce RTX 4090'...",
     "Ej: 'AMD Ryzen 9 7950X'...",
@@ -39,14 +41,12 @@ export default function ComponentsPage() {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Temporarily use local data
-  const productsLoading = false;
-  // const firestore = useFirestore();
-  // const productsQuery = useMemoFirebase(() => {
-  //   if (!firestore) return null;
-  //   return query(collection(firestore, 'products'));
-  // }, [firestore]);
-  // const { data: allComponents, isLoading: productsLoading } = useCollection<ProductWithId>(productsQuery);
+  const firestore = useFirestore();
+  const productsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'products'));
+  }, [firestore]);
+  const { data: allComponents, isLoading: productsLoading } = useCollection<ProductWithId>(productsQuery);
 
   useEffect(() => {
     const queryFromUrl = searchParams.get('search');
@@ -214,5 +214,3 @@ export default function ComponentsPage() {
     </div>
   );
 }
-
-    

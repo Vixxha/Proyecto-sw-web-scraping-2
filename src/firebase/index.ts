@@ -1,3 +1,4 @@
+
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
@@ -32,13 +33,17 @@ export function initializeFirebase(): { firebaseApp: FirebaseApp, auth: Auth, fi
   return getSdks(getApp());
 }
 
-export function getSdks(firebaseApp: FirebaseApp) {
+// Helper function to get SDKs
+// This can be used on the server for things like getStaticProps
+export function getSdks(app?: FirebaseApp) {
+  const firebaseApp = app || getApp();
   return {
     firebaseApp,
     auth: getAuth(firebaseApp),
     firestore: getFirestore(firebaseApp)
   };
 }
+
 
 export * from './provider';
 export * from './client-provider';

@@ -15,7 +15,6 @@ import ProductActions from './product-actions';
 import { useToast } from '@/hooks/use-toast';
 import { FirestorePermissionError, errorEmitter } from '@/firebase';
 import Image from 'next/image';
-import { components } from '@/lib/data'; // Import local data
 
 // We reuse the Component type but alias it as Product for semantic clarity
 type ProductWithId = Product & { id: string };
@@ -26,20 +25,12 @@ export default function ProductList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithId | null>(null);
 
-  // For now, we will display the local data.
-  // The hooks for Firestore are kept for when we switch back.
-  const products: ProductWithId[] = components;
-  const isLoading = false;
-  const error = null;
-
-  /*
   const productsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'products'));
   }, [firestore]);
 
   const { data: products, isLoading, error } = useCollection<ProductWithId>(productsQuery);
-  */
 
   const handleFormSubmit = (formData: ProductFormData) => {
     if (!firestore) return;
@@ -203,5 +194,3 @@ export default function ProductList() {
     </>
   );
 }
-
-    
