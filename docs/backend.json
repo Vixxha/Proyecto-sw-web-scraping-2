@@ -8,7 +8,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the user."
+          "description": "Unique identifier for the user (matches Firebase Auth UID)."
         },
         "firstName": {
           "type": "string",
@@ -25,13 +25,15 @@
         },
         "role": {
           "type": "string",
-          "description": "Role of the user (e.g., 'user', 'superuser')."
+          "description": "Role of the user (e.g., 'user', 'superuser').",
+          "enum": ["user", "superuser"]
         },
         "status": {
           "type": "string",
-          "description": "Status of the user account (e.g., 'active', 'suspended')."
+          "description": "Status of the user account (e.g., 'active', 'suspended').",
+          "enum": ["active", "suspended"]
         },
-        "creationDate": {
+        "createdAt": {
           "type": "string",
           "description": "Date and time when the user account was created.",
           "format": "date-time"
@@ -44,14 +46,14 @@
         "email",
         "role",
         "status",
-        "creationDate"
+        "createdAt"
       ]
     },
     "AuditLog": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "AuditLog",
       "type": "object",
-      "description": "Represents an audit log entry for actions performed within the ComponentCompares application.",
+      "description": "Represents an audit log entry for actions performed within the application.",
       "properties": {
         "id": {
           "type": "string",
@@ -59,7 +61,7 @@
         },
         "userId": {
           "type": "string",
-          "description": "Reference to the User who performed the action. (Relationship: User 1:N AuditLog)"
+          "description": "Reference to the User who performed the action."
         },
         "action": {
           "type": "string",
@@ -86,8 +88,7 @@
   },
   "auth": {
     "providers": [
-      "password",
-      "anonymous"
+      "password"
     ]
   },
   "firestore": {
@@ -97,9 +98,9 @@
         "definition": {
           "entityName": "User",
           "schema": {
-            "$ref": "#/backend/entities/User"
+            "$ref": "#/entities/User"
           },
-          "description": "Stores user profiles. Allows path-based ownership for user-specific data. Includes denormalized authorization data if needed in the future.",
+          "description": "Stores user profiles. The document ID is the same as the Firebase Auth UID.",
           "params": [
             {
               "name": "userId",
@@ -109,29 +110,13 @@
         }
       },
       {
-        "path": "/roles_superuser/{userId}",
-        "definition": {
-          "entityName": "superuserRole",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Indicates superuser status. The existence of a document at this path grants superuser privileges.  Uses 'existence over content' for authorization. No schema is defined because we are only checking existence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "Unique identifier for the user who is a superuser."
-            }
-          ]
-        }
-      },
-      {
         "path": "/audit_logs/{auditLogId}",
         "definition": {
           "entityName": "AuditLog",
           "schema": {
-            "$ref": "#/backend/entities/AuditLog"
+            "$ref": "#/entities/AuditLog"
           },
-          "description": "Stores audit logs. Segregates audit logs and allows for querying logs by user ID or timestamp.",
+          "description": "Stores audit logs for important actions within the system.",
           "params": [
             {
               "name": "auditLogId",
@@ -140,7 +125,6 @@
           ]
         }
       }
-    ],
-    "reasoning": "This Firestore structure prioritizes security, scalability, and debuggability based on the provided requirements and design principles. It focuses on authorization independence and clear security rules. The structure denormalizes data to avoid using `get()` calls in security rules, thus supporting atomic operations and improving performance. Segregation ensures each collection has a homogeneous security posture. Access control is managed with path-based ownership for user data and a dedicated collection for global roles.\n\n*   **/users/{userId}**: Stores user profiles, enabling path-based ownership. This structure makes it easy to secure user-specific data.\n*   **/roles_superuser/{userId}**: This path implements role-based access control using the \"existence over content\" principle. The existence of a document indicates the user has the `superuser` role.\n*   **/audit_logs/{auditLogId}**: Stores audit logs, enabling tracking of actions performed in the system. Each log entry includes a `userId` referencing the user who performed the action. This design segregates audit logs and allows for querying logs by user ID or timestamp.\n\nThe design achieves Authorization Independence by avoiding `get()` calls in security rules. For instance, access to a user's profile data is controlled directly through the `/users/{userId}` path, without needing to fetch data from a parent document. The use of `/roles_superuser/{userId}` also contributes to this independence by providing a direct way to check a user's role without needing to read the user document.\n\nQAPs are supported through structural segregation. User profiles are stored separately from audit logs and role assignments, allowing for secure `list` operations. For example, listing all users is a secure operation because user data is stored in a dedicated collection with appropriate security rules. Likewise, listing superusers involves checking for the existence of documents in `/roles_superuser`, avoiding the need to iterate through user documents and inspect their roles."
+    ]
   }
 }
