@@ -3,169 +3,93 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Checks if the user is signed in.
-     * @return {boolean} True if the user is signed in, false otherwise.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * @description Checks if the user is an admin.
-     * @return {boolean} True if the user is an admin, checking for existence.
-     */
-    function isAdmin() {
-      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
-    }
-
-    /**
-     * @description Checks if the request is authenticated and the user ID matches the requested ID.
-     * @param {string} userId - The user ID to check against.
-     * @return {boolean} True if the user is the owner, false otherwise.
-     */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    /**
-     * @description Checks if the user is the owner of the existing document.
-     * @param {string} userId - The user ID to check against.
-     * @return {boolean} True if the user is the owner, false otherwise.
-     */
-    function isExistingOwner(userId) {
-        return isOwner(userId) && resource.data != null;
-    }
-
-    /**
-     * @description Rules for the /components/{componentId} collection.
-     * @path /components/{componentId}
-     * @allow (create) Signed-in user can create a component (admins in the future).
-     * @deny (create) Non-signed-in user cannot create a component.
-     * @allow (get) Any user can read a component.
-     */
-    match /components/{componentId} {
-      // Anyone can read components
-      allow get: if true;
-      allow list: if true;
-
-      // Only admins can create, update, or delete components
-      allow create: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    /**
-     * @description Rules for the /stores/{storeId} collection.
-     * @path /stores/{storeId}
-     * @allow (create) Signed-in user can create a store (admins in the future).
-     * @deny (create) Non-signed-in user cannot create a store.
-     * @allow (get) Any user can read a store.
-     */
-    match /stores/{storeId} {
-      // Anyone can read stores
-      allow get: if true;
-      allow list: if true;
-
-      // Only admins can create, update, or delete stores
-      allow create: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    /**
-     * @description Rules for the /categories/{categoryId} collection.
-     * @path /categories/{categoryId}
-     * @allow (create) Signed-in user can create a category (admins in the future).
-     * @deny (create) Non-signed-in user cannot create a category.
-     */
-    match /categories/{categoryId} {
-      // Anyone can read categories
-      allow get: if true;
-      allow list: if true;
-
-      // Only admins can create, update, or delete categories
-      allow create: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    /**
-     * @description Rules for the /brands/{brandId} collection.
-     * @path /brands/{brandId}
-     * @allow (create) Signed-in user can create a brand (admins in the future).
-     * @deny (create) Non-signed-in user cannot create a brand.
-     */
-    match /brands/{brandId} {
-      // Anyone can read brands
-      allow get: if true;
-      allow list: if true;
-
-      // Only admins can create, update, or delete brands
-      allow create: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    /**
-     * @description Rules for the /prices/{priceId} collection.
-     * @path /prices/{priceId}
-     * @allow (create) Signed-in user can create a price (admins in the future).
-     * @deny (create) Non-signed-in user cannot create a price.
-     */
-    match /prices/{priceId} {
-      // Anyone can read prices
-      allow get: if true;
-      allow list: if true;
-
-      // Only admins can create, update, or delete prices
-      allow create: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    /**
-     * @description Rules for the /roles_admin/{userId} collection.
-     * @path /roles_admin/{userId}
-     * @allow (create) Only the user themselves can create their admin role.
-     * @deny (create) Non-signed-in user cannot create an admin role.
-     * @allow (get) Only the user themselves can get their admin role.
-     * @deny (update) Nobody can update an admin role doc.
-     * @deny (delete) Only admins can delete an admin role document.
-     */
-    match /roles_admin/{userId} {
-      // Only the user can create their admin role
-      allow create: if isOwner(userId);
-      allow get: if isOwner(userId);
-
-      // Only admins can delete an admin role document
-      allow delete: if isAdmin();
-
-      // No updates allowed
-      allow update: if false;
-      allow list: if false;
-    }
-
-    /**
-     * @description Rules for the /users/{userId} collection.
+     * @description Manages access to user profile documents.
      * @path /users/{userId}
-     * @allow (create) Signed-in user can create their own user document.
-     * @deny (create) Non-signed-in user cannot create a user document.
+     * @allow (create) User with ID 'user123' can create their profile if authenticated as 'user123'.
+     * @allow (get, list) User with ID 'user123' can read their profile if authenticated as 'user123'.
+     * @allow (update, delete) User with ID 'user123' can update/delete their profile if authenticated as 'user123' and the document exists.
+     * @deny (create) User with ID 'user456' cannot create a profile for 'user123'.
+     * @deny (get, list) User with ID 'user456' cannot read the profile of 'user123'.
+     * @deny (update, delete) User with ID 'user456' cannot update/delete the profile of 'user123'.
+     * @principle Enforces document ownership for reads and writes.
      */
     match /users/{userId} {
-      // Signed-in user can create their own user document
-      allow create: if request.auth.uid == userId;
+      function isSignedIn() {
+        return request.auth != null;
+      }
 
-      // Only the user themselves can read their profile
-      allow get: if isOwner(userId);
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
 
-      // Only the user themselves can update their profile
-      allow update: if isOwner(userId);
+      function isExistingOwner(userId) {
+        return isOwner(userId) && exists(/databases/$(database)/documents/users/$(userId));
+      }
 
-      // Only the user themselves can delete their profile
-      allow delete: if isOwner(userId);
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow delete: if isSignedIn() && isExistingOwner(userId);
+    }
 
-      // Disable listing of users for privacy
+    /**
+     * @description Manages superuser role assignments.
+     * @path /roles_superuser/{userId}
+     * @allow (create) DENIED: No one can create superuser roles through direct write, function should be used.
+     * @allow (get) User with ID 'user123' can read their superuser role if it exists.
+     * @allow (list) DENIED: Listing all superusers is not permitted.
+     * @allow (update) DENIED: Superuser roles cannot be updated directly through write, function should be used.
+     * @allow (delete) DENIED: Superuser roles cannot be deleted directly through write, function should be used.
+     * @deny (create)  No one can create superuser roles through direct write.
+     * @deny (get) User with ID 'user456' cannot read the superuser role of 'user123' if it exists.
+     * @deny (list) Listing all superusers is not permitted.
+     * @deny (update) Superuser roles cannot be updated directly.
+     * @deny (delete) Superuser roles cannot be deleted directly.
+     * @principle Uses "existence over content" for superuser roles; presence of a document grants the role.
+     */
+    match /roles_superuser/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      allow get: if isSignedIn() && isOwner(userId);
       allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Manages audit logs.
+     * @path /audit_logs/{auditLogId}
+     * @allow (create) Any authenticated user can create an audit log.
+     * @allow (get, list) Only superusers can read audit logs.
+     * @allow (update, delete) DENIED: No one can update or delete audit logs through the client.
+     * @deny (get) Standard user with ID 'user123' cannot read audit logs.
+     * @deny (list) Standard user with ID 'user123' cannot list audit logs.
+     * @deny (update) Audit logs cannot be updated.
+     * @deny (delete) Audit logs cannot be deleted.
+     * @principle Restricts read access to audit logs to superusers only.
+     */
+    match /audit_logs/{auditLogId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isSuperuser() {
+        return exists(/databases/$(database)/documents/roles_superuser/$(request.auth.uid));
+      }
+
+      allow get: if isSignedIn() && isSuperuser();
+      allow list: if isSignedIn() && isSuperuser();
+      allow create: if isSignedIn();
+      allow update: if false;
+      allow delete: if false;
     }
   }
 }

@@ -1,0 +1,146 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the ComponentCompares application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "First name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Last name of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "Role of the user (e.g., 'user', 'superuser')."
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the user account (e.g., 'active', 'suspended')."
+        },
+        "creationDate": {
+          "type": "string",
+          "description": "Date and time when the user account was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "role",
+        "status",
+        "creationDate"
+      ]
+    },
+    "AuditLog": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AuditLog",
+      "type": "object",
+      "description": "Represents an audit log entry for actions performed within the ComponentCompares application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the audit log entry."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who performed the action. (Relationship: User 1:N AuditLog)"
+        },
+        "action": {
+          "type": "string",
+          "description": "Description of the action performed (e.g., 'update user role')."
+        },
+        "target": {
+          "type": "string",
+          "description": "The target of the action (e.g., user ID, component ID)."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Date and time when the action was performed.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "action",
+        "target",
+        "timestamp"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles. Allows path-based ownership for user-specific data. Includes denormalized authorization data if needed in the future.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "Unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_superuser/{userId}",
+        "definition": {
+          "entityName": "superuserRole",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Indicates superuser status. The existence of a document at this path grants superuser privileges.  Uses 'existence over content' for authorization. No schema is defined because we are only checking existence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "Unique identifier for the user who is a superuser."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/audit_logs/{auditLogId}",
+        "definition": {
+          "entityName": "AuditLog",
+          "schema": {
+            "$ref": "#/backend/entities/AuditLog"
+          },
+          "description": "Stores audit logs. Segregates audit logs and allows for querying logs by user ID or timestamp.",
+          "params": [
+            {
+              "name": "auditLogId",
+              "description": "Unique identifier for the audit log entry."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This Firestore structure prioritizes security, scalability, and debuggability based on the provided requirements and design principles. It focuses on authorization independence and clear security rules. The structure denormalizes data to avoid using `get()` calls in security rules, thus supporting atomic operations and improving performance. Segregation ensures each collection has a homogeneous security posture. Access control is managed with path-based ownership for user data and a dedicated collection for global roles.\n\n*   **/users/{userId}**: Stores user profiles, enabling path-based ownership. This structure makes it easy to secure user-specific data.\n*   **/roles_superuser/{userId}**: This path implements role-based access control using the \"existence over content\" principle. The existence of a document indicates the user has the `superuser` role.\n*   **/audit_logs/{auditLogId}**: Stores audit logs, enabling tracking of actions performed in the system. Each log entry includes a `userId` referencing the user who performed the action. This design segregates audit logs and allows for querying logs by user ID or timestamp.\n\nThe design achieves Authorization Independence by avoiding `get()` calls in security rules. For instance, access to a user's profile data is controlled directly through the `/users/{userId}` path, without needing to fetch data from a parent document. The use of `/roles_superuser/{userId}` also contributes to this independence by providing a direct way to check a user's role without needing to read the user document.\n\nQAPs are supported through structural segregation. User profiles are stored separately from audit logs and role assignments, allowing for secure `list` operations. For example, listing all users is a secure operation because user data is stored in a dedicated collection with appropriate security rules. Likewise, listing superusers involves checking for the existence of documents in `/roles_superuser`, avoiding the need to iterate through user documents and inspect their roles."
+  }
+}
