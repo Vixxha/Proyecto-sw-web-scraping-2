@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -42,36 +42,40 @@ export default function ComponentsPage() {
       setSearchQuery(queryFromUrl);
     }
   }, [searchParams]);
-
-  useEffect(() => {
+  
+  const handleTyping = useCallback(() => {
     if (isInputFocused) return;
 
-    const handleTyping = () => {
-      const fullText = placeholderTexts[placeholderIndex];
-      let newCharIndex = charIndex;
-      let timeout = isDeleting ? 50 : 120;
+    const fullText = placeholderTexts[placeholderIndex];
+    let newCharIndex = charIndex;
+    let timeout = isDeleting ? 50 : 120;
 
-      if (isDeleting) {
-        setCurrentPlaceholder(fullText.substring(0, newCharIndex - 1));
-        newCharIndex--;
-      } else {
-        setCurrentPlaceholder(fullText.substring(0, newCharIndex + 1));
-        newCharIndex++;
-      }
-      setCharIndex(newCharIndex);
+    if (isDeleting) {
+      setCurrentPlaceholder(fullText.substring(0, newCharIndex - 1));
+      newCharIndex--;
+    } else {
+      setCurrentPlaceholder(fullText.substring(0, newCharIndex + 1));
+      newCharIndex++;
+    }
+    setCharIndex(newCharIndex);
 
-      if (!isDeleting && newCharIndex === fullText.length) {
-        timeout = 2000;
-        setIsDeleting(true);
-      } else if (isDeleting && newCharIndex === 0) {
-        setIsDeleting(false);
-        setPlaceholderIndex((prevIndex) => (prevIndex + 1) % placeholderTexts.length);
-        timeout = 120;
-      }
-      
-      typingTimeoutRef.current = setTimeout(handleTyping, timeout);
-    };
+    if (!isDeleting && newCharIndex === fullText.length) {
+      timeout = 2000;
+      setIsDeleting(true);
+    } else if (isDeleting && newCharIndex === 0) {
+      setIsDeleting(false);
+      setPlaceholderIndex((prevIndex) => (prevIndex + 1) % placeholderTexts.length);
+      timeout = 120;
+    }
     
+    typingTimeoutRef.current = setTimeout(handleTyping, timeout);
+  }, [charIndex, isDeleting, placeholderIndex, isInputFocused]);
+
+
+  useEffect(() => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
     typingTimeoutRef.current = setTimeout(handleTyping, 120);
 
     return () => {
@@ -80,7 +84,7 @@ export default function ComponentsPage() {
       }
     };
 
-  }, [charIndex, isDeleting, placeholderIndex, isInputFocused, placeholderTexts]);
+  }, [handleTyping]);
 
   const filteredComponents = useMemo(() => {
     return allComponents.filter((component) => {
@@ -195,3 +199,5 @@ export default function ComponentsPage() {
     </div>
   );
 }
+
+    

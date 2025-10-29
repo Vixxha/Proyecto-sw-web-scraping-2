@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -50,35 +50,38 @@ export default function AIBuilderPage() {
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
+ const handleTyping = useCallback(() => {
     if (isTextareaFocused) return;
 
-    const handleTyping = () => {
-      const fullText = placeholderTexts[placeholderIndex];
-      let newCharIndex = charIndex;
-      let timeout = isDeleting ? 50 : 100;
+    const fullText = placeholderTexts[placeholderIndex];
+    let newCharIndex = charIndex;
+    let timeout = isDeleting ? 50 : 100;
 
-      if (isDeleting) {
-        setCurrentPlaceholder(fullText.substring(0, newCharIndex - 1));
-        newCharIndex--;
-      } else {
-        setCurrentPlaceholder(fullText.substring(0, newCharIndex + 1));
-        newCharIndex++;
-      }
-      setCharIndex(newCharIndex);
+    if (isDeleting) {
+      setCurrentPlaceholder(fullText.substring(0, newCharIndex - 1));
+      newCharIndex--;
+    } else {
+      setCurrentPlaceholder(fullText.substring(0, newCharIndex + 1));
+      newCharIndex++;
+    }
+    setCharIndex(newCharIndex);
 
-      if (!isDeleting && newCharIndex === fullText.length) {
-        timeout = 2000;
-        setIsDeleting(true);
-      } else if (isDeleting && newCharIndex === 0) {
-        setIsDeleting(false);
-        setPlaceholderIndex((prevIndex) => (prevIndex + 1) % placeholderTexts.length);
-        timeout = 120;
-      }
-      
-      typingTimeoutRef.current = setTimeout(handleTyping, timeout);
-    };
+    if (!isDeleting && newCharIndex === fullText.length) {
+      timeout = 2000;
+      setIsDeleting(true);
+    } else if (isDeleting && newCharIndex === 0) {
+      setIsDeleting(false);
+      setPlaceholderIndex((prevIndex) => (prevIndex + 1) % placeholderTexts.length);
+      timeout = 120;
+    }
     
+    typingTimeoutRef.current = setTimeout(handleTyping, timeout);
+  }, [charIndex, isDeleting, placeholderIndex, isTextareaFocused]);
+
+  useEffect(() => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
     typingTimeoutRef.current = setTimeout(handleTyping, 120);
 
     return () => {
@@ -86,8 +89,7 @@ export default function AIBuilderPage() {
         clearTimeout(typingTimeoutRef.current);
       }
     };
-
-  }, [charIndex, isDeleting, placeholderIndex, isTextareaFocused, placeholderTexts]);
+  }, [handleTyping]);
 
 
   const handleGenerateBuild = async () => {
@@ -231,3 +233,5 @@ export default function AIBuilderPage() {
     </div>
   );
 }
+
+    
