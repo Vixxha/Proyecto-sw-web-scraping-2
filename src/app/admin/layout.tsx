@@ -26,16 +26,17 @@ export default function AdminLayout({
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<{ role: string }>(userDocRef);
 
   const isLoading = isUserLoading || isProfileLoading;
-  const isSuperuser = userProfile?.role === 'superuser';
-  const canAccess = !isLoading && user && isSuperuser;
-  const shouldBlock = !isLoading && (!user || !isSuperuser);
 
   useEffect(() => {
-    if (shouldBlock) {
-      router.replace('/');
+    // Solo toma una decisión cuando la carga ha terminado.
+    if (!isLoading) {
+      if (!user || userProfile?.role !== 'superuser') {
+        router.replace('/');
+      }
     }
-  }, [shouldBlock, router]);
+  }, [isLoading, user, userProfile, router]);
 
+  // Muestra el spinner mientras CUALQUIER dato se esté cargando.
   if (isLoading) {
     return (
       <div className="flex h-[80vh] w-full items-center justify-center">
@@ -44,26 +45,24 @@ export default function AdminLayout({
     );
   }
 
-  if (shouldBlock) {
-    return (
-      <div className="container mx-auto flex min-h-[80vh] items-center justify-center px-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="items-center text-center">
-            <AlertTriangle className="h-12 w-12 text-destructive" />
-            <CardTitle>Acceso Denegado</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-muted-foreground">No tienes permisos para acceder a esta página.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (canAccess) {
+  // Si después de cargar, el usuario es un superusuario, muestra el contenido.
+  if (user && userProfile?.role === 'superuser') {
     return <>{children}</>;
   }
-
-  // Fallback case, should not be reached but prevents rendering nothing.
-  return null;
+  
+  // Si no, muestra "Acceso Denegado" como fallback antes de que el useEffect redirija.
+  // Esto previene que se muestre el contenido de la página por un instante.
+  return (
+    <div className="container mx-auto flex min-h-[80vh] items-center justify-center px-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="items-center text-center">
+          <AlertTriangle className="h-12 w-12 text-destructive" />
+          <CardTitle>Acceso Denegado</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center">
+          <p className="text-muted-foreground">No tienes permisos para acceder a esta página.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
