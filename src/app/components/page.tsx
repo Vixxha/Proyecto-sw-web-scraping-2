@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
@@ -7,12 +6,15 @@ import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ComponentCard from '@/components/component-card';
-import { components as allComponents } from '@/lib/data';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
+import type { Component } from '@/lib/types';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import Spinner from '@/components/spinner';
 
 const categories = ['All', 'CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'Power Supply', 'Case'];
 const brands = ['All', 'Intel', 'AMD', 'NVIDIA', 'ASUS', 'Corsair', 'Samsung', 'Gigabyte', 'MSI', 'Crucial', 'SeaSonic', 'NZXT'];
@@ -22,6 +24,8 @@ const placeholderTexts = [
     "Ej: 'Gabinete ATX blanco'...",
     "Ej: 'Fuente de poder 750W'...",
   ];
+
+type ProductWithId = Component & { id: string };
 
 export default function ComponentsPage() {
   const searchParams = useSearchParams();
@@ -35,6 +39,14 @@ export default function ComponentsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const firestore = useFirestore();
+  const productsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'products'));
+  }, [firestore]);
+
+  const { data: allComponents, isLoading: productsLoading } = useCollection<ProductWithId>(productsQuery);
 
   useEffect(() => {
     const queryFromUrl = searchParams.get('search');
@@ -87,13 +99,14 @@ export default function ComponentsPage() {
   }, [handleTyping]);
 
   const filteredComponents = useMemo(() => {
+    if (!allComponents) return [];
     return allComponents.filter((component) => {
       const matchesSearch = component.name.toLowerCase().includes(searchQuery.toLowerCase()) || component.sku.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = category === 'All' || component.category === category;
       const matchesBrand = brand === 'All' || component.brand === brand;
       return matchesSearch && matchesCategory && matchesBrand;
     });
-  }, [searchQuery, category, brand]);
+  }, [searchQuery, category, brand, allComponents]);
 
   const filterControlsContent = (
     <div className="space-y-6">
@@ -182,7 +195,9 @@ export default function ComponentsPage() {
                 </SheetContent>
               </Sheet>
           </div>
-          {filteredComponents.length > 0 ? (
+          {productsLoading ? (
+            <div className="flex justify-center items-center h-64"><Spinner className="h-12 w-12" /></div>
+          ) : filteredComponents.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredComponents.map((component) => (
                 <ComponentCard key={component.id} component={component} />
@@ -191,7 +206,7 @@ export default function ComponentsPage() {
           ) : (
             <div className="text-center py-16 col-span-full">
               <p className="text-xl font-medium text-muted-foreground">No se encontraron componentes.</p>
-              <p className="text-muted-foreground mt-2">Intenta ajustar tu búsqueda o filtros.</p>
+              <p className="text-muted-foreground mt-2">Intenta ajustar tu búsqueda o filtros, o añade nuevos productos desde el panel de administración.</p>
             </div>
           )}
         </main>

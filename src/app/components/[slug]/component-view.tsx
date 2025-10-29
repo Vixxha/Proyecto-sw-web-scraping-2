@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { stores } from '@/lib/data';
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,8 +18,37 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, where, limit } from 'firebase/firestore';
+import Spinner from '@/components/spinner';
+import { notFound } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export default function ComponentView({ component }: { component: Component }) {
+type ComponentWithId = Component & { id: string };
+
+export default function ComponentView({ slug }: { slug: string }) {
+  const firestore = useFirestore();
+  const [component, setComponent] = useState<ComponentWithId | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const componentQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'products'), where('slug', '==', slug), limit(1));
+  }, [firestore, slug]);
+
+  const { data: componentData, isLoading: componentLoading } = useCollection<ComponentWithId>(componentQuery);
+
+  useEffect(() => {
+    setIsLoading(componentLoading);
+    if (componentData) {
+      if (componentData.length > 0) {
+        setComponent(componentData[0]);
+      } else {
+        setComponent(null); // Not found
+      }
+    }
+  }, [componentData, componentLoading]);
+  
   const oneYearAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 1));
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
     from: oneYearAgo,
@@ -27,6 +56,7 @@ export default function ComponentView({ component }: { component: Component }) {
   });
 
   const filteredPriceHistory = useMemo(() => {
+    if (!component) return [];
     return component.priceHistory.filter(point => {
         const pointDate = new Date(point.date);
         const fromDate = dateRange.from ? new Date(dateRange.from.setHours(0,0,0,0)) : null;
@@ -37,9 +67,39 @@ export default function ComponentView({ component }: { component: Component }) {
         
         return true;
     });
-  }, [dateRange, component.priceHistory]);
+  }, [dateRange, component]);
 
   const storeMap = new Map(stores.map(s => [s.id, s.name]));
+
+  if (isLoading) {
+    return (
+       <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
+          <div className="lg:col-span-2">
+            <Skeleton className="aspect-square w-full rounded-xl" />
+          </div>
+          <div className="lg:col-span-3 space-y-8">
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-24 rounded-md" />
+              <Skeleton className="h-10 w-3/4 rounded-md" />
+              <Skeleton className="h-6 w-1/4 rounded-md" />
+            </div>
+            <Skeleton className="h-48 w-full rounded-xl" />
+            <Skeleton className="h-48 w-full rounded-xl" />
+            <Skeleton className="h-48 w-full rounded-xl" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!component && !isLoading) {
+    notFound();
+  }
+  
+  if (!component) {
+      return null; // Should be handled by notFound
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
@@ -170,7 +230,7 @@ export default function ComponentView({ component }: { component: Component }) {
                 {Object.entries(component.specs).map(([key, value]) => (
                   <div key={key} className="text-sm">
                     <p className="font-semibold">{key}</p>
-                    <p className="text-muted-foreground">{value}</p>
+                    <p className="text-muted-foreground">{value as string}</p>
                   </div>
                 ))}
               </div>
@@ -199,3 +259,5 @@ export default function ComponentView({ component }: { component: Component }) {
     </div>
   );
 }
+
+    

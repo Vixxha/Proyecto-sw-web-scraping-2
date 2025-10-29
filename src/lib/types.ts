@@ -33,4 +33,7 @@ export interface Component {
   prices: PriceEntry[];
   priceHistory: PriceHistoryPoint[];
   slug: string;
+  specs: { [key: string]: string | number };
 }
+
+    
