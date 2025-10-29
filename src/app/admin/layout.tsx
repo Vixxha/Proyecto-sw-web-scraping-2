@@ -26,12 +26,16 @@ export default function AdminLayout({
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<{ role: string }>(userDocRef);
 
   useEffect(() => {
-    // If user data has loaded and they are not a superuser, redirect
-    if (!isUserLoading && !isProfileLoading && userProfile?.role !== 'superuser') {
-      router.replace('/');
+    // Only redirect if all data has loaded and we can definitively say the user is NOT a superuser.
+    // This prevents premature redirection while the user profile is still loading.
+    if (!isUserLoading && !isProfileLoading) {
+      if (!user || userProfile?.role !== 'superuser') {
+        router.replace('/');
+      }
     }
   }, [user, userProfile, isUserLoading, isProfileLoading, router]);
 
+  // Show a spinner while either the user auth state or the user profile is loading.
   if (isUserLoading || isProfileLoading) {
     return (
       <div className="flex h-[80vh] w-full items-center justify-center">
@@ -40,6 +44,8 @@ export default function AdminLayout({
     );
   }
 
+  // If, after loading, the user is still not a superuser, show an "Access Denied" message.
+  // This covers the edge case where the redirect might not have happened yet.
   if (userProfile?.role !== 'superuser') {
     return (
       <div className="container mx-auto flex min-h-[80vh] items-center justify-center px-4">
@@ -56,5 +62,6 @@ export default function AdminLayout({
     );
   }
 
+  // If all checks pass, render the admin content.
   return <>{children}</>;
 }
