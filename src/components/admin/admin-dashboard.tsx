@@ -24,9 +24,12 @@ type UserProfile = {
 export default function AdminDashboard() {
   const firestore = useFirestore();
 
-  // Temporarily disable user fetching to avoid permission errors
-  const users: UserProfile[] = [];
-  const usersLoading = false;
+  const usersQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'users'));
+  }, [firestore]);
+
+  const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
   const totalUsers = users?.length || 0;
   const superuserCount = users?.filter(u => u.role === 'superuser').length || 0;
