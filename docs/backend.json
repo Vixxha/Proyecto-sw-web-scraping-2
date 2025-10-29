@@ -26,12 +26,18 @@
         "role": {
           "type": "string",
           "description": "Role of the user (e.g., 'user', 'superuser').",
-          "enum": ["user", "superuser"]
+          "enum": [
+            "user",
+            "superuser"
+          ]
         },
         "status": {
           "type": "string",
           "description": "Status of the user account (e.g., 'active', 'suspended').",
-          "enum": ["active", "suspended"]
+          "enum": [
+            "active",
+            "suspended"
+          ]
         },
         "createdAt": {
           "type": "string",
@@ -47,6 +53,85 @@
         "role",
         "status",
         "createdAt"
+      ]
+    },
+    "Product": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Product",
+      "type": "object",
+      "description": "Represents an object or product that can be sold.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the product."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the product."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the product."
+        },
+        "price": {
+          "type": "number",
+          "description": "Price of the product."
+        },
+        "stock": {
+          "type": "number",
+          "description": "Available stock quantity."
+        }
+      },
+      "required": [
+        "name",
+        "description",
+        "price",
+        "stock"
+      ]
+    },
+    "Sale": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Sale",
+      "type": "object",
+      "description": "Represents a sales transaction.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the sale."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who made the purchase."
+        },
+        "productId": {
+          "type": "string",
+          "description": "Reference to the Product that was sold."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the product sold."
+        },
+        "unitPrice": {
+          "type": "number",
+          "description": "Price of a single unit at the time of sale."
+        },
+        "total": {
+          "type": "number",
+          "description": "Total price for the transaction (quantity * unitPrice)."
+        },
+        "date": {
+          "type": "string",
+          "description": "Date and time of the sale.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "userId",
+        "productId",
+        "quantity",
+        "unitPrice",
+        "total",
+        "date"
       ]
     },
     "AuditLog": {
@@ -65,11 +150,11 @@
         },
         "action": {
           "type": "string",
-          "description": "Description of the action performed (e.g., 'update user role')."
+          "description": "Description of the action performed (e.g., 'create product', 'update user role')."
         },
         "target": {
           "type": "string",
-          "description": "The target of the action (e.g., user ID, component ID)."
+          "description": "The target of the action (e.g., user ID, product ID)."
         },
         "timestamp": {
           "type": "string",
@@ -105,6 +190,58 @@
             {
               "name": "userId",
               "description": "Unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/sales/{saleId}",
+        "definition": {
+          "entityName": "Sale",
+          "schema": {
+            "$ref": "#/entities/Sale"
+          },
+          "description": "Stores sales records for a specific user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The user's ID."
+            },
+            {
+              "name": "saleId",
+              "description": "Unique identifier for the sale."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/products/{productId}",
+        "definition": {
+          "entityName": "Product",
+          "schema": {
+            "$ref": "#/entities/Product"
+          },
+          "description": "Stores all available products.",
+          "params": [
+            {
+              "name": "productId",
+              "description": "Unique identifier for the product."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/sales/{saleId}",
+        "definition": {
+          "entityName": "Sale",
+          "schema": {
+            "$ref": "#/entities/Sale"
+          },
+          "description": "A global collection of all sales for easy querying by superusers.",
+          "params": [
+            {
+              "name": "saleId",
+              "description": "Unique identifier for the sale."
             }
           ]
         }
