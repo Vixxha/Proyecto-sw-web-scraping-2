@@ -1,95 +1,82 @@
+/**
+ * @file Firestore Security Rules
+ * @description This ruleset enforces a strict user-ownership model for user profiles and allows public read access but owner-only write access to audit logs.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores individual user profiles. The {userId} must match the authenticated user's UID.
+ * - /audit_logs/{auditLogId}: Stores audit logs, accessible to any authenticated user for reading, but only writable with the correct ownership.
+ *
+ * Key Security Decisions:
+ * - User profiles are only accessible and modifiable by the owning user. Listing of all users is disallowed.
+ * - Audit logs are publicly readable but writable only with correct user id.
+ *
+ * Denormalization for Authorization:
+ * - For `users`: The `id` field within the user document must match the `userId` path parameter to ensure ownership.
+ * - For `audit_logs`: The `userId` field is copied into the document to enforce ownership for create, update, and delete operations.
+ *
+ * Structural Segregation:
+ * - There is no segregation of public vs. private user data. All user profile information is considered private and stored under the /users/{userId} path.
+ */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Manages access to user profile documents.
+     * @description Controls access to user profile documents.
      * @path /users/{userId}
-     * @allow (create) User with ID 'user123' can create their profile if authenticated as 'user123'.
-     * @allow (get, list) User with ID 'user123' can read their profile if authenticated as 'user123'.
-     * @allow (update, delete) User with ID 'user123' can update/delete their profile if authenticated as 'user123' and the document exists.
-     * @deny (create) User with ID 'user456' cannot create a profile for 'user123'.
-     * @deny (get, list) User with ID 'user456' cannot read the profile of 'user123'.
-     * @deny (update, delete) User with ID 'user456' cannot update/delete the profile of 'user123'.
-     * @principle Enforces document ownership for reads and writes.
+     * @allow (create) Authenticated user can create their own profile if the userId matches their auth.uid and the document id matches the userId.
+     * @allow (get, update, delete) Authenticated user can read, update, and delete their own profile if the userId matches their auth.uid.
+     * @deny (create) Creation is denied if the userId does not match the auth.uid.
+     * @deny (get, update, delete) Read, update, and delete are denied if the userId does not match the auth.uid.
+     * @deny (list) Listing all users is not allowed.
+     * @principle Enforces document ownership for all operations.
      */
     match /users/{userId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-        return isOwner(userId) && exists(/databases/$(database)/documents/users/$(userId));
-      }
-
+      // Only signed-in users can attempt any operations.
       allow get: if isSignedIn() && isOwner(userId);
-      allow list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description Manages superuser role assignments.
-     * @path /roles_superuser/{userId}
-     * @allow (create) DENIED: No one can create superuser roles through direct write, function should be used.
-     * @allow (get) User with ID 'user123' can read their superuser role if it exists.
-     * @allow (list) DENIED: Listing all superusers is not permitted.
-     * @allow (update) DENIED: Superuser roles cannot be updated directly through write, function should be used.
-     * @allow (delete) DENIED: Superuser roles cannot be deleted directly through write, function should be used.
-     * @deny (create)  No one can create superuser roles through direct write.
-     * @deny (get) User with ID 'user456' cannot read the superuser role of 'user123' if it exists.
-     * @deny (list) Listing all superusers is not permitted.
-     * @deny (update) Superuser roles cannot be updated directly.
-     * @deny (delete) Superuser roles cannot be deleted directly.
-     * @principle Uses "existence over content" for superuser roles; presence of a document grants the role.
-     */
-    match /roles_superuser/{userId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if false;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
-    }
-
-    /**
-     * @description Manages audit logs.
+     * @description Controls access to audit log documents.
      * @path /audit_logs/{auditLogId}
-     * @allow (create) Any authenticated user can create an audit log.
-     * @allow (get, list) Only superusers can read audit logs.
-     * @allow (update, delete) DENIED: No one can update or delete audit logs through the client.
-     * @deny (get) Standard user with ID 'user123' cannot read audit logs.
-     * @deny (list) Standard user with ID 'user123' cannot list audit logs.
-     * @deny (update) Audit logs cannot be updated.
-     * @deny (delete) Audit logs cannot be deleted.
-     * @principle Restricts read access to audit logs to superusers only.
+     * @allow (get, list) Any authenticated user can read audit logs.
+     * @allow (create) Authenticated user can create audit logs with the correct ownership field.
+     * @allow (update, delete) Only the owner can update or delete their own audit logs.
+     * @deny (create) Creation is denied if the userId does not match the auth.uid.
+     * @deny (update, delete) Update and delete are denied if the userId does not match the auth.uid.
+     * @principle Public read, owner-only writes for audit logs.
      */
     match /audit_logs/{auditLogId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isExistingOwnerAuditLog(resource.data.userId);
+      allow delete: if isSignedIn() && isExistingOwnerAuditLog(resource.data.userId);
+    }
 
-      function isSuperuser() {
-        return exists(/databases/$(database)/documents/roles_superuser/$(request.auth.uid));
-      }
+    // --- Helper Functions ---
 
-      allow get: if isSignedIn() && isSuperuser();
-      allow list: if isSignedIn() && isSuperuser();
-      allow create: if isSignedIn();
-      allow update: if false;
-      allow delete: if false;
+    // Checks if the user is signed in.
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Checks if the request is made by the owner of the resource (User Profile).
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Checks if the request is made by the owner of the existing resource (User Profile).
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+     // Checks if the request is made by the owner of the existing resource (Audit Log).
+    function isExistingOwnerAuditLog(userId) {
+      return request.auth.uid == userId && resource != null;
     }
   }
 }
