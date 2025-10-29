@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -19,7 +18,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { notFound } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { findPrices } from '@/ai/flows/find-prices-flow';
@@ -32,13 +31,9 @@ export default function ComponentView({ initialComponent }: { initialComponent: 
   const [isScraping, setIsScraping] = useState(false);
   const { toast } = useToast();
   
-  // Use a real-time listener to get live updates for the component
-  const componentDocRef = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return doc(firestore, 'products', initialComponent.id);
-  }, [firestore, initialComponent.id]);
-
-  const { data: component, isLoading: isComponentLoading } = useDoc<Component>(componentDocRef);
+  // For local display, we use the initial component and manage a local state for updates.
+  const [component, setComponent] = useState(initialComponent);
+  const isComponentLoading = false; // Data is passed directly
   
   const oneYearAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 1));
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
@@ -55,34 +50,32 @@ export default function ComponentView({ initialComponent }: { initialComponent: 
       if (result.prices.length > 0) {
         const productRef = doc(firestore, 'products', component.id);
         
-        // Fetch the latest document to get the most recent prices
-        const currentDoc = await getDoc(productRef);
-        const existingPrices = currentDoc.data()?.prices || [];
-
+        const existingPrices = component.prices || [];
         const newPrices = result.prices.filter(newPrice => 
             !existingPrices.some((existing: { url: string; }) => existing.url === newPrice.url)
         );
 
         if (newPrices.length > 0) {
-            await updateDoc(productRef, {
-                prices: arrayUnion(...newPrices)
-            });
+            // This would update Firestore. For the local simulation, we update the state.
+            // await updateDoc(productRef, { prices: arrayUnion(...newPrices) });
+            setComponent(prev => ({ ...prev, prices: [...prev.prices, ...newPrices] }));
+            
              toast({
               title: 'Precios actualizados',
-              description: `Se encontraron y añadieron ${newPrices.length} nuevos precios para ${component.name}.`,
+              description: `La IA encontró ${newPrices.length} nuevos precios para ${component.name}.`,
             });
         } else {
              toast({
                 variant: 'default',
                 title: 'No se encontraron nuevos precios',
-                description: `La IA no pudo encontrar precios adicionales para este producto en este momento.`,
+                description: `La IA no pudo encontrar precios adicionales en este momento.`,
             });
         }
       } else {
          toast({
             variant: 'default',
             title: 'No se encontraron nuevos precios',
-            description: `La IA no pudo encontrar precios adicionales para este producto en este momento.`,
+            description: `La IA no pudo encontrar precios adicionales en este momento.`,
         });
       }
     } catch (error) {
@@ -98,7 +91,7 @@ export default function ComponentView({ initialComponent }: { initialComponent: 
   };
 
   const filteredPriceHistory = useMemo(() => {
-    const history = component?.priceHistory || initialComponent.priceHistory;
+    const history = component?.priceHistory;
     if (!history) return [];
     return history.filter(point => {
         const pointDate = new Date(point.date);
@@ -110,13 +103,13 @@ export default function ComponentView({ initialComponent }: { initialComponent: 
         
         return true;
     });
-  }, [dateRange, component, initialComponent]);
+  }, [dateRange, component]);
 
   const storeMap = new Map(stores.map(s => [s.id, s.name]));
   
-  const displayComponent = component || initialComponent;
+  const displayComponent = component;
 
-  if (isComponentLoading && !component) {
+  if (isComponentLoading) {
     return <ComponentViewSkeleton />;
   }
 
@@ -179,7 +172,7 @@ export default function ComponentView({ initialComponent }: { initialComponent: 
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {displayComponent.prices.map((price, index) => (
+                      {displayComponent.prices.sort((a, b) => a.price - b.price).map((price, index) => (
                         <TableRow key={`${price.storeId}-${index}`}>
                           <TableCell className="font-medium">{storeMap.get(price.storeId) || 'Tienda Desconocida'}</TableCell>
                           <TableCell className="text-right font-semibold text-primary">${price.price.toLocaleString('es-CL')}</TableCell>
@@ -199,7 +192,7 @@ export default function ComponentView({ initialComponent }: { initialComponent: 
                     <Bot className="h-4 w-4" />
                     <AlertTitle>Sin precios definidos</AlertTitle>
                     <AlertDescription>
-                        Aún no hay precios para este producto. Si eres un administrador, puedes iniciar una búsqueda con IA.
+                        Aún no hay precios para este producto. Intenta una búsqueda con IA para encontrarlos.
                     </AlertDescription>
                 </Alert>
               )}
@@ -358,3 +351,4 @@ function ComponentViewSkeleton() {
     </div>
   )
 }
+    

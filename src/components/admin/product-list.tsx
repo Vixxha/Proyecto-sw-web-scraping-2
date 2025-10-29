@@ -1,9 +1,7 @@
-
 'use client';
 
 import { useState } from 'react';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 import type { Component as Product } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -15,6 +13,8 @@ import ProductActions from './product-actions';
 import { useToast } from '@/hooks/use-toast';
 import { FirestorePermissionError, errorEmitter } from '@/firebase';
 import Image from 'next/image';
+import { components } from '@/lib/data'; // Import local data
+import { addDoc, collection, doc, serverTimestamp, updateDoc, deleteDoc } from 'firebase/firestore';
 
 // We reuse the Component type but alias it as Product for semantic clarity
 type ProductWithId = Product & { id: string };
@@ -25,12 +25,10 @@ export default function ProductList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithId | null>(null);
 
-  const productsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'products'));
-  }, [firestore]);
-
-  const { data: products, isLoading, error } = useCollection<ProductWithId>(productsQuery);
+  // Use local data for display
+  const [products, setProducts] = useState<ProductWithId[]>(components as ProductWithId[]);
+  const isLoading = false; // Data is loaded statically
+  const error = null; // No Firestore error for local data
 
   const handleFormSubmit = (formData: ProductFormData) => {
     if (!firestore) return;
@@ -104,9 +102,10 @@ export default function ProductList() {
 
     deleteDoc(productRef)
       .then(() => {
+        setProducts(prev => prev.filter(p => p.id !== productId));
         toast({
-          title: 'Producto eliminado (de Firestore)',
-          description: `${productName} ha sido eliminado de la base de datos.`
+          title: 'Producto eliminado',
+          description: `${productName} ha sido eliminado.`
         });
       })
       .catch(err => {
@@ -136,8 +135,8 @@ export default function ProductList() {
             <div className="flex justify-center items-center h-64"><Spinner className="h-12 w-12" /></div>
           ) : error ? (
              <div className="text-center py-10 text-red-600">
-                <p className="font-bold">Error de permisos de lectura</p>
-                <p className="text-sm text-muted-foreground">No tienes permiso para listar los productos de la base de datos.</p>
+                <p className="font-bold">Error al cargar productos</p>
+                <p className="text-sm text-muted-foreground">No se pudieron cargar los productos desde la base de datos.</p>
             </div>
           ) : products && products.length > 0 ? (
             <Table>
@@ -194,3 +193,4 @@ export default function ProductList() {
     </>
   );
 }
+    

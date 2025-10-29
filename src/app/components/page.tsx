@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
@@ -13,8 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import Spinner from '@/components/spinner';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query } from 'firebase/firestore';
+import { components as allComponentsData } from '@/lib/data'; // Import local data
 
 
 const categories = ['All', 'CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'Power Supply', 'Case'];
@@ -41,12 +39,10 @@ export default function ComponentsPage() {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const firestore = useFirestore();
-  const productsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'products'));
-  }, [firestore]);
-  const { data: allComponents, isLoading: productsLoading } = useCollection<ProductWithId>(productsQuery);
+  // Use local data
+  const allComponents: ProductWithId[] = allComponentsData as ProductWithId[];
+  const productsLoading = false;
+
 
   useEffect(() => {
     const queryFromUrl = searchParams.get('search');
@@ -214,3 +210,4 @@ export default function ComponentsPage() {
     </div>
   );
 }
+    

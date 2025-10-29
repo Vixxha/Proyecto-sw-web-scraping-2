@@ -1,4 +1,3 @@
-
 import type { Component, Store, PriceHistoryPoint } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
@@ -344,5 +343,4 @@ export const components: Component[] = [
     "priceHistory": []
   }
 ];
-
     
