@@ -30,67 +30,73 @@ export default function ProductList() {
     return query(collection(firestore, 'products'));
   }, [firestore]);
 
-  const { data: products, isLoading } = useCollection<Product>(productsQuery);
+  const { data: products, isLoading, error } = useCollection<Product>(productsQuery);
 
-  const handleFormSubmit = async (formData: ProductFormData) => {
+  const handleFormSubmit = (formData: ProductFormData) => {
     if (!firestore) return;
 
-    try {
-      if (editingProduct) {
-        // Update existing product
-        const productRef = doc(firestore, 'products', editingProduct.id);
-        const productUpdate = {
+    const operation = editingProduct ? 'update' : 'create';
+
+    const promise = editingProduct
+      ? (() => {
+          const productRef = doc(firestore, 'products', editingProduct.id);
+          const productUpdate = {
             ...formData,
             price: Number(formData.price),
             stock: Number(formData.stock),
-        };
-        await updateDoc(productRef, productUpdate).catch(error => {
-            const contextualError = new FirestorePermissionError({
+          };
+          return updateDoc(productRef, productUpdate)
+            .catch(err => {
+              const contextualError = new FirestorePermissionError({
                 path: productRef.path,
                 operation: 'update',
                 requestResourceData: productUpdate
+              });
+              errorEmitter.emit('permission-error', contextualError);
+              throw contextualError; // Re-throw to be caught by the final .catch
             });
-            errorEmitter.emit('permission-error', contextualError);
-            throw contextualError;
-        });
-
-        toast({ title: 'Producto actualizado', description: `${formData.name} ha sido actualizado.` });
-      } else {
-        // Create new product
-        const collectionRef = collection(firestore, 'products');
-        const newProduct = {
+        })()
+      : (() => {
+          const collectionRef = collection(firestore, 'products');
+          const newProduct = {
             ...formData,
             price: Number(formData.price),
             stock: Number(formData.stock),
             createdAt: serverTimestamp(),
-            // Mocking some required fields from Component type
             slug: formData.name.toLowerCase().replace(/\s+/g, '-'),
-            prices: [{ storeId: 'store-1', price: Number(formData.price), url: '#' }], // Mock price
+            prices: [{ storeId: 'store-1', price: Number(formData.price), url: '#' }],
             priceHistory: [],
             imageUrl: 'https://picsum.photos/seed/default/600/600',
             imageHint: 'product',
-        };
-        await addDoc(collectionRef, newProduct).catch(error => {
-            const contextualError = new FirestorePermissionError({
+          };
+          return addDoc(collectionRef, newProduct)
+            .catch(err => {
+              const contextualError = new FirestorePermissionError({
                 path: collectionRef.path,
                 operation: 'create',
                 requestResourceData: newProduct
+              });
+              errorEmitter.emit('permission-error', contextualError);
+              throw contextualError; // Re-throw
             });
-            errorEmitter.emit('permission-error', contextualError);
-            throw contextualError;
-        });
+        })();
 
-        toast({ title: 'Producto creado', description: `${formData.name} ha sido añadido al catálogo.` });
-      }
+    promise.then(() => {
+      toast({
+        title: `Producto ${operation === 'update' ? 'actualizado' : 'creado'}`,
+        description: `${formData.name} ha sido ${operation === 'update' ? 'actualizado' : 'añadido'}.`
+      });
       setIsFormOpen(false);
       setEditingProduct(null);
-    } catch (error) {
-       toast({
+    }).catch(err => {
+      // The detailed error is already thrown to the Next.js overlay.
+      // This toast is for user-friendly feedback.
+      toast({
         variant: 'destructive',
         title: 'Error de Permiso',
         description: 'No tienes permiso para realizar esta acción.',
-       });
-    }
+      });
+    });
   };
 
   const handleEdit = (product: ProductWithId) => {
@@ -98,23 +104,26 @@ export default function ProductList() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (productId: string) => {
+  const handleDelete = (productId: string, productName: string) => {
     if (!firestore) return;
     const productRef = doc(firestore, 'products', productId);
-    try {
-      await deleteDoc(productRef).catch(error => {
+
+    deleteDoc(productRef)
+      .then(() => {
+        toast({
+          title: 'Producto eliminado',
+          description: `${productName} ha sido eliminado del catálogo.`
+        });
+      })
+      .catch(err => {
         const contextualError = new FirestorePermissionError({ path: productRef.path, operation: 'delete' });
         errorEmitter.emit('permission-error', contextualError);
-        throw contextualError;
+        toast({
+          variant: 'destructive',
+          title: 'Error de Permiso',
+          description: 'No tienes permiso para eliminar este producto.',
+        });
       });
-      toast({ title: 'Producto eliminado', description: 'El producto ha sido eliminado del catálogo.' });
-    } catch (error) {
-       toast({
-        variant: 'destructive',
-        title: 'Error de Permiso',
-        description: 'No tienes permiso para eliminar este producto.',
-       });
-    }
   };
 
   return (
@@ -135,6 +144,12 @@ export default function ProductList() {
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center items-center h-64"><Spinner className="h-12 w-12" /></div>
+          ) : error ? (
+             <div className="text-center py-10 text-red-600">
+                <p className="font-bold">Error de permisos</p>
+                <p className="text-sm text-muted-foreground">No tienes permiso para ver la lista de productos.</p>
+                <p className="text-xs text-muted-foreground mt-4">Consulta la consola del desarrollador para más detalles.</p>
+            </div>
           ) : products && products.length > 0 ? (
             <Table>
               <TableHeader>
@@ -166,7 +181,7 @@ export default function ProductList() {
                     <TableCell className="text-right">
                       <ProductActions
                         onEdit={() => handleEdit(product)}
-                        onDelete={() => handleDelete(product.id)}
+                        onDelete={() => handleDelete(product.id, product.name)}
                       />
                     </TableCell>
                   </TableRow>
