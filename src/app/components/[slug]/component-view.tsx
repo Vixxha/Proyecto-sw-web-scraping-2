@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import PriceHistoryChart from '@/components/price-history-chart';
-import { Bell, CalendarIcon, ExternalLink } from 'lucide-react';
+import { Bell, CalendarIcon, ExternalLink, RefreshCw, Bot } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import type { Component } from '@/lib/types';
@@ -18,17 +18,23 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, query, where, getDocs, doc } from 'firebase/firestore';
+import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
+import { collection, query, where, getDocs, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { notFound } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
+import { findPrices } from '@/ai/flows/find-prices-flow';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type ComponentWithId = Component & { id: string };
 
 export default function ComponentView({ slug }: { slug: string }) {
   const firestore = useFirestore();
+  const { user } = useUser();
   const [docId, setDocId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isScraping, setIsScraping] = useState(false);
+  const { toast } = useToast();
 
   // 1. Find the document ID for the given slug
   useEffect(() => {
@@ -42,7 +48,6 @@ export default function ComponentView({ slug }: { slug: string }) {
       if (!querySnapshot.empty) {
         setDocId(querySnapshot.docs[0].id);
       } else {
-        // If not found, trigger 404 after loading is complete
         setDocId(null);
         setIsLoading(false);
       }
@@ -60,7 +65,6 @@ export default function ComponentView({ slug }: { slug: string }) {
 
   // 3. Final loading state management
   useEffect(() => {
-    // We are loading as long as we are searching for the docId or the doc itself
     if (!componentLoading) {
       setIsLoading(false);
     }
@@ -71,6 +75,51 @@ export default function ComponentView({ slug }: { slug: string }) {
     from: oneYearAgo,
     to: new Date()
   });
+
+  const handleFindPrices = async () => {
+    if (!component || !docId || !firestore) return;
+
+    setIsScraping(true);
+    try {
+      const result = await findPrices({ productName: component.name });
+      if (result.prices.length > 0) {
+        const productRef = doc(firestore, 'products', docId);
+        
+        // Use arrayUnion to avoid duplicates if the price already exists
+        const existingPrices = component.prices || [];
+        const newPrices = result.prices.filter(newPrice => 
+            !existingPrices.some(existing => existing.url === newPrice.url)
+        );
+
+        if (newPrices.length > 0) {
+            await updateDoc(productRef, {
+                prices: arrayUnion(...newPrices)
+            });
+        }
+
+        toast({
+          title: 'Precios actualizados',
+          description: `Se encontraron y añadieron ${newPrices.length} nuevos precios para ${component.name}.`,
+        });
+      } else {
+         toast({
+            variant: 'default',
+            title: 'No se encontraron nuevos precios',
+            description: `La IA no pudo encontrar precios adicionales para este producto en este momento.`,
+        });
+      }
+    } catch (error) {
+      console.error("Error finding prices:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Error de IA',
+        description: 'No se pudo completar la búsqueda de precios.',
+      });
+    } finally {
+      setIsScraping(false);
+    }
+  };
+
 
   const filteredPriceHistory = useMemo(() => {
     if (!component || !component.priceHistory) return [];
@@ -111,7 +160,6 @@ export default function ComponentView({ slug }: { slug: string }) {
     )
   }
 
-  // If loading is finished and no component was found, show 404 page
   if (!component) {
     notFound();
   }
@@ -143,34 +191,58 @@ export default function ComponentView({ slug }: { slug: string }) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Comparación de Precios</CardTitle>
-              <CardDescription>Precios de los principales minoristas en línea.</CardDescription>
+              <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2">
+                <div>
+                  <CardTitle>Comparación de Precios</CardTitle>
+                  <CardDescription>Precios de los principales minoristas en línea.</CardDescription>
+                </div>
+                { user && (
+                    <Button onClick={handleFindPrices} disabled={isScraping}>
+                        {isScraping ? (
+                            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <Bot className="mr-2 h-4 w-4" />
+                        )}
+                        {isScraping ? 'Buscando...' : 'Buscar Precios con IA'}
+                    </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tienda</TableHead>
-                    <TableHead className="text-right">Precio</TableHead>
-                    <TableHead className="text-right">Acción</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {component.prices && component.prices.map((price, index) => (
-                    <TableRow key={`${price.storeId}-${index}`}>
-                      <TableCell className="font-medium">{storeMap.get(price.storeId) || 'Tienda Desconocida'}</TableCell>
-                      <TableCell className="text-right font-semibold text-primary">${price.price.toLocaleString('es-CL')}</TableCell>
-                      <TableCell className="text-right">
-                        <Button asChild variant="ghost" size="sm">
-                          <Link href={price.url} target="_blank" rel="noopener noreferrer">
-                            Ir a la tienda <ExternalLink className="ml-2 h-4 w-4" />
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              {component.prices && component.prices.length > 0 ? (
+                 <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tienda</TableHead>
+                        <TableHead className="text-right">Precio</TableHead>
+                        <TableHead className="text-right">Acción</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {component.prices.map((price, index) => (
+                        <TableRow key={`${price.storeId}-${index}`}>
+                          <TableCell className="font-medium">{storeMap.get(price.storeId) || 'Tienda Desconocida'}</TableCell>
+                          <TableCell className="text-right font-semibold text-primary">${price.price.toLocaleString('es-CL')}</TableCell>
+                          <TableCell className="text-right">
+                            <Button asChild variant="ghost" size="sm">
+                              <Link href={price.url} target="_blank" rel="noopener noreferrer">
+                                Ir a la tienda <ExternalLink className="ml-2 h-4 w-4" />
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+              ) : (
+                <Alert>
+                    <Bot className="h-4 w-4" />
+                    <AlertTitle>Sin precios definidos</AlertTitle>
+                    <AlertDescription>
+                        Aún no hay precios para este producto. Si eres un administrador, puedes iniciar una búsqueda con IA.
+                    </AlertDescription>
+                </Alert>
+              )}
             </CardContent>
           </Card>
           
@@ -241,14 +313,18 @@ export default function ComponentView({ slug }: { slug: string }) {
               <CardTitle>Especificaciones</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                {component.specs && Object.entries(component.specs).map(([key, value]) => (
-                  <div key={key} className="text-sm">
-                    <p className="font-semibold">{key}</p>
-                    <p className="text-muted-foreground">{value as string}</p>
+               {component.specs && Object.keys(component.specs).length > 0 ? (
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                    {Object.entries(component.specs).map(([key, value]) => (
+                      <div key={key} className="text-sm">
+                        <p className="font-semibold">{key}</p>
+                        <p className="text-muted-foreground">{value as string}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No hay especificaciones disponibles para este producto.</p>
+                )}
             </CardContent>
           </Card>
 

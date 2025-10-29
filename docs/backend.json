@@ -75,7 +75,7 @@
         },
         "price": {
           "type": "number",
-          "description": "Price of the product."
+          "description": "Default price of the product."
         },
         "stock": {
           "type": "number",
@@ -85,13 +85,33 @@
           "type": "string",
           "description": "URL of the product image.",
           "format": "uri"
+        },
+        "prices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "storeId": {
+                "type": "string"
+              },
+              "price": {
+                "type": "number"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": ["storeId", "price", "url"]
+          }
         }
       },
       "required": [
         "name",
         "description",
         "price",
-        "stock"
+        "stock",
+        "prices"
       ]
     },
     "Sale": {
@@ -270,3 +290,5 @@
     ]
   }
 }
+
+    
