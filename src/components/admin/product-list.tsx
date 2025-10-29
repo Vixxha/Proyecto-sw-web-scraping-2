@@ -24,14 +24,12 @@ export default function ProductList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithId | null>(null);
 
-  // **** ERROR FIX: useCollection is removed to prevent 'list' permission error ****
-  // The useCollection hook is the source of the "list" error.
-  // It has been disabled to prevent the app from crashing while allowing
-  // other CRUD operations (create, update, delete) to function.
-  const products: ProductWithId[] | null = [];
-  const isLoading = false;
-  const error = true; // We simulate an error state to show the message
+  const productsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'products'));
+  }, [firestore]);
 
+  const { data: products, isLoading, error } = useCollection<ProductWithId>(productsQuery);
 
   const handleFormSubmit = (formData: ProductFormData) => {
     if (!firestore) return;
@@ -56,7 +54,7 @@ export default function ProductList() {
                 requestResourceData: productUpdate
               });
               errorEmitter.emit('permission-error', contextualError);
-              throw contextualError; // Re-throw to be caught by the final .catch
+              throw contextualError;
             });
         })()
       : (() => {
@@ -66,11 +64,12 @@ export default function ProductList() {
             price: Number(formData.price),
             stock: Number(formData.stock),
             createdAt: serverTimestamp(),
-            slug: formData.name.toLowerCase().replace(/\s+/g, '-'),
+            slug: formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
             prices: [{ storeId: 'store-1', price: Number(formData.price), url: '#' }],
             priceHistory: [],
             imageUrl,
             imageHint: 'product',
+            specs: {}
           };
           return addDoc(collectionRef, newProduct)
             .catch(err => {
@@ -80,7 +79,7 @@ export default function ProductList() {
                 requestResourceData: newProduct
               });
               errorEmitter.emit('permission-error', contextualError);
-              throw contextualError; // Re-throw
+              throw contextualError;
             });
         })();
 
@@ -92,8 +91,6 @@ export default function ProductList() {
       setIsFormOpen(false);
       setEditingProduct(null);
     }).catch(err => {
-      // The detailed error is already thrown to the Next.js overlay.
-      // This toast is for user-friendly feedback.
       toast({
         variant: 'destructive',
         title: 'Error de Permiso',
@@ -173,7 +170,7 @@ export default function ProductList() {
                         alt={product.name}
                         className="aspect-square rounded-md object-cover"
                         height="64"
-                        src={product.imageUrl}
+                        src={product.imageUrl || 'https://picsum.photos/seed/placeholder/64/64'}
                         width="64"
                       />
                     </TableCell>

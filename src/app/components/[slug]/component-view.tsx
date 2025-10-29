@@ -39,12 +39,13 @@ export default function ComponentView({ slug }: { slug: string }) {
   const { data: componentData, isLoading: componentLoading } = useCollection<ComponentWithId>(componentQuery);
 
   useEffect(() => {
-    setIsLoading(componentLoading);
-    if (componentData) {
-      if (componentData.length > 0) {
+    // We only set loading to false once the initial fetch is done.
+    if (!componentLoading) {
+      setIsLoading(false);
+      if (componentData && componentData.length > 0) {
         setComponent(componentData[0]);
       } else {
-        setComponent(null); // Not found
+        setComponent(null); // Explicitly set to null if not found
       }
     }
   }, [componentData, componentLoading]);
@@ -56,7 +57,7 @@ export default function ComponentView({ slug }: { slug: string }) {
   });
 
   const filteredPriceHistory = useMemo(() => {
-    if (!component) return [];
+    if (!component || !component.priceHistory) return [];
     return component.priceHistory.filter(point => {
         const pointDate = new Date(point.date);
         const fromDate = dateRange.from ? new Date(dateRange.from.setHours(0,0,0,0)) : null;
@@ -71,6 +72,7 @@ export default function ComponentView({ slug }: { slug: string }) {
 
   const storeMap = new Map(stores.map(s => [s.id, s.name]));
 
+  // Show skeleton loader while fetching
   if (isLoading) {
     return (
        <div className="container mx-auto px-4 py-8 md:py-12">
@@ -93,12 +95,9 @@ export default function ComponentView({ slug }: { slug: string }) {
     )
   }
 
-  if (!component && !isLoading) {
-    notFound();
-  }
-  
+  // If loading is finished and no component was found, show 404 page
   if (!component) {
-      return null; // Should be handled by notFound
+    notFound();
   }
 
   return (
@@ -141,7 +140,7 @@ export default function ComponentView({ slug }: { slug: string }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {component.prices.map((price) => (
+                  {component.prices && component.prices.map((price) => (
                     <TableRow key={price.storeId}>
                       <TableCell className="font-medium">{storeMap.get(price.storeId) || 'Tienda Desconocida'}</TableCell>
                       <TableCell className="text-right font-semibold text-primary">${price.price.toLocaleString('es-CL')}</TableCell>
@@ -227,7 +226,7 @@ export default function ComponentView({ slug }: { slug: string }) {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                {Object.entries(component.specs).map(([key, value]) => (
+                {component.specs && Object.entries(component.specs).map(([key, value]) => (
                   <div key={key} className="text-sm">
                     <p className="font-semibold">{key}</p>
                     <p className="text-muted-foreground">{value as string}</p>
@@ -259,5 +258,3 @@ export default function ComponentView({ slug }: { slug: string }) {
     </div>
   );
 }
-
-    
