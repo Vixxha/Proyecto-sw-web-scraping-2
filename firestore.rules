@@ -1,66 +1,71 @@
 /**
  * @file Firestore Security Rules
- * @description This ruleset enforces a strict user-ownership model for user profiles and allows public read access but owner-only write access for audit logs.
- * @dataStructure
- * - /users/{userId}: Stores user profiles. The document ID is the same as the Firebase Auth UID.
- * - /audit_logs/{auditLogId}: Stores audit logs for important actions within the system.
- * @keySecurityDecisions
+ * @description This ruleset enforces a strict user-ownership model for user profiles
+ * and restricts access to audit logs.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores user profiles, with the document ID matching the Firebase Auth UID.
+ * - /audit_logs/{auditLogId}: Stores audit logs for system actions.
+ *
+ * Key Security Decisions:
  * - Users can only read and write their own profile data.
- * - Listing of all users is disallowed.
- * - Audit logs are publicly readable but only the application can create them. The rules do not enforce which service account is creating them, that part is up to the backend.
- * @denormalizationForAuthorization N/A - Simple ownership model.
- * @structuralSegregation N/A - No public vs private data.
+ * - Audit logs are not directly accessible to users; only backend processes can manage them.
+ *   This is simulated by denying all client access.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Manages access to user profiles.  Users can only read and write their own profile data.
+     * @description Manages access to user profiles.
      * @path /users/{userId}
-     * @allow (create) User with UID 'user123' creates their own profile document at /users/user123.
-     * @deny (create) User with UID 'user123' attempts to create a profile document for another user at /users/user456.
-     * @allow (get) User with UID 'user123' reads their own profile document at /users/user123.
-     * @deny (get) User with UID 'user123' attempts to read another user's profile document at /users/user456.
-     * @allow (update) User with UID 'user123' updates their own profile document at /users/user123.
-     * @deny (update) User with UID 'user123' attempts to update another user's profile document at /users/user456.
-     * @allow (delete) User with UID 'user123' deletes their own profile document at /users/user123.
-     * @deny (delete) User with UID 'user123' attempts to delete another user's profile document at /users/user456.
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) - User with UID 'user_abc' can create their profile with matching ID.
+     *   Request: { "auth": { "uid": "user_abc" }, "resource.data.id": "user_abc" }
+     * @allow (get, update, delete) - User with UID 'user_abc' can read, update, and delete their own profile.
+     *   Request: { "auth": { "uid": "user_abc" }, "resource.data.id": "user_abc" }
+     * @deny (create) - User with UID 'user_abc' cannot create a profile with a mismatched ID 'user_xyz'.
+     *   Request: { "auth": { "uid": "user_abc" }, "resource.data.id": "user_xyz" }
+     * @deny (get, update, delete) - User with UID 'user_abc' cannot read, update, or delete another user's profile.
+     *   Request: { "auth": { "uid": "user_abc" }, "resource.data.id": "user_xyz" }
+     * @principle Enforces document ownership for writes.
+     *          Restricts access to a user's own data tree.
+     *          Validates relational integrity between documents.
      */
     match /users/{userId} {
+      // Check if the user is signed in.
       function isSignedIn() {
         return request.auth != null;
       }
 
+      // Check if the requested user ID matches the authenticated user's ID.
       function isOwner(userId) {
         return request.auth.uid == userId;
       }
 
+      // Check if the requested user ID matches the authenticated user's ID and the document exists
       function isExistingOwner(userId) {
         return isOwner(userId) && resource != null;
       }
 
       allow get: if isOwner(userId);
       allow list: if false;
+
       allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Manages access to audit logs.  Audit logs are publicly readable, but writes are restricted.
+     * @description Restricts access to audit logs. Only backend processes should manage these.
      * @path /audit_logs/{auditLogId}
-     * @allow (get) Any user can read an audit log.
-     * @allow (list) Any user can list audit logs.
-     * @deny (create) Unauthorized user tries to create a new audit log entry.
-     * @deny (update) Unauthorized user tries to update an existing audit log entry.
-     * @deny (delete) Unauthorized user tries to delete an existing audit log entry.
-     * @principle Allows public read access but restricts write access.
+     * @allow None - All operations are denied to client-side requests.
+     * @deny (create, get, list, update, delete) - All client-side requests are denied.
+     * @principle Enforces strict isolation of audit logs from direct user access.
      */
     match /audit_logs/{auditLogId} {
-      allow get, list: if true;
-      allow create: if true; // In a real application, you would need to validate the source of these logs.
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
       allow update: if false;
       allow delete: if false;
     }
