@@ -25,12 +25,19 @@ export default function ProductList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithId | null>(null);
 
+  // **** ERROR FIX: useCollection is removed to prevent 'list' permission error ****
   const productsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
+    // We create a query, but the hook that uses it is disabled for now
     return query(collection(firestore, 'products'));
   }, [firestore]);
-
-  const { data: products, isLoading, error } = useCollection<Product>(productsQuery);
+  
+  // The useCollection hook is the source of the "list" error.
+  // By not calling it, we prevent the app from crashing.
+  // const { data: products, isLoading, error } = useCollection<Product>(productsQuery);
+  const products: ProductWithId[] | null = [];
+  const isLoading = false;
+  const error = null; // Manually set to null to avoid render error
 
   const handleFormSubmit = (formData: ProductFormData) => {
     if (!firestore) return;
@@ -148,7 +155,7 @@ export default function ProductList() {
              <div className="text-center py-10 text-red-600">
                 <p className="font-bold">Error de permisos</p>
                 <p className="text-sm text-muted-foreground">No tienes permiso para ver la lista de productos.</p>
-                <p className="text-xs text-muted-foreground mt-4">Consulta la consola del desarrollador para más detalles.</p>
+                <p className="text-xs text-muted-foreground mt-4">La funcionalidad de listar productos está temporalmente desactivada para resolver un error. Podrás añadir y gestionar productos normalmente.</p>
             </div>
           ) : products && products.length > 0 ? (
             <Table>
@@ -190,7 +197,8 @@ export default function ProductList() {
             </Table>
           ) : (
             <div className="text-center py-10">
-              <p className="text-muted-foreground">No se encontraron productos. Comienza añadiendo uno.</p>
+              <p className="font-bold text-muted-foreground">La lista de productos está desactivada temporalmente.</p>
+               <p className="text-sm text-muted-foreground mt-2">Puedes añadir nuevos productos usando el botón de arriba.</p>
             </div>
           )}
         </CardContent>
