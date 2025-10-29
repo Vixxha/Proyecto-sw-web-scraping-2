@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, Cpu, Dices, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
@@ -62,13 +62,16 @@ export function Header() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="pr-0">
-            <Link
-              href="/"
-              className="flex items-center"
-            >
-              <Logo className="mr-2 h-6 w-6 text-primary" />
-              <span className="font-bold">ComponentCompares</span>
-            </Link>
+             <SheetHeader className="text-left">
+                <SheetTitle className="sr-only">Navegación Principal</SheetTitle>
+                <Link
+                  href="/"
+                  className="flex items-center"
+                >
+                  <Logo className="mr-2 h-6 w-6 text-primary" />
+                  <span className="font-bold">ComponentCompares</span>
+                </Link>
+             </SheetHeader>
             <div className="my-4 h-[calc(100vh-8rem)] pb-10 pl-6">
                 <div className="flex flex-col space-y-3">
                      {navLinks.map((link) => (
