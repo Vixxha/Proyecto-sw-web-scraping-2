@@ -68,8 +68,6 @@ export default function RegisterPage() {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
-        role: 'user', // Default role
-        status: 'active', // Default status
         createdAt: serverTimestamp(),
       });
 
