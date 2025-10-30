@@ -31,6 +31,7 @@ export default function AdminLayout({
     return query(collection(firestore, 'users'));
   }, [firestore, userProfile]);
 
+  // `useCollection` ahora recibe `null` si el usuario no es superusuario, evitando la llamada a la base de datos
   const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
 
   // El estado de carga ahora considera el perfil y la lista de usuarios

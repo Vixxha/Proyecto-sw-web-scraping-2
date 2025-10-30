@@ -63,7 +63,7 @@ service cloud.firestore {
 
       allow get: if isOwner(userId);
       allow list: if false; // Disallowing listing of users for security.
-      allow create: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
       allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
@@ -105,6 +105,9 @@ service cloud.firestore {
     match /products/{productId} {
       allow get: if true;
       allow list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
 
     /**
@@ -137,9 +140,9 @@ service cloud.firestore {
      * @allow (create) - Only authorized services can create audit logs.
      */
     match /audit_logs/{auditLogId} {
-      allow create: if false;
       allow get: if false;
       allow list: if false;
+      allow create: if false;
       allow update: if false;
       allow delete: if false;
     }
