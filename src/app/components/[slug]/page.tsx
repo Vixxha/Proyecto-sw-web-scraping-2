@@ -1,17 +1,16 @@
+
 import { notFound } from 'next/navigation';
 import ComponentView from './component-view';
 import { components } from '@/lib/data'; 
 import type { Component } from '@/lib/types';
 
-// We can generate static paths from the local data
-export async function generateStaticParams() {
-  return components.map((component) => ({
-    slug: component.slug,
-  }));
-}
+// We remove generateStaticParams to switch to dynamic rendering on-demand.
+// This improves build times and server performance by not loading all components at once.
 
 async function getComponentBySlug(slug: string): Promise<(Component & { id: string }) | null> {
-    // Find the component in the local data array
+    // In a real-world scenario, this would be a database query.
+    // e.g., `await db.collection('products').where('slug', '==', slug).get()`
+    // For now, we find it in the local data array, which simulates fetching only one item.
     const component = components.find(c => c.slug === slug);
     if (!component) {
         console.warn(`No component found with slug: ${slug}`);
@@ -32,3 +31,4 @@ export default async function ComponentPage({ params }: { params: { slug: string
   // We pass the full component object to the view
   return <ComponentView initialComponent={component} />;
 }
+
