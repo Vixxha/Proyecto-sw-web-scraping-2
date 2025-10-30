@@ -30,26 +30,51 @@ const mainNavLinks = [
 ];
 
 const categoryNavLinks = [
-  {
-    name: 'Gaming y Streaming',
-    sub: ['PC Gamer', 'Notebooks Gamer', 'Monitores Gamer', 'Sillas Gamer']
-  },
-  {
-    name: 'Computación',
-    sub: ['Notebooks', 'Monitores', 'Impresoras', 'Teclados', 'Mouse']
-  },
-  {
-    name: 'Componentes',
-    sub: ['Procesadores (CPU)', 'Tarjetas de Video (GPU)', 'Placas Madre', 'Memoria RAM', 'Almacenamiento']
-  },
-  {
-    name: 'Conectividad y Redes',
-    sub: ['Routers', 'Tarjetas de Red', 'Access Points']
-  },
-  {
-    name: 'Hogar y Oficina',
-    sub: ['Mobiliario', 'Iluminación', 'Cámaras de Seguridad']
-  },
+    {
+      name: 'Gaming y Streaming',
+      sub: [
+        { name: 'PC Gamer', href: '#' },
+        { name: 'Notebooks Gamer', href: '#' },
+        { name: 'Monitores Gamer', href: '#' },
+        { name: 'Sillas Gamer', href: '#' }
+      ]
+    },
+    {
+      name: 'Computación',
+      sub: [
+        { name: 'Notebooks', href: '#' },
+        { name: 'Monitores', href: '#' },
+        { name: 'Impresoras', href: '#' },
+        { name: 'Teclados', href: '#' },
+        { name: 'Mouse', href: '#' }
+      ]
+    },
+    {
+      name: 'Componentes',
+      sub: [
+        { name: 'Procesadores (CPU)', href: '/components?category=CPU' },
+        { name: 'Tarjetas de Video (GPU)', href: '/components?category=GPU' },
+        { name: 'Placas Madre', href: '/components?category=Motherboard' },
+        { name: 'Memoria RAM', href: '/components?category=RAM' },
+        { name: 'Almacenamiento', href: '/components?category=Storage' }
+      ]
+    },
+    {
+      name: 'Conectividad y Redes',
+      sub: [
+        { name: 'Routers', href: '#' },
+        { name: 'Tarjetas de Red', href: '#' },
+        { name: 'Access Points', href: '#' }
+      ]
+    },
+    {
+      name: 'Hogar y Oficina',
+      sub: [
+        { name: 'Mobiliario', href: '#' },
+        { name: 'Iluminación', href: '#' },
+        { name: 'Cámaras de Seguridad', href: '#' }
+      ]
+    },
 ];
 
 
@@ -94,8 +119,8 @@ export function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 {cat.sub.map((subCat) => (
-                  <DropdownMenuItem key={subCat} asChild>
-                    <Link href="#">{subCat}</Link>
+                  <DropdownMenuItem key={subCat.name} asChild>
+                    <Link href={subCat.href}>{subCat.name}</Link>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>

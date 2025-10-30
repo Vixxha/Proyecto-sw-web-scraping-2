@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ComponentCard from '@/components/component-card';
@@ -45,6 +45,8 @@ const getBestPrice = (component: Component): number => {
 
 export default function ComponentsPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('All');
   const [brand, setBrand] = useState('All');
@@ -73,8 +75,12 @@ export default function ComponentsPage() {
 
   useEffect(() => {
     const queryFromUrl = searchParams.get('search');
+    const categoryFromUrl = searchParams.get('category');
     if (queryFromUrl) {
       setSearchQuery(queryFromUrl);
+    }
+    if (categoryFromUrl && categories.includes(categoryFromUrl)) {
+      setCategory(categoryFromUrl);
     }
   }, [searchParams]);
 
