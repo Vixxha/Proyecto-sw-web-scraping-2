@@ -3,14 +3,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Cpu, Dices, Bot, User as UserIcon, LogOut, ShieldCheck } from "lucide-react";
+import { Menu, Cpu, Dices, Bot, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
-import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
-import { doc } from 'firebase/firestore';
+import { useAuth, useUser } from "@/firebase";
 
 import {
   DropdownMenu,
@@ -24,10 +23,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { signOut } from "firebase/auth";
 import Spinner from "./spinner";
 
-interface UserProfile {
-  role: 'customer' | 'superuser';
-}
-
 const navLinks = [
   { href: "/components", label: "Explorar", icon: Cpu },
   { href: "/build", label: "Arma tu PC", icon: Dices },
@@ -37,16 +32,7 @@ const navLinks = [
 export function Header() {
   const pathname = usePathname();
   const auth = useAuth();
-  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
-
-  const userProfileRef = useMemoFirebase(
-    () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
-    [firestore, user]
-  );
-  const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
-
-  const isSuperuser = userProfile?.role === 'superuser';
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -152,14 +138,6 @@ export function Header() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {isSuperuser && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin/dashboard">
-                        <ShieldCheck className="mr-2 h-4 w-4" />
-                        <span>Panel Admin</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Cerrar sesión</span>
