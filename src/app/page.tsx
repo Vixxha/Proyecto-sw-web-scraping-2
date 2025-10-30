@@ -105,8 +105,8 @@ export default function HomePage() {
   const router = useRouter();
   const featuredComponents = components.slice(0, 8);
   const heroImage = {
-      imageUrl: "https://images.unsplash.com/photo-1542729716-6d1890d980ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxnYW1pbmclMjBtb3RoZXJib2FyZHxlbnwwfHx8fDE3NjEzMzA3MTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      imageHint: "gaming motherboard"
+      imageUrl: "https://preview.redd.it/dark-purple-desk-setup-inspiration-v0-ye2gq8w12wrf1.jpg?width=640&crop=smart&auto=webp&s=c7bfa80a6ef5bfee3ec76982f1b6dc265356eae6",
+      imageHint: "gaming setup"
   };
 
   const handleSearch = (query: string) => {
@@ -244,5 +244,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    

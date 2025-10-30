@@ -34,6 +34,12 @@ const nextConfig: NextConfig = {
         hostname: 'media.solotodo.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'preview.redd.it',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
