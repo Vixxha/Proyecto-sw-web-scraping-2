@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
@@ -7,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ComponentCard from '@/components/component-card';
 import type { Component } from '@/lib/types';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Search, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -16,7 +17,13 @@ import Spinner from '@/components/spinner';
 import { components as allComponents } from '@/lib/data'; // Import local data
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import Link from 'next/link';
 
 const categories = ['All', 'CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'Power Supply', 'Case'];
 const brands = ['All', 'Intel', 'AMD', 'NVIDIA', 'ASUS', 'Corsair', 'Samsung', 'Gigabyte', 'MSI', 'Crucial', 'SeaSonic', 'NZXT', 'Lian Li', 'Kingston'];
@@ -36,6 +43,37 @@ const placeholderTexts = [
   ];
 
 type ProductWithId = Component & { id: string };
+
+const navCategories = [
+  {
+    name: 'Gaming y Streaming',
+    sub: ['PC Gamer', 'Notebooks Gamer', 'Monitores Gamer', 'Sillas Gamer']
+  },
+  {
+    name: 'Computación',
+    sub: ['Notebooks', 'Monitores', 'Impresoras', 'Teclados', 'Mouse']
+  },
+  {
+    name: 'Componentes',
+    sub: ['Procesadores (CPU)', 'Tarjetas de Video (GPU)', 'Placas Madre', 'Memoria RAM', 'Almacenamiento']
+  },
+  {
+    name: 'Conectividad y Redes',
+    sub: ['Routers', 'Tarjetas de Red', 'Access Points']
+  },
+  {
+    name: 'Hogar y Oficina',
+    sub: ['Mobiliario', 'Iluminación', 'Cámaras de Seguridad']
+  },
+  {
+    name: 'Audio y Video',
+    sub: ['Audífonos', 'Parlantes', 'Micrófonos']
+  },
+  {
+    name: 'Otras Categorías',
+    sub: ['Drones', 'Accesorios', 'Software']
+  }
+];
 
 // Helper to get the best price for filtering and sorting
 const getBestPrice = (component: Component): number => {
@@ -252,10 +290,36 @@ export default function ComponentsPage() {
       </div>
     </div>
   );
+  
+  const CategoryNav = () => (
+    <div className="border-b">
+      <div className="container mx-auto px-4">
+        <nav className="flex items-center justify-center space-x-6 h-14">
+          {navCategories.map((cat) => (
+            <DropdownMenu key={cat.name}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-primary data-[state=open]:text-primary">
+                  {cat.name}
+                  <ChevronDown className="relative top-[1px] ml-1 h-4 w-4 transition duration-200 group-data-[state=open]:rotate-180" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {cat.sub.map((subCat) => (
+                  <DropdownMenuItem key={subCat} asChild>
+                    <Link href="#">{subCat}</Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ))}
+        </nav>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <section className="text-center py-8 animate-fade-in">
+    <>
+      <section className="text-center py-12 animate-fade-in container mx-auto px-4">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
           Explorar Componentes
         </h1>
@@ -263,54 +327,56 @@ export default function ComponentsPage() {
           Encuentra el componente perfecto para tu PC. Filtra por categoría, marca y más.
         </p>
       </section>
+      
+      <CategoryNav />
 
-      <div className="grid lg:grid-cols-4 gap-8 items-start">
-        <aside className="hidden lg:block lg:col-span-1 sticky top-24">
-          <Card>
-            <CardHeader>
-                <CardTitle>Filtros</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {filterControlsContent}
-            </CardContent>
-          </Card>
-        </aside>
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid lg:grid-cols-4 gap-8 items-start">
+          <aside className="hidden lg:block lg:col-span-1 sticky top-24">
+            <Card>
+              <CardHeader>
+                  <CardTitle>Filtros</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {filterControlsContent}
+              </CardContent>
+            </Card>
+          </aside>
 
-        <main className="lg:col-span-3">
-          <div className="flex justify-between items-center mb-6 lg:hidden">
-            <p className="text-sm text-muted-foreground">{filteredAndSortedComponents.length} resultados</p>
-             <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline"><SlidersHorizontal className="mr-2 h-4 w-4" /> Filtros</Button>
-                </SheetTrigger>
-                <SheetContent>
-                  <SheetHeader>
-                    <SheetTitle>Filtros</SheetTitle>
-                  </SheetHeader>
-                  <div className="py-8">
-                    {filterControlsContent}
-                  </div>
-                </SheetContent>
-              </Sheet>
-          </div>
-          {productsLoading ? (
-            <div className="flex justify-center items-center h-64"><Spinner className="h-12 w-12" /></div>
-          ) : filteredAndSortedComponents.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredAndSortedComponents.map((component) => (
-                <ComponentCard key={component.id} component={component} />
-              ))}
+          <main className="lg:col-span-3">
+            <div className="flex justify-between items-center mb-6 lg:hidden">
+              <p className="text-sm text-muted-foreground">{filteredAndSortedComponents.length} resultados</p>
+               <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline"><SlidersHorizontal className="mr-2 h-4 w-4" /> Filtros</Button>
+                  </SheetTrigger>
+                  <SheetContent>
+                    <SheetHeader>
+                      <SheetTitle>Filtros</SheetTitle>
+                    </SheetHeader>
+                    <div className="py-8">
+                      {filterControlsContent}
+                    </div>
+                  </SheetContent>
+                </Sheet>
             </div>
-          ) : (
-            <div className="text-center py-16 col-span-full">
-              <p className="text-xl font-medium text-muted-foreground">No se encontraron componentes.</p>
-              <p className="text-muted-foreground mt-2">Intenta ajustar tu búsqueda o filtros.</p>
-            </div>
-          )}
-        </main>
+            {productsLoading ? (
+              <div className="flex justify-center items-center h-64"><Spinner className="h-12 w-12" /></div>
+            ) : filteredAndSortedComponents.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredAndSortedComponents.map((component) => (
+                  <ComponentCard key={component.id} component={component} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 col-span-full">
+                <p className="text-xl font-medium text-muted-foreground">No se encontraron componentes.</p>
+                <p className="text-muted-foreground mt-2">Intenta ajustar tu búsqueda o filtros.</p>
+              </div>
+            )}
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
-
-    
