@@ -21,10 +21,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { signOut } from "firebase/auth";
 import Spinner from "./spinner";
-import { useDoc } from "@/firebase/firestore/use-doc";
-import { doc } from "firebase/firestore";
-import { useFirestore } from "@/firebase/provider";
-import { useMemoFirebase } from "@/firebase/provider";
 
 const navLinks = [
   { href: "/components", label: "Explorar", icon: Cpu },
@@ -41,16 +37,9 @@ const adminNavLinks = [
 export function Header() {
   const pathname = usePathname();
   const auth = useAuth();
-  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+  const isAdminPath = pathname.startsWith('/admin');
   
-  const userDocRef = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return doc(firestore, 'users', user.uid);
-  }, [firestore, user]);
-
-  const { data: userProfile } = useDoc<{role: string}>(userDocRef);
-
   const handleLogout = async () => {
     await signOut(auth);
   };
@@ -70,7 +59,7 @@ export function Header() {
           {link.label}
         </Link>
       ))}
-       {userProfile?.role === 'superuser' && (
+       {isAdminPath && user && (
         <div className="hidden lg:flex items-center gap-4 lg:gap-6 pl-4 ml-4 border-l">
           <span className="text-xs font-semibold text-muted-foreground">ADMIN</span>
           {adminNavLinks.map((link) => (
@@ -143,7 +132,7 @@ export function Header() {
                         </Link>
                       ))}
                 </div>
-                 {userProfile?.role === 'superuser' && (
+                 {isAdminPath && user && (
                     <div className="mt-6 pt-6 border-t">
                       <h3 className="pl-0 mb-3 text-xs font-semibold text-muted-foreground">ADMINISTRACIÓN</h3>
                        <div className="flex flex-col space-y-3">
@@ -193,7 +182,7 @@ export function Header() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {userProfile?.role === 'superuser' && (
+                  {isAdminPath && (
                     <DropdownMenuItem asChild>
                       <Link href="/admin/dashboard">
                         <ShieldCheck className="mr-2 h-4 w-4" />

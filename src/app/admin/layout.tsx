@@ -20,8 +20,16 @@ function SuperuserContent({ children }: { children: React.ReactNode }) {
 
   const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
 
+  if (usersLoading) {
+    return (
+       <div className="flex h-[80vh] w-full items-center justify-center">
+        <Spinner className="h-12 w-12" />
+      </div>
+    )
+  }
+
   // Clonamos el elemento hijo (la página) para inyectarle los datos de los usuarios
-  return React.cloneElement(children as React.ReactElement, { users, usersLoading });
+  return React.cloneElement(children as React.ReactElement, { users, usersLoading: false });
 }
 
 
