@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Cpu, Dices, Bot, LogOut, HardDrive } from "lucide-react";
+import { Menu, Cpu, Dices, Bot, LogOut, HardDrive, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -23,11 +23,35 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { signOut } from "firebase/auth";
 import Spinner from "./spinner";
 
-const navLinks = [
+const mainNavLinks = [
   { href: "/components", label: "Explorar", icon: Cpu },
   { href: "/build", label: "Arma tu PC", icon: Dices },
   { href: "/ai-builder", label: "Asistente IA", icon: Bot },
 ];
+
+const categoryNavLinks = [
+  {
+    name: 'Gaming y Streaming',
+    sub: ['PC Gamer', 'Notebooks Gamer', 'Monitores Gamer', 'Sillas Gamer']
+  },
+  {
+    name: 'Computación',
+    sub: ['Notebooks', 'Monitores', 'Impresoras', 'Teclados', 'Mouse']
+  },
+  {
+    name: 'Componentes',
+    sub: ['Procesadores (CPU)', 'Tarjetas de Video (GPU)', 'Placas Madre', 'Memoria RAM', 'Almacenamiento']
+  },
+  {
+    name: 'Conectividad y Redes',
+    sub: ['Routers', 'Tarjetas de Red', 'Access Points']
+  },
+  {
+    name: 'Hogar y Oficina',
+    sub: ['Mobiliario', 'Iluminación', 'Cámaras de Seguridad']
+  },
+];
+
 
 export function Header() {
   const pathname = usePathname();
@@ -38,9 +62,9 @@ export function Header() {
     await signOut(auth);
   };
 
-  const NavLinks = ({ className }: { className?: string }) => (
+  const MainNav = ({ className }: { className?: string }) => (
     <nav className={cn("flex items-center gap-4 lg:gap-6", className)}>
-      {navLinks.map((link) => (
+      {mainNavLinks.map((link) => (
         <Link
           key={link.href}
           href={link.href}
@@ -56,6 +80,33 @@ export function Header() {
     </nav>
   );
 
+   const CategoryNav = () => (
+    <div className="border-t hidden md:block">
+      <div className="container flex h-14 max-w-screen-2xl items-center">
+        <nav className="flex items-center justify-center space-x-6 w-full">
+          {categoryNavLinks.map((cat) => (
+            <DropdownMenu key={cat.name}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-primary data-[state=open]:text-primary group">
+                  {cat.name}
+                  <ChevronDown className="relative top-[1px] ml-1 h-4 w-4 transition duration-200 group-data-[state=open]:rotate-180" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {cat.sub.map((subCat) => (
+                  <DropdownMenuItem key={subCat} asChild>
+                    <Link href="#">{subCat}</Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ))}
+        </nav>
+      </div>
+    </div>
+  );
+
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-screen-2xl items-center">
@@ -66,7 +117,7 @@ export function Header() {
               ComponentCompares
             </span>
           </Link>
-          <NavLinks />
+          <MainNav />
         </div>
 
         {/* Mobile Nav */}
@@ -94,7 +145,7 @@ export function Header() {
              </SheetHeader>
             <div className="my-4 h-[calc(100vh-8rem)] pb-10 pl-6">
                 <div className="flex flex-col space-y-3">
-                     {navLinks.map((link) => (
+                     {mainNavLinks.map((link) => (
                         <Link
                           key={link.href}
                           href={link.href}
@@ -165,6 +216,7 @@ export function Header() {
           </nav>
         </div>
       </div>
+      <CategoryNav />
     </header>
   );
 }

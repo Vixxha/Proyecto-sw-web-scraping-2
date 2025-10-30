@@ -17,13 +17,6 @@ import Spinner from '@/components/spinner';
 import { components as allComponents } from '@/lib/data'; // Import local data
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import Link from 'next/link';
 
 const categories = ['All', 'CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'Power Supply', 'Case'];
 const brands = ['All', 'Intel', 'AMD', 'NVIDIA', 'ASUS', 'Corsair', 'Samsung', 'Gigabyte', 'MSI', 'Crucial', 'SeaSonic', 'NZXT', 'Lian Li', 'Kingston'];
@@ -43,37 +36,6 @@ const placeholderTexts = [
   ];
 
 type ProductWithId = Component & { id: string };
-
-const navCategories = [
-  {
-    name: 'Gaming y Streaming',
-    sub: ['PC Gamer', 'Notebooks Gamer', 'Monitores Gamer', 'Sillas Gamer']
-  },
-  {
-    name: 'Computación',
-    sub: ['Notebooks', 'Monitores', 'Impresoras', 'Teclados', 'Mouse']
-  },
-  {
-    name: 'Componentes',
-    sub: ['Procesadores (CPU)', 'Tarjetas de Video (GPU)', 'Placas Madre', 'Memoria RAM', 'Almacenamiento']
-  },
-  {
-    name: 'Conectividad y Redes',
-    sub: ['Routers', 'Tarjetas de Red', 'Access Points']
-  },
-  {
-    name: 'Hogar y Oficina',
-    sub: ['Mobiliario', 'Iluminación', 'Cámaras de Seguridad']
-  },
-  {
-    name: 'Audio y Video',
-    sub: ['Audífonos', 'Parlantes', 'Micrófonos']
-  },
-  {
-    name: 'Otras Categorías',
-    sub: ['Drones', 'Accesorios', 'Software']
-  }
-];
 
 // Helper to get the best price for filtering and sorting
 const getBestPrice = (component: Component): number => {
@@ -290,32 +252,6 @@ export default function ComponentsPage() {
       </div>
     </div>
   );
-  
-  const CategoryNav = () => (
-    <div className="border-b">
-      <div className="container mx-auto px-4">
-        <nav className="flex items-center justify-center space-x-6 h-14">
-          {navCategories.map((cat) => (
-            <DropdownMenu key={cat.name}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-primary data-[state=open]:text-primary">
-                  {cat.name}
-                  <ChevronDown className="relative top-[1px] ml-1 h-4 w-4 transition duration-200 group-data-[state=open]:rotate-180" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {cat.sub.map((subCat) => (
-                  <DropdownMenuItem key={subCat} asChild>
-                    <Link href="#">{subCat}</Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ))}
-        </nav>
-      </div>
-    </div>
-  );
 
   return (
     <>
@@ -327,8 +263,6 @@ export default function ComponentsPage() {
           Encuentra el componente perfecto para tu PC. Filtra por categoría, marca y más.
         </p>
       </section>
-      
-      <CategoryNav />
 
       <div className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-4 gap-8 items-start">
