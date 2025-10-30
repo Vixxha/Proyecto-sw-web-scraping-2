@@ -36,4 +36,11 @@ export interface Component {
   specs: { [key: string]: string | number };
 }
 
-    
+export interface PCBuild {
+  id: string;
+  userId: string;
+  name: string;
+  components: Record<Category, Component[]>;
+  totalPrice: number;
+  createdAt: any; // Firestore Timestamp
+}

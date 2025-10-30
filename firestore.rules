@@ -1,19 +1,20 @@
 /**
- * @file Firestore Security Rules for ComponentCompares
+ * @file Firestore Security Rules
  * @description This ruleset enforces a user-ownership model for user profiles
- * and allows public read access to product information while restricting
- * modification access.
+ * and allows public read access to product information.
  *
  * Data Structure:
- * - /users/{userId}: Stores individual user profiles, with the document ID
- *   matching the Firebase Auth UID. This enforces that users can only
- *   access their own profile data.
- * - /products/{productId}: Stores product information. Read access is public,
- *   but modification is restricted.
+ * - /users/{userId}: Stores user profile data, with the document ID matching the Firebase Auth UID.
+ * - /products/{productId}: Stores product information that is publicly readable.
  *
  * Key Security Decisions:
- * - User listing is disallowed to protect user privacy.
- * - Products are publicly readable to facilitate open access to product details.
+ * - Users can only read and write their own profile data.
+ * - Listing of users is disallowed for privacy.
+ * - Products are publicly readable, but write operations are not secured in this prototype.
+ *   A future iteration should secure product writes to authorized admins only.
+ *
+ * Denormalization for Authorization:
+ * - The User document ID is enforced to match the Firebase Auth UID to simplify ownership checks.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -22,42 +23,59 @@ service cloud.firestore {
     /**
      * @description Enforces user-ownership for user profiles.
      * @path /users/{userId}
-     * @allow (create) - Authenticated user with UID 'user_abc' can create their profile at /users/user_abc.
-     * @allow (get, update, delete) - Authenticated user with UID 'user_abc' can access their profile at /users/user_abc.
-     * @deny (create, get, update, delete) - Authenticated user with UID 'user_xyz' cannot access the profile at /users/user_abc.
-     * @principle Enforces document ownership for writes and reads.
+     * @allow (create) - A user with UID 'user_abc' can create their profile document at /users/user_abc.
+     * @allow (update) - A user with UID 'user_abc' can update their profile document at /users/user_abc.
+     * @allow (get) - A user with UID 'user_abc' can read their profile document at /users/user_abc.
+     * @deny (create) - A user with UID 'user_xyz' cannot create a profile document at /users/user_abc.
+     * @deny (update) - A user with UID 'user_xyz' cannot update the profile document at /users/user_abc.
+     * @deny (delete) - A user with UID 'user_xyz' cannot delete the profile document at /users/user_abc.
+     * @deny (list) - No one can list all user profiles.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false; // Disallow listing of all users for privacy.
-      allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
+      // Define helper function
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      // Only allow creating a user document if the authenticated user's ID matches the document ID.
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
+
+      // Only allow reading a user document if the user is signed in and is the owner.
+      allow get: if isSignedIn() && isOwner(userId);
+
+      // Disallow listing all user documents.
+      allow list: if false;
+
+      // Only allow updating a user document if the user is signed in and is the owner.
+      // Enforce immutability of the 'id' field to maintain ownership.
+      allow update: if isSignedIn() && isOwner(userId) && resource.data.id == request.resource.data.id && resource != null;
+
+      // Only allow deleting a user document if the user is signed in and is the owner.
+      allow delete: if isSignedIn() && isOwner(userId) && resource != null;
     }
 
     /**
-     * @description Allows public read access to products, but restricts write access.
+     * @description Allows public read access to product information.
      * @path /products/{productId}
-     * @allow (get, list) - Any user, authenticated or not, can read product information.
-     * @deny (create, update, delete) - No user can create, update, or delete product information.
-     * @principle Allows public reads with restricted writes.
+     * @allow (get) - Any user can read a product document.
+     * @allow (list) - Any user can list product documents.
+     * @deny (create) - No user can create a product document.
+     * @deny (update) - No user can update a product document.
+     * @deny (delete) - No user can delete a product document.
+     * @principle Allows public read access but restricts write access.
      */
     match /products/{productId} {
+      // Allow anyone to read product information.
       allow get, list: if true;
+
+      // For prototyping, write operations are not secured.
+      // TODO: Add owner validation once the schema is updated with an ownership field and isAdmin() function
       allow create, update, delete: if false;
-    }
-
-    // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    function isExistingOwner(userId) {
-      return isSignedIn() && isOwner(userId) && resource != null;
     }
   }
 }

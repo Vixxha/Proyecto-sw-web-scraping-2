@@ -95,6 +95,42 @@
         "stock",
         "prices"
       ]
+    },
+    "PCBuild": {
+      "title": "PC Build",
+      "type": "object",
+      "description": "Represents a saved PC configuration built by a user.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "components": {
+          "type": "object",
+          "properties": {
+            "CPU": { "type": "array", "items": { "type": "string" } },
+            "Motherboard": { "type": "array", "items": { "type": "string" } },
+            "RAM": { "type": "array", "items": { "type": "string" } },
+            "GPU": { "type": "array", "items": { "type": "string" } },
+            "Storage": { "type": "array", "items": { "type": "string" } },
+            "Power Supply": { "type": "array", "items": { "type": "string" } },
+            "Case": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "totalPrice": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["userId", "name", "components", "totalPrice", "createdAt"]
     }
   },
   "auth": {
@@ -133,6 +169,20 @@
               "name": "productId",
               "description": "Unique identifier for the product."
             }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/builds/{buildId}",
+        "definition": {
+          "entityName": "PCBuild",
+          "schema": {
+            "$ref": "#/entities/PCBuild"
+          },
+          "description": "Stores saved PC builds for each user.",
+          "params": [
+            { "name": "userId", "description": "The user's ID." },
+            { "name": "buildId", "description": "The unique ID for the build." }
           ]
         }
       }

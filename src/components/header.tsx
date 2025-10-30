@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Cpu, Dices, Bot, LogOut } from "lucide-react";
+import { Menu, Cpu, Dices, Bot, LogOut, HardDrive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -137,6 +137,13 @@ export function Header() {
                       </p>
                     </div>
                   </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/my-builds">
+                      <HardDrive className="mr-2 h-4 w-4" />
+                      <span>Mis Configuraciones</span>
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
