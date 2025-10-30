@@ -1,34 +1,34 @@
 /**
  * @file Firestore Security Rules
- * @description This ruleset enforces a strict user-ownership model for user profiles and their associated sales data,
- *              while allowing public read access to product information and restricting access to audit logs.
+ * @description This ruleset enforces a strict user-ownership model for user profiles and their sales records.
+ * Products and audit logs are publicly readable, but write-protected to prevent unauthorized modifications.
  *
  * Data Structure:
- * - /users/{userId}: Stores individual user profiles.  Only the authenticated user can read/write their own profile.
- * - /users/{userId}/sales/{saleId}: Stores sales records associated with a specific user. Only the authenticated user can read/write their own sales records.
- * - /products/{productId}: Stores product information. Public read access is allowed.
- * - /sales/{saleId}: A global collection of all sales data. Intended for superuser querying; access is restricted to authenticated users only.
- * - /audit_logs/{auditLogId}: Stores audit logs. Access is restricted to authenticated users only.
+ * - /users/{userId}: Stores user profile information.
+ * - /users/{userId}/sales/{saleId}: Stores sales records specific to a user.
+ * - /products/{productId}: Stores product information.
+ * - /sales/{saleId}: A global collection of all sales for superuser querying.
+ * - /audit_logs/{auditLogId}: Stores audit logs.
  *
  * Key Security Decisions:
- * - Users can only access their own data under `/users/{userId}`.
- * - Listing of all users is denied to prevent information disclosure.
- * - Product information is publicly readable, but write access is restricted.
- * - Sales and Audit Logs access is restricted to signed in users
+ * - Users can only read and write their own profile data.
+ * - Users can only manage (create, update, delete) their own sales records.
+ * - Products are publicly readable, but only authorized users can create, update, or delete them.
+ * - Audit logs are publicly readable, but only authorized users can create them.
+ * - Listing the /users collection is denied to prevent unauthorized data access.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Manages user profiles. Only the authenticated user can read and write their own profile.
+     * @description Controls access to user profiles.
      * @path /users/{userId}
-     * @allow (create) Authenticated user can create their own profile if the userId matches their auth UID.
-     * @allow (get, update, delete) Authenticated user can read, update, and delete their own profile.
-     * @deny (create) An unauthenticated user cannot create a profile.
-     * @deny (get, update, delete) An authenticated user cannot access another user's profile.
-     * @deny (list) Listing all users is not permitted.
-     * @principle Enforces document ownership for user profiles.
+     * @allow (create) User with matching UID can create their profile.
+     * @allow (get, update, delete) User can only access their own profile.
+     * @deny (create) User cannot create a profile with a mismatched UID.
+     * @deny (list) Listing all users is disallowed.
+     * @principle Enforces document ownership; only the authenticated user can manage their profile.
      */
     match /users/{userId} {
       function isSignedIn() {
@@ -40,7 +40,7 @@ service cloud.firestore {
       }
 
       function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
+          return isOwner(userId) && resource != null;
       }
 
       allow get: if isOwner(userId);
@@ -51,12 +51,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Manages sales records for a specific user. Only the authenticated user can read and write their own sales records.
+     * @description Controls access to sales records for a specific user.
      * @path /users/{userId}/sales/{saleId}
-     * @allow (create, get, update, delete, list) Authenticated user can manage their own sales records.
-     * @deny (create, get, update, delete) An authenticated user cannot access another user's sales records.
-     * @deny (create, get, update, delete) An unauthenticated user cannot access sales records.
-     * @principle Enforces document ownership for sales records within a user's profile.
+     * @allow (create, get, update, delete, list) User can manage their own sales records.
+     * @deny User cannot manage sales records for other users.
+     * @principle Enforces document ownership within a user's data tree.
      */
     match /users/{userId}/sales/{saleId} {
       function isSignedIn() {
@@ -68,7 +67,7 @@ service cloud.firestore {
       }
 
       function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
+          return isOwner(userId) && resource != null;
       }
 
       allow get: if isOwner(userId);
@@ -79,54 +78,39 @@ service cloud.firestore {
     }
 
     /**
-     * @description Manages product information. Allows public read access but restricts write access.
+     * @description Controls access to product information.
      * @path /products/{productId}
-     * @allow (get, list) Anyone can read product information.
-     * @deny (create, update, delete) Only authenticated users can create, update, or delete product information.
-     * @principle Allows public read access while restricting write access to products.
+     * @allow (get, list) Products are publicly readable.
+     * @deny (create, update, delete) Only authorized users can modify product data. // TODO: Implement role-based authorization for product management.
+     * @principle Public read access with restricted writes.
      */
     match /products/{productId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if false; 
-      allow update: if false;
-      allow delete: if false;
+      allow get, list: if true;
+      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
     }
 
     /**
-     * @description A global collection of all sales for easy querying. Access restricted to authenticated users only.
+     * @description Controls access to the global sales collection.
      * @path /sales/{saleId}
-     * @allow (get, list) Only authenticated users can read sales information.
-     * @deny (create, update, delete) No one can create, update, or delete sales information through this path.
-     * @principle Restricts access to sales information to authenticated users.
+     * @allow (get, list) Sales are publicly readable.
+     * @deny (create, update, delete) Only authorized users can create audit logs. // TODO: Implement role-based authorization for sales management.
+     * @principle Public read access with restricted writes.
      */
     match /sales/{saleId} {
-          function isSignedIn() {
-        return request.auth != null;
-      }
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow get, list: if true;
+      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
     }
 
     /**
-     * @description Manages audit logs. Access restricted to authenticated users only.
+     * @description Controls access to audit logs.
      * @path /audit_logs/{auditLogId}
-     * @allow (get, list) Only authenticated users can read audit logs.
-     * @deny (create, update, delete) No one can create, update, or delete audit logs.
-     * @principle Restricts access to audit logs.
+     * @allow (get, list) Audit logs are publicly readable.
+     * @deny (create, update, delete) Only authorized users can create audit logs. // TODO: Implement role-based authorization for audit log creation.
+     * @principle Public read access with restricted writes.
      */
     match /audit_logs/{auditLogId} {
-          function isSignedIn() {
-        return request.auth != null;
-      }
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow get, list: if true;
+      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
     }
   }
 }
