@@ -24,7 +24,9 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
 
   useEffect(() => {
     // The empty dependency array ensures this effect runs only once on mount.
-    setFirebaseServices(initializeFirebase());
+    if (!firebaseServices) {
+      setFirebaseServices(initializeFirebase());
+    }
   }, []); // DO NOT REMOVE THE EMPTY DEPENDENCY ARRAY
 
   if (!firebaseServices) {

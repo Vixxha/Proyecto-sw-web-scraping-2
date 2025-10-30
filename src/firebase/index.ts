@@ -8,10 +8,7 @@ import { Firestore, getFirestore } from 'firebase/firestore'
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase(): { firebaseApp: FirebaseApp, auth: Auth, firestore: Firestore } {
-  // Use getApps() to check if Firebase has already been initialized.
-  const apps = getApps();
-  const firebaseApp = apps.length ? apps[0] : initializeApp(firebaseConfig);
-  
+  const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
   const auth = getAuth(firebaseApp);
   const firestore = getFirestore(firebaseApp);
 
@@ -38,4 +35,3 @@ export * from './non-blocking-updates';
 export * from './non-blocking-login';
 export * from './errors';
 export * from './error-emitter';
-
