@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -8,6 +7,23 @@ import { useDoc } from '@/firebase/firestore/use-doc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
 import Spinner from '@/components/spinner';
+
+// Componente interno que solo se renderiza si el usuario es superusuario
+function SuperuserContent({ children }: { children: React.ReactNode }) {
+  const firestore = useFirestore();
+
+  // Esta query solo se ejecuta porque este componente solo se monta si el usuario es superuser
+  const usersQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'users'));
+  }, [firestore]);
+
+  const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
+
+  // Clonamos el elemento hijo (la página) para inyectarle los datos de los usuarios
+  return React.cloneElement(children as React.ReactElement, { users, usersLoading });
+}
+
 
 export default function AdminLayout({
   children,
@@ -24,17 +40,6 @@ export default function AdminLayout({
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<{ role: string }>(userDocRef);
 
-  // Mover la carga de datos de la colección de usuarios a este layout
-  const usersQuery = useMemoFirebase(() => {
-    // Solo ejecutar la query si el usuario es superuser
-    if (!firestore || !userProfile || userProfile.role !== 'superuser') return null;
-    return query(collection(firestore, 'users'));
-  }, [firestore, userProfile]);
-
-  // `useCollection` ahora recibe `null` si el usuario no es superusuario, evitando la llamada a la base de datos
-  const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
-
-  // El estado de carga ahora considera el perfil y la lista de usuarios
   const isLoading = isUserLoading || isProfileLoading;
 
   if (isLoading) {
@@ -45,12 +50,12 @@ export default function AdminLayout({
     );
   }
 
-  // Si el usuario es superusuario, renderizamos los hijos, inyectando los datos necesarios
+  // Si el usuario es superusuario, renderizamos el contenedor de contenido de superusuario
   if (user && userProfile?.role === 'superuser') {
-    // Clonamos el elemento hijo (la página) para pasarle los props
-    return React.cloneElement(children as React.ReactElement, { users, usersLoading });
+    return <SuperuserContent>{children}</SuperuserContent>;
   }
   
+  // Si no, mostramos el mensaje de acceso denegado
   return (
     <div className="container mx-auto flex min-h-[80vh] items-center justify-center px-4">
       <Card className="w-full max-w-md">
