@@ -12,8 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import Spinner from '@/components/spinner';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query } from 'firebase/firestore';
+import { components as allComponents } from '@/lib/data'; // Import local data
 
 
 const categories = ['All', 'CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'Power Supply', 'Case'];
@@ -39,14 +38,9 @@ export default function ComponentsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const firestore = useFirestore();
-  const productsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'products'));
-  }, [firestore]);
   
-  const { data: allComponents, isLoading: productsLoading } = useCollection<ProductWithId>(productsQuery);
+  // Use local data for display
+  const productsLoading = false;
 
   useEffect(() => {
     const queryFromUrl = searchParams.get('search');
@@ -106,7 +100,7 @@ export default function ComponentsPage() {
       const matchesBrand = brand === 'All' || component.brand === brand;
       return matchesSearch && matchesCategory && matchesBrand;
     });
-  }, [searchQuery, category, brand, allComponents]);
+  }, [searchQuery, category, brand]);
 
   const filterControlsContent = (
     <div className="space-y-6">

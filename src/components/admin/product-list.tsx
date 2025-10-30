@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { FirestorePermissionError, errorEmitter } from '@/firebase';
 import Image from 'next/image';
 import { addDoc, collection, doc, serverTimestamp, updateDoc, deleteDoc, query } from 'firebase/firestore';
+import { components } from '@/lib/data'; // Import local data
 
 // We reuse the Component type but alias it as Product for semantic clarity
 type ProductWithId = Product & { id: string };
@@ -24,13 +25,10 @@ export default function ProductList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithId | null>(null);
 
-  const productsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'products'));
-  }, [firestore]);
-  
-  const { data: products, isLoading, error } = useCollection<ProductWithId>(productsQuery);
-
+  // For now, we will display local data, but keep firestore logic for write operations
+  const products = components;
+  const isLoading = false; // Not loading from firestore for display
+  const error = null;
 
   const handleFormSubmit = (formData: ProductFormData) => {
     if (!firestore) return;
@@ -41,7 +39,6 @@ export default function ProductList() {
     // Convert price and stock ensuring they are numbers
     const price = Number(formData.price) || 0;
     const stock = Number(formData.stock) || 0;
-
 
     const promise = editingProduct
       ? (() => {
@@ -90,8 +87,9 @@ export default function ProductList() {
       });
       setIsFormOpen(false);
       setEditingProduct(null);
+      // NOTE: In a real app, you'd invalidate the `useCollection` query here
+      // to show the new data. Since we are showing local data, this is a NOP for display.
     }).catch(err => {
-      // The global error handler will catch this, but we can add a toast as well
        toast({
           variant: 'destructive',
           title: 'Error de Permisos',
@@ -113,7 +111,7 @@ export default function ProductList() {
       .then(() => {
         toast({
           title: 'Producto eliminado',
-          description: `${productName} ha sido eliminado.`
+          description: `${productName} ha sido eliminado de Firestore.`
         });
       })
       .catch(err => {

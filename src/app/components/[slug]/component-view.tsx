@@ -31,12 +31,17 @@ export default function ComponentView({ initialComponent }: { initialComponent: 
   const [isScraping, setIsScraping] = useState(false);
   const { toast } = useToast();
   
+  // The initial component is passed as a prop, but we can still listen to firestore for real-time updates
   const componentDocRef = useMemoFirebase(() => {
     if (!firestore) return null;
     return doc(firestore, 'products', initialComponent.id);
   }, [firestore, initialComponent.id]);
 
-  const { data: component, isLoading: isComponentLoading } = useDoc<Component>(componentDocRef);
+  // The useDoc hook will fetch real-time data, but we start with `initialComponent`
+  const { data: componentFromFirestore, isLoading: isComponentLoading } = useDoc<Component>(componentDocRef);
+
+  // Use the firestore data if available, otherwise fall back to the initial prop
+  const component = componentFromFirestore || initialComponent;
 
   const oneYearAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 1));
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({

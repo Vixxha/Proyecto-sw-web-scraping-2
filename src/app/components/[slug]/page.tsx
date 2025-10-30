@@ -2,38 +2,23 @@ import { notFound } from 'next/navigation';
 import ComponentView from './component-view';
 import { components } from '@/lib/data'; 
 import type { Component } from '@/lib/types';
-import { collection, query, where, getDocs, limit } from 'firebase/firestore';
-import { getSdks } from '@/firebase';
 
-
+// We can generate static paths from the local data
 export async function generateStaticParams() {
-  // Since data is now dynamic, we can't statically generate all paths.
-  // We can generate a few popular ones, or none at all.
-  // For this example, we won't pre-render any paths at build time.
-  // Next.js will render them on-demand.
-  return [];
+  return components.map((component) => ({
+    slug: component.slug,
+  }));
 }
 
 async function getComponentBySlug(slug: string): Promise<(Component & { id: string }) | null> {
-    try {
-        const { firestore } = getSdks();
-        const productsRef = collection(firestore, 'products');
-        const q = query(productsRef, where('slug', '==', slug), limit(1));
-        
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-            console.warn(`No component found with slug: ${slug}`);
-            return null;
-        }
-
-        const doc = querySnapshot.docs[0];
-        return { id: doc.id, ...doc.data() } as Component & { id: string };
-
-    } catch (error) {
-        console.error("Error fetching component by slug from Firestore:", error);
+    // Find the component in the local data array
+    const component = components.find(c => c.slug === slug);
+    if (!component) {
+        console.warn(`No component found with slug: ${slug}`);
         return null;
     }
+    // The local component object already has all the necessary data
+    return component as Component & { id: string };
 }
 
 

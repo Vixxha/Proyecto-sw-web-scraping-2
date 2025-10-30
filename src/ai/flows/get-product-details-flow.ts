@@ -16,8 +16,8 @@ const ProductDetailsSchema = z.object({
 
 export type ProductDetails = z.infer<typeof ProductDetailsSchema>;
 
-export async function getProductDetails(productName: string): Promise<ProductDetails> {
-  const prompt = ai.definePrompt({
+
+const productDetailsPrompt = ai.definePrompt({
     name: 'productDetailsPrompt',
     input: { schema: z.string() },
     output: { schema: ProductDetailsSchema },
@@ -35,9 +35,11 @@ export async function getProductDetails(productName: string): Promise<ProductDet
 
         Nombre del producto: "{{input}}"
     `,
-  });
+});
 
-  const { output } = await prompt(productName);
+
+export async function getProductDetails(productName: string): Promise<ProductDetails> {
+  const { output } = await productDetailsPrompt(productName);
   if (!output) {
     throw new Error('La IA no pudo generar los detalles del producto.');
   }

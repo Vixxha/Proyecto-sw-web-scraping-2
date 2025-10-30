@@ -15,6 +15,7 @@ import Spinner from '../spinner';
 import { Bot } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Label } from '../ui/label';
 
 // El esquema Zod ahora tiene todos los campos como opcionales, ya que la IA los llenará
 const productSchema = z.object({
@@ -135,13 +136,15 @@ export default function ProductForm({ isOpen, onOpenChange, onSubmit, product }:
               {isFetching && <div className="flex justify-center"><Spinner /></div>}
               {(aiData || product) && (
                 <>
-                <Alert>
-                  <Bot className="h-4 w-4" />
-                  <AlertTitle>Datos Sugeridos por la IA</AlertTitle>
-                  <AlertDescription>
-                    Revisa los datos autocompletados antes de guardar.
-                  </AlertDescription>
-                </Alert>
+                {!product && aiData && (
+                    <Alert>
+                        <Bot className="h-4 w-4" />
+                        <AlertTitle>Datos Sugeridos por la IA</AlertTitle>
+                        <AlertDescription>
+                            Revisa los datos autocompletados antes de guardar.
+                        </AlertDescription>
+                    </Alert>
+                )}
 
                 <FormField control={form.control} name="description" render={({ field }) => (
                     <FormItem>
