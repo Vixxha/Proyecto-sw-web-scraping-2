@@ -27,6 +27,7 @@ export default function ComponentCard({ component }: ComponentCardProps) {
               fill
               className="w-full h-full object-cover"
               data-ai-hint={component.imageHint}
+              loading="lazy"
             />
           </div>
         </CardHeader>

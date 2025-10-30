@@ -21,12 +21,19 @@ import {
 } from "@/components/ui/carousel"
 import { Input } from '@/components/ui/input';
 
-const SearchBar = ({ onSearch }: { onSearch: (query: string) => void }) => {
+const SearchBar = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
+
+  const handleSearch = (query: string) => {
+    if (query.trim()) {
+      router.push(`/components?search=${encodeURIComponent(query.trim())}`);
+    }
+  };
   
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSearch(searchQuery);
+    handleSearch(searchQuery);
   };
   
   return (
@@ -47,16 +54,9 @@ const SearchBar = ({ onSearch }: { onSearch: (query: string) => void }) => {
 
 
 function Hero() {
-  const router = useRouter();
   const heroImage = {
       imageUrl: "https://preview.redd.it/dark-purple-desk-setup-inspiration-v0-ye2gq8w12wrf1.jpg?width=640&crop=smart&auto=webp&s=c7bfa80a6ef5bfee3ec76982f1b6dc265356eae6",
       imageHint: "gaming setup"
-  };
-
-  const handleSearch = (query: string) => {
-    if (query.trim()) {
-      router.push(`/components?search=${encodeURIComponent(query.trim())}`);
-    }
   };
 
   return (
@@ -64,7 +64,7 @@ function Hero() {
       <div className="container px-4 md:px-6">
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:gap-24 items-center">
           <div className="flex flex-col justify-center space-y-4">
-            <div className="animate-slide-up">
+            <div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent-foreground">
                 Construye la PC de Tus Sueños, Sin Complicaciones
               </h1>
@@ -73,11 +73,11 @@ function Hero() {
               </p>
             </div>
             
-            <div className="animate-slide-up">
-              <SearchBar onSearch={handleSearch} />
+            <div>
+              <SearchBar />
             </div>
 
-            <div className="flex flex-col gap-2 min-[400px]:flex-row pt-4 animate-slide-up">
+            <div className="flex flex-col gap-2 min-[400px]:flex-row pt-4">
               <Button asChild size="lg">
                 <Link href="/components">
                   <Cpu className="mr-2" /> Explorar Componentes
@@ -90,11 +90,12 @@ function Hero() {
               </Button>
             </div>
           </div>
-          <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl group animate-slide-up-delay-1">
+          <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl group">
               <Image
               src={heroImage?.imageUrl || "https://picsum.photos/seed/hero/1280/720"}
               alt="Hero PC Build"
               fill
+              priority
               className="object-cover transition-transform duration-500 group-hover:scale-105"
               data-ai-hint={heroImage?.imageHint || 'gaming pc'}
             />
@@ -168,21 +169,21 @@ function Features() {
           </div>
         </div>
         <div className="mx-auto grid justify-center gap-8 sm:grid-cols-2 lg:grid-cols-3 pt-12">
-            <Card className="border-0 bg-transparent shadow-none animate-slide-up-delay-1">
+            <Card className="border-0 bg-transparent shadow-none">
                 <CardContent className="flex flex-col items-center text-center p-6">
                     <Search className="h-12 w-12 mb-4 text-primary" />
                     <h3 className="text-xl font-bold">Compara Precios</h3>
                     <p className="text-sm text-muted-foreground mt-2">Ahorra dinero encontrando el mejor precio para cada componente entre docenas de tiendas líderes.</p>
                 </CardContent>
             </Card>
-              <Card className="border-0 bg-transparent shadow-none animate-slide-up-delay-2">
+              <Card className="border-0 bg-transparent shadow-none">
                 <CardContent className="flex flex-col items-center text-center p-6">
                     <Dices className="h-12 w-12 mb-4 text-primary" />
                     <h3 className="text-xl font-bold">Arma tu Configuración</h3>
                     <p className="text-sm text-muted-foreground mt-2">Selecciona tus componentes y crea la PC de tus sueños con nuestra herramienta intuitiva.</p>
                 </CardContent>
             </Card>
-              <Card className="border-0 bg-transparent shadow-none animate-slide-up-delay-3">
+              <Card className="border-0 bg-transparent shadow-none">
                 <CardContent className="flex flex-col items-center text-center p-6">
                     <Cpu className="h-12 w-12 mb-4 text-primary" />
                     <h3 className="text-xl font-bold">Catálogo Extenso</h3>
