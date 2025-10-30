@@ -1,34 +1,15 @@
-/**
- * @file Firestore Security Rules
- * @description This ruleset enforces a strict user-ownership model for user profiles and their sales records.
- * Products and audit logs are publicly readable, but write-protected to prevent unauthorized modifications.
- *
- * Data Structure:
- * - /users/{userId}: Stores user profile information.
- * - /users/{userId}/sales/{saleId}: Stores sales records specific to a user.
- * - /products/{productId}: Stores product information.
- * - /sales/{saleId}: A global collection of all sales for superuser querying.
- * - /audit_logs/{auditLogId}: Stores audit logs.
- *
- * Key Security Decisions:
- * - Users can only read and write their own profile data.
- * - Users can only manage (create, update, delete) their own sales records.
- * - Products are publicly readable, but only authorized users can create, update, or delete them.
- * - Audit logs are publicly readable, but only authorized users can create them.
- * - Listing the /users collection is denied to prevent unauthorized data access.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to user profiles.
+     * @description Protects user profiles. Users can only read and write their own profile data.
      * @path /users/{userId}
-     * @allow (create) User with matching UID can create their profile.
-     * @allow (get, update, delete) User can only access their own profile.
-     * @deny (create) User cannot create a profile with a mismatched UID.
-     * @deny (list) Listing all users is disallowed.
-     * @principle Enforces document ownership; only the authenticated user can manage their profile.
+     * @allow (create) - If the user's auth UID matches the userId.
+     * @allow (get, update, delete) - If the user's auth UID matches the userId.
+     * @deny (list) - Listing all users is prohibited.
+     * @deny (create, update, delete) - If the user's auth UID does not match the userId.
+     * @principle Enforces strict user-ownership.
      */
     match /users/{userId} {
       function isSignedIn() {
@@ -40,22 +21,22 @@ service cloud.firestore {
       }
 
       function isExistingOwner(userId) {
-          return isOwner(userId) && resource != null;
+        return isOwner(userId) && exists(resource);
       }
 
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Controls access to sales records for a specific user.
+     * @description Protects sales records for a specific user.  Users can only read and write their own sales data.
      * @path /users/{userId}/sales/{saleId}
-     * @allow (create, get, update, delete, list) User can manage their own sales records.
-     * @deny User cannot manage sales records for other users.
-     * @principle Enforces document ownership within a user's data tree.
+     * @allow (create, get, list, update, delete) - If the user's auth UID matches the userId.
+     * @deny (create, update, delete) - If the user's auth UID does not match the userId.
+     * @principle Enforces user-ownership for sales records.
      */
     match /users/{userId}/sales/{saleId} {
       function isSignedIn() {
@@ -67,22 +48,21 @@ service cloud.firestore {
       }
 
       function isExistingOwner(userId) {
-          return isOwner(userId) && resource != null;
+        return isOwner(userId) && exists(resource);
       }
-
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Controls access to product information.
+     * @description Allows public read access to product data but restricts write access.
      * @path /products/{productId}
-     * @allow (get, list) Products are publicly readable.
-     * @deny (create, update, delete) Only authorized users can modify product data. // TODO: Implement role-based authorization for product management.
-     * @principle Public read access with restricted writes.
+     * @allow (get, list) - Public read access.
+     * @deny (create, update, delete) - Write access is not allowed (TODO: Implement owner-only writes once an ownership field is added to the Product schema).
+     * @principle Allows public reading of product information, while write access needs to be implemented.
      */
     match /products/{productId} {
       allow get, list: if true;
@@ -90,27 +70,29 @@ service cloud.firestore {
     }
 
     /**
-     * @description Controls access to the global sales collection.
+     * @description Protects the global sales collection, only writeable with superuser priviledges
      * @path /sales/{saleId}
-     * @allow (get, list) Sales are publicly readable.
-     * @deny (create, update, delete) Only authorized users can create audit logs. // TODO: Implement role-based authorization for sales management.
-     * @principle Public read access with restricted writes.
      */
     match /sales/{saleId} {
-      allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+        //TODO: Implement superuser permissions
+        allow get: if false;
+        allow list: if false;
+        allow create: if false; 
+        allow update: if false;
+        allow delete: if false;
     }
 
     /**
-     * @description Controls access to audit logs.
+     * @description Protects audit logs, only the backend can write
      * @path /audit_logs/{auditLogId}
-     * @allow (get, list) Audit logs are publicly readable.
-     * @deny (create, update, delete) Only authorized users can create audit logs. // TODO: Implement role-based authorization for audit log creation.
-     * @principle Public read access with restricted writes.
      */
     match /audit_logs/{auditLogId} {
-      allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+        //TODO: implement backend authentication
+        allow get: if false;
+        allow list: if false;
+        allow create: if false;
+        allow update: if false;
+        allow delete: if false;
     }
   }
 }
