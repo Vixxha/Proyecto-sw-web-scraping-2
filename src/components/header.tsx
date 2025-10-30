@@ -33,20 +33,20 @@ const categoryNavLinks = [
     {
       name: 'Gaming y Streaming',
       sub: [
-        { name: 'PC Gamer', href: '/components' },
-        { name: 'Notebooks Gamer', href: '/components' },
-        { name: 'Monitores Gamer', href: '/components' },
-        { name: 'Sillas Gamer', href: '/components' }
+        { name: 'PC Gamer', href: '/gaming-y-streaming' },
+        { name: 'Notebooks Gamer', href: '/gaming-y-streaming' },
+        { name: 'Monitores Gamer', href: '/gaming-y-streaming' },
+        { name: 'Sillas Gamer', href: '/gaming-y-streaming' }
       ]
     },
     {
       name: 'Computación',
       sub: [
-        { name: 'Notebooks', href: '/components' },
-        { name: 'Monitores', href: '/components' },
-        { name: 'Impresoras', href: '/components' },
-        { name: 'Teclados', href: '/components' },
-        { name: 'Mouse', href: '/components' }
+        { name: 'Notebooks', href: '/computacion' },
+        { name: 'Monitores', href: '/computacion' },
+        { name: 'Impresoras', href: '/computacion' },
+        { name: 'Teclados', href: '/computacion' },
+        { name: 'Mouse', href: '/computacion' }
       ]
     },
     {
@@ -62,9 +62,9 @@ const categoryNavLinks = [
     {
       name: 'Conectividad y Redes',
       sub: [
-        { name: 'Routers', href: '/components' },
-        { name: 'Tarjetas de Red', href: '/components' },
-        { name: 'Access Points', href: '/components' }
+        { name: 'Routers', href: '/conectividad-y-redes' },
+        { name: 'Tarjetas de Red', href: '/conectividad-y-redes' },
+        { name: 'Access Points', href: '/conectividad-y-redes' }
       ]
     },
 ];
