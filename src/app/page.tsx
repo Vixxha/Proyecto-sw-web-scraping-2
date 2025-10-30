@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Cpu, Search, Dices, ArrowRight } from 'lucide-react';
@@ -21,64 +21,9 @@ import {
 } from "@/components/ui/carousel"
 import { Input } from '@/components/ui/input';
 
-const placeholderTexts = [
-  "Ej: 'GeForce RTX 4090'...",
-  "Ej: 'AMD Ryzen 9 7950X'...",
-  "Ej: 'Gabinete ATX blanco'...",
-  "Ej: 'Fuente de poder 750W'...",
-];
-
-const TypewriterPlaceholder = ({ onSearch }: { onSearch: (query: string) => void }) => {
-  const [currentPlaceholder, setCurrentPlaceholder] = useState('');
-  const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const [charIndex, setCharIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
+const SearchBar = ({ onSearch }: { onSearch: (query: string) => void }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isFocused, setIsFocused] = useState(false);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const handleTyping = useCallback(() => {
-    if (isFocused) return;
-    
-    const fullText = placeholderTexts[placeholderIndex];
-    let newCharIndex = charIndex;
-    let timeout = isDeleting ? 50 : 120;
-
-    if (isDeleting) {
-      setCurrentPlaceholder(fullText.substring(0, newCharIndex - 1));
-      newCharIndex--;
-    } else {
-      setCurrentPlaceholder(fullText.substring(0, newCharIndex + 1));
-      newCharIndex++;
-    }
-    setCharIndex(newCharIndex);
-
-    if (!isDeleting && newCharIndex === fullText.length) {
-      timeout = 2000;
-      setIsDeleting(true);
-    } else if (isDeleting && newCharIndex === 0) {
-      setIsDeleting(false);
-      setPlaceholderIndex((prevIndex) => (prevIndex + 1) % placeholderTexts.length);
-      timeout = 120;
-    }
-    
-    typingTimeoutRef.current = setTimeout(handleTyping, timeout);
-  }, [charIndex, isDeleting, placeholderIndex, isFocused]);
-
-  useEffect(() => {
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-    typingTimeoutRef.current = setTimeout(handleTyping, 120);
-
-    return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    };
-  }, [handleTyping]);
-
-
+  
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSearch(searchQuery);
@@ -88,12 +33,10 @@ const TypewriterPlaceholder = ({ onSearch }: { onSearch: (query: string) => void
       <form onSubmit={handleFormSubmit} className="mt-4 flex w-full max-w-lg items-center space-x-2">
         <Input
           type="text"
-          placeholder={isFocused ? "Ej: 'GeForce RTX 4090'..." : currentPlaceholder}
+          placeholder="Ej: 'GeForce RTX 4090'..."
           className="flex-1"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
         />
         <Button type="submit">
           <Search className="mr-2 h-4 w-4" /> Buscar
@@ -120,17 +63,21 @@ function Hero() {
     <section className="w-full py-20 md:py-32 lg:py-40 bg-gradient-to-br from-background to-muted/50">
       <div className="container px-4 md:px-6">
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:gap-24 items-center">
-          <div className="flex flex-col justify-center space-y-4 animate-slide-up">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent-foreground">
-              Construye la PC de Tus Sueños, Sin Complicaciones
-            </h1>
-            <p className="max-w-[600px] text-muted-foreground md:text-xl">
-              Compara precios de miles de componentes, arma tu propia configuración y encuentra las mejores ofertas de las tiendas más confiables.
-            </p>
+          <div className="flex flex-col justify-center space-y-4">
+            <div className="animate-slide-up">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent-foreground">
+                Construye la PC de Tus Sueños, Sin Complicaciones
+              </h1>
+              <p className="max-w-[600px] text-muted-foreground md:text-xl mt-4">
+                Compara precios de miles de componentes, arma tu propia configuración y encuentra las mejores ofertas de las tiendas más confiables.
+              </p>
+            </div>
             
-            <TypewriterPlaceholder onSearch={handleSearch} />
+            <div className="animate-slide-up">
+              <SearchBar onSearch={handleSearch} />
+            </div>
 
-            <div className="flex flex-col gap-2 min-[400px]:flex-row pt-4">
+            <div className="flex flex-col gap-2 min-[400px]:flex-row pt-4 animate-slide-up">
               <Button asChild size="lg">
                 <Link href="/components">
                   <Cpu className="mr-2" /> Explorar Componentes

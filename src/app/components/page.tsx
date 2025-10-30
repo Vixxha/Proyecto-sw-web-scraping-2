@@ -2,13 +2,13 @@
 
 "use client";
 
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ComponentCard from '@/components/component-card';
 import type { Component } from '@/lib/types';
-import { Search, SlidersHorizontal, ChevronDown } from 'lucide-react';
+import { Search, SlidersHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -17,6 +17,14 @@ import Spinner from '@/components/spinner';
 import { components as allComponents } from '@/lib/data'; // Import local data
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown } from 'lucide-react';
+
 
 const categories = ['All', 'CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'Power Supply', 'Case'];
 const brands = ['All', 'Intel', 'AMD', 'NVIDIA', 'ASUS', 'Corsair', 'Samsung', 'Gigabyte', 'MSI', 'Crucial', 'SeaSonic', 'NZXT', 'Lian Li', 'Kingston'];
@@ -28,12 +36,30 @@ const sortOptions = [
     { value: 'name-desc', label: 'Nombre: Z-A' },
 ];
 
-const placeholderTexts = [
-    "Ej: 'GeForce RTX 4090'...",
-    "Ej: 'AMD Ryzen 9 7950X'...",
-    "Ej: 'Gabinete ATX blanco'...",
-    "Ej: 'Fuente de poder 750W'...",
-  ];
+const categoryNavLinks = [
+    {
+      name: 'Gaming y Streaming',
+      href: '/gaming-y-streaming'
+    },
+    {
+      name: 'Computación',
+      href: '/computacion'
+    },
+    {
+      name: 'Componentes',
+      sub: [
+        { name: 'Procesadores (CPU)', href: '/components?category=CPU' },
+        { name: 'Tarjetas de Video (GPU)', href: '/components?category=GPU' },
+        { name: 'Placas Madre', href: '/components?category=Motherboard' },
+        { name: 'Memoria RAM', href: '/components?category=RAM' },
+        { name: 'Almacenamiento', href: '/components?category=Storage' }
+      ]
+    },
+    {
+      name: 'Conectividad y Redes',
+      href: '/conectividad-y-redes'
+    },
+];
 
 // Helper to get the best price for filtering and sorting
 const getBestPrice = (component: Component): number => {
@@ -43,12 +69,13 @@ const getBestPrice = (component: Component): number => {
 
 function ComponentsView({ components }: { components: Component[] }) {
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('All');
   const [brand, setBrand] = useState('All');
   const [sortBy, setSortBy] = useState('relevance');
+  
+  const productsLoading = false;
 
   // Determine min and max prices for the slider
   const [minPrice, maxPrice] = useMemo(() => {
@@ -61,15 +88,6 @@ function ComponentsView({ components }: { components: Component[] }) {
 
   const [priceRange, setPriceRange] = useState<[number, number]>([minPrice, maxPrice]);
   const [inStockOnly, setInStockOnly] = useState(false);
-
-  const [currentPlaceholder, setCurrentPlaceholder] = useState('');
-  const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const [charIndex, setCharIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isInputFocused, setIsInputFocused] = useState(false);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  const productsLoading = false;
 
   useEffect(() => {
     const queryFromUrl = searchParams.get('search');
@@ -85,49 +103,6 @@ function ComponentsView({ components }: { components: Component[] }) {
   useEffect(() => {
     setPriceRange([minPrice, maxPrice]);
   }, [minPrice, maxPrice]);
-  
-  const handleTyping = useCallback(() => {
-    if (isInputFocused) return;
-
-    const fullText = placeholderTexts[placeholderIndex];
-    let newCharIndex = charIndex;
-    let timeout = isDeleting ? 50 : 120;
-
-    if (isDeleting) {
-      setCurrentPlaceholder(fullText.substring(0, newCharIndex - 1));
-      newCharIndex--;
-    } else {
-      setCurrentPlaceholder(fullText.substring(0, newCharIndex + 1));
-      newCharIndex++;
-    }
-    setCharIndex(newCharIndex);
-
-    if (!isDeleting && newCharIndex === fullText.length) {
-      timeout = 2000;
-      setIsDeleting(true);
-    } else if (isDeleting && newCharIndex === 0) {
-      setIsDeleting(false);
-      setPlaceholderIndex((prevIndex) => (prevIndex + 1) % placeholderTexts.length);
-      timeout = 120;
-    }
-    
-    typingTimeoutRef.current = setTimeout(handleTyping, timeout);
-  }, [charIndex, isDeleting, placeholderIndex, isInputFocused]);
-
-
-  useEffect(() => {
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-    typingTimeoutRef.current = setTimeout(handleTyping, 120);
-
-    return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    };
-
-  }, [handleTyping]);
 
   const filteredAndSortedComponents = useMemo(() => {
     if (!components) return [];
@@ -176,12 +151,10 @@ function ComponentsView({ components }: { components: Component[] }) {
             <Input
               id="search-input"
               type="text"
-              placeholder={isInputFocused ? "Buscar por nombre o SKU..." : currentPlaceholder}
+              placeholder="Buscar por nombre o SKU..."
               className="pl-10 w-full"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setIsInputFocused(true)}
-              onBlur={() => setIsInputFocused(false)}
             />
           </div>
       </div>
@@ -259,7 +232,7 @@ function ComponentsView({ components }: { components: Component[] }) {
 
   return (
     <>
-      <section className="text-center py-12 animate-fade-in container mx-auto px-4">
+      <section className="text-center py-12 container mx-auto px-4">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
           Explorar Componentes
         </h1>

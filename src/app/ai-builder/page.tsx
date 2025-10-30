@@ -1,11 +1,11 @@
 
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Bot, Cpu, Dices, HardDrive, MemoryStick, PcCase, Power, Video, Trash2, LoaderCircle } from 'lucide-react';
+import { Bot, Cpu, Dices, HardDrive, MemoryStick, PcCase, Power, Video, LoaderCircle } from 'lucide-react';
 import { buildPc } from '@/ai/flows/build-pc-flow';
 import type { Component } from '@/lib/types';
 import { components as allComponents } from '@/lib/data';
@@ -30,67 +30,11 @@ const categoryIcons: Record<Category, React.ReactNode> = {
   Case: <PcCase className="h-8 w-8 text-primary" />,
 };
 
-const placeholderTexts = [
-    "Ej: 'Quiero una PC para gaming en 4K y streaming. Mi presupuesto es moderado.'",
-    "Ej: 'Necesito una computadora para la universidad, económica y rápida para programar.'",
-    "Ej: 'Busco una estación de trabajo para edición de video y modelado 3D, priorizando CPU y RAM.'",
-    "Ej: 'Una PC económica para ofimática y navegar por internet, que sea pequeña y silenciosa.'"
-  ];
-
 export default function AIBuilderPage() {
   const [prompt, setPrompt] = useState('');
   const [suggestedBuild, setSuggestedBuild] = useState<BuildPcOutput['build'] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-
-  const [currentPlaceholder, setCurrentPlaceholder] = useState('');
-  const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const [charIndex, setCharIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isTextareaFocused, setIsTextareaFocused] = useState(false);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
- const handleTyping = useCallback(() => {
-    if (isTextareaFocused) return;
-
-    const fullText = placeholderTexts[placeholderIndex];
-    let newCharIndex = charIndex;
-    let timeout = isDeleting ? 50 : 100;
-
-    if (isDeleting) {
-      setCurrentPlaceholder(fullText.substring(0, newCharIndex - 1));
-      newCharIndex--;
-    } else {
-      setCurrentPlaceholder(fullText.substring(0, newCharIndex + 1));
-      newCharIndex++;
-    }
-    setCharIndex(newCharIndex);
-
-    if (!isDeleting && newCharIndex === fullText.length) {
-      timeout = 2000;
-      setIsDeleting(true);
-    } else if (isDeleting && newCharIndex === 0) {
-      setIsDeleting(false);
-      setPlaceholderIndex((prevIndex) => (prevIndex + 1) % placeholderTexts.length);
-      timeout = 120;
-    }
-    
-    typingTimeoutRef.current = setTimeout(handleTyping, timeout);
-  }, [charIndex, isDeleting, placeholderIndex, isTextareaFocused]);
-
-  useEffect(() => {
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-    typingTimeoutRef.current = setTimeout(handleTyping, 120);
-
-    return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    };
-  }, [handleTyping]);
-
 
   const handleGenerateBuild = async () => {
     if (!prompt.trim()) {
@@ -149,11 +93,9 @@ export default function AIBuilderPage() {
         <CardContent className="p-6">
           <div className="grid gap-4">
             <Textarea
-              placeholder={isTextareaFocused ? "Ej: 'PC para gaming en 4K...'" : currentPlaceholder}
+              placeholder="Ej: 'Quiero una PC para gaming en 4K y streaming. Mi presupuesto es moderado.'"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              onFocus={() => setIsTextareaFocused(true)}
-              onBlur={() => setIsTextareaFocused(false)}
               className="min-h-[100px]"
               disabled={isLoading}
             />
@@ -233,5 +175,3 @@ export default function AIBuilderPage() {
     </div>
   );
 }
-
-    
