@@ -3,13 +3,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Cpu, Dices, Bot, User as UserIcon, LogOut } from "lucide-react";
+import { Menu, Cpu, Dices, Bot, User as UserIcon, LogOut, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
-import { useAuth, useUser } from "@/firebase";
+import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc } from 'firebase/firestore';
 
 import {
   DropdownMenu,
@@ -23,6 +24,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { signOut } from "firebase/auth";
 import Spinner from "./spinner";
 
+interface UserProfile {
+  role: 'customer' | 'superuser';
+}
+
 const navLinks = [
   { href: "/components", label: "Explorar", icon: Cpu },
   { href: "/build", label: "Arma tu PC", icon: Dices },
@@ -32,7 +37,16 @@ const navLinks = [
 export function Header() {
   const pathname = usePathname();
   const auth = useAuth();
+  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+
+  const userProfileRef = useMemoFirebase(
+    () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
+    [firestore, user]
+  );
+  const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
+
+  const isSuperuser = userProfile?.role === 'superuser';
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -46,7 +60,7 @@ export function Header() {
           href={link.href}
           className={cn(
             "transition-colors hover:text-foreground/80 flex items-center gap-2",
-            pathname === link.href ? "text-foreground" : "text-foreground/60"
+            pathname.startsWith(link.href) ? "text-foreground" : "text-foreground/60"
           )}
         >
           <link.icon className="h-4 w-4" />
@@ -100,7 +114,7 @@ export function Header() {
                           href={link.href}
                           className={cn(
                             "transition-colors hover:text-foreground/80 text-lg flex items-center gap-3",
-                            pathname === link.href ? "text-foreground" : "text-foreground/60"
+                            pathname.startsWith(link.href) ? "text-foreground" : "text-foreground/60"
                           )}
                         >
                           <link.icon className="h-5 w-5" />
@@ -138,6 +152,14 @@ export function Header() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  {isSuperuser && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin/dashboard">
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        <span>Panel Admin</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Cerrar sesión</span>

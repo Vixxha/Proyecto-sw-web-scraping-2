@@ -27,6 +27,11 @@
           "type": "string",
           "description": "Date and time when the user account was created.",
           "format": "date-time"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user.",
+          "enum": ["customer", "superuser"]
         }
       },
       "required": [
@@ -34,7 +39,8 @@
         "firstName",
         "lastName",
         "email",
-        "createdAt"
+        "createdAt",
+        "role"
       ]
     },
     "Product": {

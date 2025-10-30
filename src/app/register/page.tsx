@@ -69,6 +69,7 @@ export default function RegisterPage() {
         lastName: data.lastName,
         email: data.email,
         createdAt: serverTimestamp(),
+        role: 'customer', // Assign default role
       });
 
       toast({
