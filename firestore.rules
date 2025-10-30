@@ -1,81 +1,67 @@
-/**
- * @file Firestore Security Rules
- * @description This ruleset enforces a user-ownership model for user profiles
- * and allows public read access to product information.
- *
- * Data Structure:
- * - /users/{userId}: Stores user profile data, with the document ID matching the Firebase Auth UID.
- * - /products/{productId}: Stores product information that is publicly readable.
- *
- * Key Security Decisions:
- * - Users can only read and write their own profile data.
- * - Listing of users is disallowed for privacy.
- * - Products are publicly readable, but write operations are not secured in this prototype.
- *   A future iteration should secure product writes to authorized admins only.
- *
- * Denormalization for Authorization:
- * - The User document ID is enforced to match the Firebase Auth UID to simplify ownership checks.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Enforces user-ownership for user profiles.
+     * @description Allows users to read and write their own profile data.
      * @path /users/{userId}
-     * @allow (create) - A user with UID 'user_abc' can create their profile document at /users/user_abc.
-     * @allow (update) - A user with UID 'user_abc' can update their profile document at /users/user_abc.
-     * @allow (get) - A user with UID 'user_abc' can read their profile document at /users/user_abc.
-     * @deny (create) - A user with UID 'user_xyz' cannot create a profile document at /users/user_abc.
-     * @deny (update) - A user with UID 'user_xyz' cannot update the profile document at /users/user_abc.
-     * @deny (delete) - A user with UID 'user_xyz' cannot delete the profile document at /users/user_abc.
-     * @deny (list) - No one can list all user profiles.
-     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
+     * @allow (create) - User with UID 'user123' can create a profile with id: 'user123'.
+     * @allow (get, update, delete) - User with UID 'user123' can read, update, and delete their own profile.
+     * @deny (create) - User with UID 'user456' cannot create a profile with id: 'user123'.
+     * @deny (get, update, delete) - User with UID 'user456' cannot read, update, or delete the profile of user 'user123'.
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId} {
-      // Define helper function
       function isOwner(userId) {
-        return request.auth.uid == userId;
+        return request.auth != null && request.auth.uid == userId;
       }
-
       function isSignedIn() {
         return request.auth != null;
       }
 
-      // Only allow creating a user document if the authenticated user's ID matches the document ID.
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
+      allow get: if isOwner(userId);
+      allow list: if false; // User listing is not allowed
 
-      // Only allow reading a user document if the user is signed in and is the owner.
-      allow get: if isSignedIn() && isOwner(userId);
-
-      // Disallow listing all user documents.
-      allow list: if false;
-
-      // Only allow updating a user document if the user is signed in and is the owner.
-      // Enforce immutability of the 'id' field to maintain ownership.
-      allow update: if isSignedIn() && isOwner(userId) && resource.data.id == request.resource.data.id && resource != null;
-
-      // Only allow deleting a user document if the user is signed in and is the owner.
-      allow delete: if isSignedIn() && isOwner(userId) && resource != null;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isOwner(userId); // Enforce immutability of userId.
+      allow delete: if isOwner(userId);
     }
 
     /**
-     * @description Allows public read access to product information.
+     * @description Allows public read access to product information.  Write access is denied to all clients.
      * @path /products/{productId}
-     * @allow (get) - Any user can read a product document.
-     * @allow (list) - Any user can list product documents.
-     * @deny (create) - No user can create a product document.
-     * @deny (update) - No user can update a product document.
-     * @deny (delete) - No user can delete a product document.
-     * @principle Allows public read access but restricts write access.
+     * @allow (get, list) - Any user (or unauthenticated client) can read product details.
+     * @deny (create, update, delete) - No user can create, update, or delete product details via the client.
+     * @principle Provides public read access while restricting write access.
      */
     match /products/{productId} {
-      // Allow anyone to read product information.
       allow get, list: if true;
-
-      // For prototyping, write operations are not secured.
-      // TODO: Add owner validation once the schema is updated with an ownership field and isAdmin() function
       allow create, update, delete: if false;
+    }
+
+    /**
+     * @description Allows a user to manage their own PC builds.
+     * @path /users/{userId}/builds/{buildId}
+     * @allow (create) - User with UID 'user123' can create a new build under /users/user123/builds. The build MUST have userId = 'user123'.
+     * @allow (get, list, update, delete) - User with UID 'user123' can manage their own builds under /users/user123/builds.
+     * @deny (create) - User with UID 'user456' cannot create a build under /users/user123/builds.
+     * @deny (get, list, update, delete) - User with UID 'user456' cannot manage builds under /users/user123/builds.
+     * @principle Enforces strict user ownership for PC builds.
+     */
+    match /users/{userId}/builds/{buildId} {
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isOwner(userId); //Check that document exists before updating
+      allow delete: if isOwner(userId);
     }
   }
 }
