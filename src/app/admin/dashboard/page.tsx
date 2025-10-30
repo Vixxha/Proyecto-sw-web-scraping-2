@@ -1,6 +1,7 @@
 import AdminDashboard from '@/components/admin/admin-dashboard';
 
-export default function AdminDashboardPage() {
+// La página ahora puede recibir props desde el layout
+export default function AdminDashboardPage(props: any) {
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
       <section className="mb-8">
@@ -11,7 +12,8 @@ export default function AdminDashboardPage() {
           Gestiona usuarios, roles y visualiza la actividad del sistema.
         </p>
       </section>
-      <AdminDashboard />
+      {/* Pasamos los props recibidos del layout al componente */}
+      <AdminDashboard {...props} />
     </div>
   );
 }

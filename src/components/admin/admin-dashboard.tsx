@@ -1,12 +1,11 @@
 'use client';
 
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query } from 'firebase/firestore';
-import type { User as FirebaseUser } from 'firebase/auth';
 import StatCard from './stat-card';
 import UserList from './user-list';
 import { Users, Activity, Package } from 'lucide-react';
 import Spinner from '../spinner';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
 
 type UserProfile = {
   id: string;
@@ -25,21 +24,15 @@ type Product = {
     id: string;
 }
 
-export default function AdminDashboard() {
+// El componente ahora recibe `users` y `usersLoading` como props
+export default function AdminDashboard({ users, usersLoading }: { users: UserProfile[], usersLoading: boolean }) {
   const firestore = useFirestore();
-
-  const usersQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'users'));
-  }, [firestore]);
-  const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
   const productsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'products'));
   }, [firestore]);
   const { data: products, isLoading: productsLoading } = useCollection<Product>(productsQuery);
-
 
   const totalUsers = users?.length || 0;
   const superuserCount = users?.filter(u => u.role === 'superuser').length || 0;

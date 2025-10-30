@@ -1,7 +1,7 @@
 'use client';
 
-import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { doc, collection, query } from 'firebase/firestore';
 import { useDoc } from '@/firebase/firestore/use-doc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
@@ -22,9 +22,19 @@ export default function AdminLayout({
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<{ role: string }>(userDocRef);
 
-  // 1. Mostrar el Spinner mientras CUALQUIER dato se esté cargando.
-  // Esto previene cualquier renderizado prematuro del contenido o de la página de acceso denegado.
-  if (isUserLoading || isProfileLoading) {
+  // Mover la carga de datos de la colección de usuarios a este layout
+  const usersQuery = useMemoFirebase(() => {
+    // Solo ejecutar la query si el usuario es superuser
+    if (!firestore || !userProfile || userProfile.role !== 'superuser') return null;
+    return query(collection(firestore, 'users'));
+  }, [firestore, userProfile]);
+
+  const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
+
+  // El estado de carga ahora considera el perfil y la lista de usuarios
+  const isLoading = isUserLoading || isProfileLoading;
+
+  if (isLoading) {
     return (
       <div className="flex h-[80vh] w-full items-center justify-center">
         <Spinner className="h-12 w-12" />
@@ -32,15 +42,12 @@ export default function AdminLayout({
     );
   }
 
-  // 2. Si, y solo si, la carga ha terminado, verificar los permisos.
-  // Si el usuario tiene el rol correcto, mostrar el contenido.
+  // Si el usuario es superusuario, renderizamos los hijos, inyectando los datos necesarios
   if (user && userProfile?.role === 'superuser') {
-    return <>{children}</>;
+    // Clonamos el elemento hijo (la página) para pasarle los props
+    return React.cloneElement(children as React.ReactElement, { users, usersLoading });
   }
   
-  // 3. Si la carga ha terminado y el usuario no cumple los requisitos,
-  // mostrar la página de Acceso Denegado. Esto actúa como el estado final
-  // en lugar de una redirección que puede causar problemas de sincronización.
   return (
     <div className="container mx-auto flex min-h-[80vh] items-center justify-center px-4">
       <Card className="w-full max-w-md">
@@ -49,7 +56,7 @@ export default function AdminLayout({
           <CardTitle>Acceso Denegado</CardTitle>
         </CardHeader>
         <CardContent className="text-center">
-          <p className="text-muted-foreground">No tienes permisos para acceder a esta página. Serás redirigido en breve.</p>
+          <p className="text-muted-foreground">No tienes permisos para acceder a esta página.</p>
         </CardContent>
       </Card>
     </div>
