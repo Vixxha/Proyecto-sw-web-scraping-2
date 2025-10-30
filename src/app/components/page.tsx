@@ -35,15 +35,13 @@ const placeholderTexts = [
     "Ej: 'Fuente de poder 750W'...",
   ];
 
-type ProductWithId = Component & { id: string };
-
 // Helper to get the best price for filtering and sorting
 const getBestPrice = (component: Component): number => {
     if (!component.prices || component.prices.length === 0) return component.price || 0;
     return Math.min(...component.prices.map(p => p.price));
 };
 
-export default function ComponentsPage() {
+function ComponentsView({ components }: { components: Component[] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -54,12 +52,12 @@ export default function ComponentsPage() {
 
   // Determine min and max prices for the slider
   const [minPrice, maxPrice] = useMemo(() => {
-    if (!allComponents || allComponents.length === 0) {
+    if (!components || components.length === 0) {
       return [0, 100000];
     }
-    const prices = allComponents.map(getBestPrice);
+    const prices = components.map(getBestPrice);
     return [Math.min(...prices), Math.max(...prices)];
-  }, []);
+  }, [components]);
 
   const [priceRange, setPriceRange] = useState<[number, number]>([minPrice, maxPrice]);
   const [inStockOnly, setInStockOnly] = useState(false);
@@ -132,9 +130,9 @@ export default function ComponentsPage() {
   }, [handleTyping]);
 
   const filteredAndSortedComponents = useMemo(() => {
-    if (!allComponents) return [];
+    if (!components) return [];
     
-    let filtered = allComponents.filter((component) => {
+    let filtered = components.filter((component) => {
       const matchesSearch = component.name.toLowerCase().includes(searchQuery.toLowerCase()) || component.sku.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = category === 'All' || component.category === category;
       const matchesBrand = brand === 'All' || component.brand === brand;
@@ -167,7 +165,7 @@ export default function ComponentsPage() {
 
     return filtered;
 
-  }, [searchQuery, category, brand, priceRange, inStockOnly, sortBy]);
+  }, [searchQuery, category, brand, priceRange, inStockOnly, sortBy, components]);
 
   const filterControlsContent = (
     <div className="space-y-6">
@@ -319,4 +317,10 @@ export default function ComponentsPage() {
       </div>
     </>
   );
+}
+
+export default function ComponentsPage() {
+  // Pass the components data as a prop to the client component.
+  // This avoids bundling the data file with the client-side JavaScript.
+  return <ComponentsView components={allComponents} />;
 }
