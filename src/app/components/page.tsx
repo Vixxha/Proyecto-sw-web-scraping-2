@@ -20,6 +20,14 @@ import { Switch } from '@/components/ui/switch';
 
 const categories = ['All', 'CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'Power Supply', 'Case'];
 const brands = ['All', 'Intel', 'AMD', 'NVIDIA', 'ASUS', 'Corsair', 'Samsung', 'Gigabyte', 'MSI', 'Crucial', 'SeaSonic', 'NZXT', 'Lian Li', 'Kingston'];
+const sortOptions = [
+    { value: 'relevance', label: 'Relevancia' },
+    { value: 'price-asc', label: 'Precio: Menor a Mayor' },
+    { value: 'price-desc', label: 'Precio: Mayor a Menor' },
+    { value: 'name-asc', label: 'Nombre: A-Z' },
+    { value: 'name-desc', label: 'Nombre: Z-A' },
+];
+
 const placeholderTexts = [
     "Ej: 'GeForce RTX 4090'...",
     "Ej: 'AMD Ryzen 9 7950X'...",
@@ -29,7 +37,7 @@ const placeholderTexts = [
 
 type ProductWithId = Component & { id: string };
 
-// Helper to get the best price for filtering
+// Helper to get the best price for filtering and sorting
 const getBestPrice = (component: Component): number => {
     if (!component.prices || component.prices.length === 0) return component.price || 0;
     return Math.min(...component.prices.map(p => p.price));
@@ -40,6 +48,7 @@ export default function ComponentsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('All');
   const [brand, setBrand] = useState('All');
+  const [sortBy, setSortBy] = useState('relevance');
 
   // Determine min and max prices for the slider
   const [minPrice, maxPrice] = useMemo(() => {
@@ -116,9 +125,10 @@ export default function ComponentsPage() {
 
   }, [handleTyping]);
 
-  const filteredComponents = useMemo(() => {
+  const filteredAndSortedComponents = useMemo(() => {
     if (!allComponents) return [];
-    return allComponents.filter((component) => {
+    
+    let filtered = allComponents.filter((component) => {
       const matchesSearch = component.name.toLowerCase().includes(searchQuery.toLowerCase()) || component.sku.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = category === 'All' || component.category === category;
       const matchesBrand = brand === 'All' || component.brand === brand;
@@ -128,7 +138,30 @@ export default function ComponentsPage() {
       
       return matchesSearch && matchesCategory && matchesBrand && matchesPrice && matchesStock;
     });
-  }, [searchQuery, category, brand, priceRange, inStockOnly]);
+
+    switch (sortBy) {
+        case 'price-asc':
+            filtered.sort((a, b) => getBestPrice(a) - getBestPrice(b));
+            break;
+        case 'price-desc':
+            filtered.sort((a, b) => getBestPrice(b) - getBestPrice(a));
+            break;
+        case 'name-asc':
+            filtered.sort((a, b) => a.name.localeCompare(b.name));
+            break;
+        case 'name-desc':
+            filtered.sort((a, b) => b.name.localeCompare(a.name));
+            break;
+        case 'relevance':
+        default:
+            // Basic relevance: stock and then price
+            filtered.sort((a, b) => b.stock - a.stock || getBestPrice(a) - getBestPrice(b));
+            break;
+    }
+
+    return filtered;
+
+  }, [searchQuery, category, brand, priceRange, inStockOnly, sortBy]);
 
   const filterControlsContent = (
     <div className="space-y-6">
@@ -191,6 +224,19 @@ export default function ComponentsPage() {
           <span>${priceRange[1].toLocaleString('es-CL')}</span>
         </div>
       </div>
+       <div>
+        <Label htmlFor="sort-by-select">Ordenar por</Label>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger id="sort-by-select" className="w-full mt-2">
+            <SelectValue placeholder="Seleccionar orden" />
+          </SelectTrigger>
+          <SelectContent>
+            {sortOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <div className="flex items-center justify-between">
           <Label htmlFor="stock-switch" className="flex flex-col space-y-1">
               <span>Solo en Stock</span>
@@ -232,7 +278,7 @@ export default function ComponentsPage() {
 
         <main className="lg:col-span-3">
           <div className="flex justify-between items-center mb-6 lg:hidden">
-            <p className="text-sm text-muted-foreground">{filteredComponents.length} resultados</p>
+            <p className="text-sm text-muted-foreground">{filteredAndSortedComponents.length} resultados</p>
              <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="outline"><SlidersHorizontal className="mr-2 h-4 w-4" /> Filtros</Button>
@@ -249,9 +295,9 @@ export default function ComponentsPage() {
           </div>
           {productsLoading ? (
             <div className="flex justify-center items-center h-64"><Spinner className="h-12 w-12" /></div>
-          ) : filteredComponents.length > 0 ? (
+          ) : filteredAndSortedComponents.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredComponents.map((component) => (
+              {filteredAndSortedComponents.map((component) => (
                 <ComponentCard key={component.id} component={component} />
               ))}
             </div>
@@ -266,6 +312,5 @@ export default function ComponentsPage() {
     </div>
   );
 }
-
 
     
