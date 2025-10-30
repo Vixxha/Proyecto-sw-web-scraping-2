@@ -182,6 +182,19 @@ export default function ComponentsPage() {
           </div>
       </div>
       <div>
+        <Label htmlFor="sort-by-select">Ordenar por</Label>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger id="sort-by-select" className="w-full mt-2">
+            <SelectValue placeholder="Seleccionar orden" />
+          </SelectTrigger>
+          <SelectContent>
+            {sortOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
         <Label htmlFor="category-select">Categoría</Label>
         <Select value={category} onValueChange={setCategory}>
           <SelectTrigger id="category-select" className="w-full mt-2">
@@ -223,19 +236,6 @@ export default function ComponentsPage() {
           <span>${priceRange[0].toLocaleString('es-CL')}</span>
           <span>${priceRange[1].toLocaleString('es-CL')}</span>
         </div>
-      </div>
-       <div>
-        <Label htmlFor="sort-by-select">Ordenar por</Label>
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger id="sort-by-select" className="w-full mt-2">
-            <SelectValue placeholder="Seleccionar orden" />
-          </SelectTrigger>
-          <SelectContent>
-            {sortOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
       <div className="flex items-center justify-between">
           <Label htmlFor="stock-switch" className="flex flex-col space-y-1">
