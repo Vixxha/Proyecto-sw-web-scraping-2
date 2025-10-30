@@ -24,9 +24,17 @@ type Product = {
     id: string;
 }
 
-// El componente ahora recibe `users` y `usersLoading` como props
-export default function AdminDashboard({ users, usersLoading }: { users: UserProfile[], usersLoading: boolean }) {
+// El componente ahora es responsable de cargar sus propios datos,
+// pero solo se monta si el usuario es un superusuario (gracias al AdminLayout).
+export default function AdminDashboard() {
   const firestore = useFirestore();
+
+  // Esta query solo se ejecuta porque este componente solo se monta si el usuario es superuser
+  const usersQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'users'));
+  }, [firestore]);
+  const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
   const productsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -38,6 +46,8 @@ export default function AdminDashboard({ users, usersLoading }: { users: UserPro
   const superuserCount = users?.filter(u => u.role === 'superuser').length || 0;
   const totalProducts = products?.length || 0;
   
+  const isLoading = usersLoading || productsLoading;
+
   return (
     <div className="space-y-8">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -48,7 +58,7 @@ export default function AdminDashboard({ users, usersLoading }: { users: UserPro
       </div>
 
       <div className="grid gap-8 lg:grid-cols-1">
-        {usersLoading ? (
+        {isLoading ? (
             <div className="flex justify-center items-center h-64"><Spinner className="h-12 w-12" /></div>
         ) : (
             <UserList users={users || []} />

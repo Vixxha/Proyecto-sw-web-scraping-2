@@ -1,37 +1,12 @@
 'use client';
 
 import React from 'react';
-import { useUser, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, collection, query } from 'firebase/firestore';
+import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import { useDoc } from '@/firebase/firestore/use-doc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
 import Spinner from '@/components/spinner';
-
-// Componente interno que solo se renderiza si el usuario es superusuario
-function SuperuserContent({ children }: { children: React.ReactNode }) {
-  const firestore = useFirestore();
-
-  // Esta query solo se ejecuta porque este componente solo se monta si el usuario es superuser
-  const usersQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'users'));
-  }, [firestore]);
-
-  const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
-
-  if (usersLoading) {
-    return (
-       <div className="flex h-[80vh] w-full items-center justify-center">
-        <Spinner className="h-12 w-12" />
-      </div>
-    )
-  }
-
-  // Clonamos el elemento hijo (la página) para inyectarle los datos de los usuarios
-  return React.cloneElement(children as React.ReactElement, { users, usersLoading: false });
-}
-
 
 export default function AdminLayout({
   children,
@@ -58,9 +33,12 @@ export default function AdminLayout({
     );
   }
 
-  // Si el usuario es superusuario, renderizamos el contenedor de contenido de superusuario
+  // Si el usuario es superusuario, renderizamos el contenido (la página) directamente.
+  // La lógica de fetching de datos específicos del panel (como la lista de todos los usuarios)
+  // estará dentro de los componentes de la página (ej. AdminDashboard),
+  // los cuales solo se renderizarán si esta condición se cumple.
   if (user && userProfile?.role === 'superuser') {
-    return <SuperuserContent>{children}</SuperuserContent>;
+    return <>{children}</>;
   }
   
   // Si no, mostramos el mensaje de acceso denegado
