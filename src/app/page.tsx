@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Cpu, Search, Dices, ArrowRight } from 'lucide-react';
@@ -14,9 +14,44 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
+const searchPlaceholders = [
+  "Ej: 'GeForce RTX 4090'...",
+  "Ej: 'Ryzen 9 7950X'...",
+  "Ej: 'SSD NVMe 2TB'...",
+  "Ej: 'Fuente de poder 850W'...",
+];
+
 const SearchBar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
+  const [placeholder, setPlaceholder] = useState(searchPlaceholders[0]);
+  const [typing, setTyping] = useState(true);
+
+  useEffect(() => {
+    let placeholderIndex = 0;
+    let charIndex = 0;
+    let timeoutId: NodeJS.Timeout;
+
+    const type = () => {
+      if (!typing) return;
+      const currentPlaceholder = searchPlaceholders[placeholderIndex];
+      setPlaceholder(currentPlaceholder.substring(0, charIndex + 1));
+      charIndex++;
+      if (charIndex === currentPlaceholder.length) {
+        timeoutId = setTimeout(() => {
+          charIndex = 0;
+          placeholderIndex = (placeholderIndex + 1) % searchPlaceholders.length;
+        }, 2000); // Wait 2s at the end of a sentence
+      } else {
+        timeoutId = setTimeout(type, 50); // Typing speed
+      }
+    };
+
+    timeoutId = setTimeout(type, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [typing]);
+
 
   const handleSearch = (query: string) => {
     if (query.trim()) {
@@ -33,10 +68,12 @@ const SearchBar = () => {
       <form onSubmit={handleFormSubmit} className="mt-4 flex w-full max-w-lg items-center space-x-2">
         <Input
           type="text"
-          placeholder="Ej: 'GeForce RTX 4090'..."
+          placeholder={placeholder}
           className="flex-1"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onFocus={() => setTyping(false)}
+          onBlur={() => { if (!searchQuery) setTyping(true) }}
         />
         <Button type="submit">
           <Search className="mr-2 h-4 w-4" /> Buscar

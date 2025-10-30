@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,11 +30,45 @@ const categoryIcons: Record<Category, React.ReactNode> = {
   Case: <PcCase className="h-8 w-8 text-primary" />,
 };
 
+const placeholders = [
+    "Ej: 'Quiero una PC para gaming en 4K y streaming. Mi presupuesto es moderado.'",
+    "Ej: 'Necesito una computadora para edición de video profesional con mucho almacenamiento.'",
+    "Ej: 'Busco una PC económica para tareas de ofimática y estudio.'",
+    "Ej: 'Una configuración potente para desarrollo de software y virtualización.'",
+];
+
 export default function AIBuilderPage() {
   const [prompt, setPrompt] = useState('');
   const [suggestedBuild, setSuggestedBuild] = useState<BuildPcOutput['build'] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const [placeholder, setPlaceholder] = useState(placeholders[0]);
+  const [typing, setTyping] = useState(true);
+
+  useEffect(() => {
+    let placeholderIndex = 0;
+    let charIndex = 0;
+    let timeoutId: NodeJS.Timeout;
+
+    const type = () => {
+      if (!typing) return;
+      const currentPlaceholder = placeholders[placeholderIndex];
+      setPlaceholder(currentPlaceholder.substring(0, charIndex + 1));
+      charIndex++;
+      if (charIndex === currentPlaceholder.length) {
+        timeoutId = setTimeout(() => {
+          charIndex = 0;
+          placeholderIndex = (placeholderIndex + 1) % placeholders.length;
+        }, 2000); // Wait 2s at the end of a sentence
+      }
+      timeoutId = setTimeout(type, 50); // Typing speed
+    };
+
+    timeoutId = setTimeout(type, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [typing]);
+
 
   const handleGenerateBuild = async () => {
     if (!prompt.trim()) {
@@ -93,8 +127,10 @@ export default function AIBuilderPage() {
         <CardContent className="p-6">
           <div className="grid gap-4">
             <Textarea
-              placeholder="Ej: 'Quiero una PC para gaming en 4K y streaming. Mi presupuesto es moderado.'"
+              placeholder={placeholder}
               value={prompt}
+              onFocus={() => setTyping(false)}
+              onBlur={() => { if (!prompt) setTyping(true) }}
               onChange={(e) => setPrompt(e.target.value)}
               className="min-h-[100px]"
               disabled={isLoading}

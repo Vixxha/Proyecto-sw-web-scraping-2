@@ -61,6 +61,14 @@ const categoryNavLinks = [
     },
 ];
 
+const searchPlaceholders = [
+  "Ej: 'GeForce RTX 4090'...",
+  "Ej: 'Ryzen 9 7950X'...",
+  "Ej: 'SSD NVMe 2TB'...",
+  "Ej: 'Fuente de poder 850W'...",
+];
+
+
 // Helper to get the best price for filtering and sorting
 const getBestPrice = (component: Component): number => {
     if (!component.prices || component.prices.length === 0) return component.price || 0;
@@ -76,6 +84,35 @@ function ComponentsView({ components }: { components: Component[] }) {
   const [sortBy, setSortBy] = useState('relevance');
   
   const productsLoading = false;
+
+  const [placeholder, setPlaceholder] = useState(searchPlaceholders[0]);
+  const [typing, setTyping] = useState(true);
+
+  useEffect(() => {
+    let placeholderIndex = 0;
+    let charIndex = 0;
+    let timeoutId: NodeJS.Timeout;
+
+    const type = () => {
+      if (!typing) return;
+      const currentPlaceholder = searchPlaceholders[placeholderIndex];
+      setPlaceholder(currentPlaceholder.substring(0, charIndex + 1));
+      charIndex++;
+      if (charIndex === currentPlaceholder.length) {
+        timeoutId = setTimeout(() => {
+          charIndex = 0;
+          placeholderIndex = (placeholderIndex + 1) % searchPlaceholders.length;
+        }, 2000); // Wait 2s at the end of a sentence
+      } else {
+        timeoutId = setTimeout(type, 50); // Typing speed
+      }
+    };
+
+    timeoutId = setTimeout(type, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [typing]);
+
 
   // Determine min and max prices for the slider
   const [minPrice, maxPrice] = useMemo(() => {
@@ -151,9 +188,11 @@ function ComponentsView({ components }: { components: Component[] }) {
             <Input
               id="search-input"
               type="text"
-              placeholder="Buscar por nombre o SKU..."
+              placeholder={placeholder}
               className="pl-10 w-full"
               value={searchQuery}
+              onFocus={() => setTyping(false)}
+              onBlur={() => { if (!searchQuery) setTyping(true) }}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
