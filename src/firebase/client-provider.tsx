@@ -23,11 +23,9 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
 
   useEffect(() => {
     // Initialize Firebase on the client side, once per component mount.
-    // This check prevents re-initialization on hot reloads in development.
-    if (!firebaseServices) {
-      setFirebaseServices(initializeFirebase());
-    }
-  }, [firebaseServices]);
+    // The empty dependency array ensures this runs only once.
+    setFirebaseServices(initializeFirebase());
+  }, []);
 
   if (!firebaseServices) {
     // Optional: Render a loading indicator while Firebase is initializing
