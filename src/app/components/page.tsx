@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
@@ -13,6 +14,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Button } from '@/components/ui/button';
 import Spinner from '@/components/spinner';
 import { components as allComponents } from '@/lib/data'; // Import local data
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
 
 
 const categories = ['All', 'CPU', 'GPU', 'Motherboard', 'RAM', 'Storage', 'Power Supply', 'Case'];
@@ -26,12 +29,30 @@ const placeholderTexts = [
 
 type ProductWithId = Component & { id: string };
 
+// Helper to get the best price for filtering
+const getBestPrice = (component: Component): number => {
+    if (!component.prices || component.prices.length === 0) return component.price || 0;
+    return Math.min(...component.prices.map(p => p.price));
+};
+
 export default function ComponentsPage() {
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('All');
   const [brand, setBrand] = useState('All');
-  
+
+  // Determine min and max prices for the slider
+  const [minPrice, maxPrice] = useMemo(() => {
+    if (!allComponents || allComponents.length === 0) {
+      return [0, 100000];
+    }
+    const prices = allComponents.map(getBestPrice);
+    return [Math.min(...prices), Math.max(...prices)];
+  }, []);
+
+  const [priceRange, setPriceRange] = useState<[number, number]>([minPrice, maxPrice]);
+  const [inStockOnly, setInStockOnly] = useState(false);
+
   const [currentPlaceholder, setCurrentPlaceholder] = useState('');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
@@ -39,7 +60,6 @@ export default function ComponentsPage() {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Use local data for display
   const productsLoading = false;
 
   useEffect(() => {
@@ -48,6 +68,10 @@ export default function ComponentsPage() {
       setSearchQuery(queryFromUrl);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    setPriceRange([minPrice, maxPrice]);
+  }, [minPrice, maxPrice]);
   
   const handleTyping = useCallback(() => {
     if (isInputFocused) return;
@@ -98,9 +122,13 @@ export default function ComponentsPage() {
       const matchesSearch = component.name.toLowerCase().includes(searchQuery.toLowerCase()) || component.sku.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = category === 'All' || component.category === category;
       const matchesBrand = brand === 'All' || component.brand === brand;
-      return matchesSearch && matchesCategory && matchesBrand;
+      const bestPrice = getBestPrice(component);
+      const matchesPrice = bestPrice >= priceRange[0] && bestPrice <= priceRange[1];
+      const matchesStock = !inStockOnly || component.stock > 0;
+      
+      return matchesSearch && matchesCategory && matchesBrand && matchesPrice && matchesStock;
     });
-  }, [searchQuery, category, brand]);
+  }, [searchQuery, category, brand, priceRange, inStockOnly]);
 
   const filterControlsContent = (
     <div className="space-y-6">
@@ -145,6 +173,36 @@ export default function ComponentsPage() {
             ))}
           </SelectContent>
         </Select>
+      </div>
+      <div>
+        <Label>Rango de Precios</Label>
+        <div className="mt-4">
+          <Slider
+            min={minPrice}
+            max={maxPrice}
+            step={1000}
+            value={priceRange}
+            onValueChange={(value: [number, number]) => setPriceRange(value)}
+            className="w-full"
+          />
+        </div>
+        <div className="flex justify-between text-xs text-muted-foreground mt-2">
+          <span>${priceRange[0].toLocaleString('es-CL')}</span>
+          <span>${priceRange[1].toLocaleString('es-CL')}</span>
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+          <Label htmlFor="stock-switch" className="flex flex-col space-y-1">
+              <span>Solo en Stock</span>
+              <span className="font-normal leading-snug text-muted-foreground">
+                  Mostrar solo productos disponibles.
+              </span>
+          </Label>
+          <Switch
+              id="stock-switch"
+              checked={inStockOnly}
+              onCheckedChange={setInStockOnly}
+          />
       </div>
     </div>
   );
@@ -208,3 +266,6 @@ export default function ComponentsPage() {
     </div>
   );
 }
+
+
+    
