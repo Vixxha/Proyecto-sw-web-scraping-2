@@ -1,32 +1,30 @@
 /**
- * @file Firestore Security Rules for ComponentCompares application.
+ * @file Firestore Security Rules for ComponentCompares
+ * @description This ruleset enforces a user-ownership model for user profiles
+ * and allows public read access to products.
  *
- * @corePhilosophy
- * This ruleset enforces a user-ownership model for user profiles and allows public read access to product information.
- *
- * @dataStructure
+ * Data Structure:
  * - /users/{userId}: Stores user profile data, with the document ID matching the Firebase Auth UID.
- * - /products/{productId}: Stores product information, accessible to all users for reading.
+ * - /products/{productId}: Stores product information accessible to all users.
  *
- * @keySecurityDecisions
- * - User profiles are strictly controlled; only the authenticated user can read, update, or delete their own profile.
- * - Products are publicly readable, but write access is currently unrestricted. This should be updated to restrict write access based on roles or ownership in a production environment.
+ * Key Security Decisions:
  * - User listing is disabled.
- *
- * @denormalizationForAuthorization
- * The user ID is enforced to be equal to the `userId` path parameter when creating a user document.
+ * - Product data is publicly readable but only writeable with appropriate authentication (TODO).
+ * - Strict ownership is enforced for user profiles, ensuring only the authenticated user can
+ *   read and modify their own profile data.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Manages user profile data, ensuring users can only access their own profile.
+     * @description Controls access to user profile documents. Only the authenticated user
+     * can read or modify their own profile.
      * @path /users/{userId}
-     * @allow (create) - User with UID 'user_abc' can create a profile at /users/user_abc.
-     * @allow (get, update, delete) - User with UID 'user_abc' can read, update, or delete their profile at /users/user_abc.
-     * @deny (create, get, update, delete) - User with UID 'user_xyz' cannot create, read, update, or delete the profile at /users/user_abc.
-     * @principle Enforces strict user-ownership for profile data.
+     * @allow (create) - Authenticated user creates their own profile with matching UID.
+     * @allow (get, update, delete) - Authenticated user accesses their own profile with matching UID.
+     * @deny (create, get, update, delete) - Any other user attempts to access this profile.
+     * @principle Enforces document ownership for user profiles.
      */
     match /users/{userId} {
       function isSignedIn() {
@@ -41,24 +39,24 @@ service cloud.firestore {
         return isOwner(userId) && resource != null;
       }
 
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
       allow get: if isOwner(userId);
       allow list: if false;
-
-      allow create: if isSignedIn() && request.resource.data.id == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Manages product information, allowing public read access.
+     * @description Controls access to product documents. Products are publicly readable,
+     * but create, update, and delete operations are currently disabled (TODO: Add authentication).
      * @path /products/{productId}
-     * @allow (get, list) - Any user, authenticated or not, can read product data.
-     * @deny (create, update, delete) - All users are denied write access (currently).
-     * @principle Allows public read access to product data.
+     * @allow (get, list) - Any user can read the product data.
+     * @deny (create, update, delete) - No one can currently modify product data (TODO: Add authentication).
+     * @principle Allows public read access to product information.
      */
     match /products/{productId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
     }
   }
 }
