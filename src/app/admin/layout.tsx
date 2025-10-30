@@ -16,6 +16,7 @@ export default function AdminLayout({
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
+  // 1. Get the current user's profile to check their role.
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return doc(firestore, 'users', user.uid);
@@ -25,6 +26,7 @@ export default function AdminLayout({
 
   const isLoading = isUserLoading || isProfileLoading;
 
+  // While checking, show a loader.
   if (isLoading) {
     return (
       <div className="flex h-[80vh] w-full items-center justify-center">
@@ -33,15 +35,12 @@ export default function AdminLayout({
     );
   }
 
-  // Si el usuario es superusuario, renderizamos el contenido (la página) directamente.
-  // La lógica de fetching de datos específicos del panel (como la lista de todos los usuarios)
-  // estará dentro de los componentes de la página (ej. AdminDashboard),
-  // los cuales solo se renderizarán si esta condición se cumple.
+  // 2. ONLY if the user is a superuser, render the page content.
   if (user && userProfile?.role === 'superuser') {
     return <>{children}</>;
   }
   
-  // Si no, mostramos el mensaje de acceso denegado
+  // 3. Otherwise, show an access denied message. This prevents child pages from even trying to load data.
   return (
     <div className="container mx-auto flex min-h-[80vh] items-center justify-center px-4">
       <Card className="w-full max-w-md">

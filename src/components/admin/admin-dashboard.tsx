@@ -3,9 +3,6 @@
 import StatCard from './stat-card';
 import UserList from './user-list';
 import { Users, Activity, Package } from 'lucide-react';
-import Spinner from '../spinner';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query } from 'firebase/firestore';
 
 type UserProfile = {
   id: string;
@@ -24,29 +21,16 @@ type Product = {
     id: string;
 }
 
-// El componente ahora es responsable de cargar sus propios datos,
-// pero solo se monta si el usuario es un superusuario (gracias al AdminLayout).
-export default function AdminDashboard() {
-  const firestore = useFirestore();
+interface AdminDashboardProps {
+  users: UserProfile[];
+  products: Product[];
+}
 
-  // Esta query solo se ejecuta porque este componente solo se monta si el usuario es superuser
-  const usersQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'users'));
-  }, [firestore]);
-  const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
-
-  const productsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'products'));
-  }, [firestore]);
-  const { data: products, isLoading: productsLoading } = useCollection<Product>(productsQuery);
-
-  const totalUsers = users?.length || 0;
-  const superuserCount = users?.filter(u => u.role === 'superuser').length || 0;
-  const totalProducts = products?.length || 0;
-  
-  const isLoading = usersLoading || productsLoading;
+// This is now a "dumb" component that just displays the data it's given.
+export default function AdminDashboard({ users, products }: AdminDashboardProps) {
+  const totalUsers = users.length;
+  const superuserCount = users.filter(u => u.role === 'superuser').length;
+  const totalProducts = products.length;
 
   return (
     <div className="space-y-8">
@@ -58,11 +42,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid gap-8 lg:grid-cols-1">
-        {isLoading ? (
-            <div className="flex justify-center items-center h-64"><Spinner className="h-12 w-12" /></div>
-        ) : (
-            <UserList users={users || []} />
-        )}
+        <UserList users={users} />
       </div>
     </div>
   );
