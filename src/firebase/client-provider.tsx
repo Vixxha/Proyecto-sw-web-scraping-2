@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, type ReactNode } from 'react';
@@ -22,13 +23,12 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
   const [firebaseServices, setFirebaseServices] = useState<FirebaseServices | null>(null);
 
   useEffect(() => {
-    // Initialize Firebase on the client side, once per component mount.
-    // The empty dependency array ensures this runs only once.
+    // The empty dependency array ensures this effect runs only once on mount.
     setFirebaseServices(initializeFirebase());
-  }, []);
+  }, []); // DO NOT REMOVE THE EMPTY DEPENDENCY ARRAY
 
   if (!firebaseServices) {
-    // Optional: Render a loading indicator while Firebase is initializing
+    // Render a loading spinner while Firebase is being initialized on the client.
     return (
        <div className="flex h-screen w-full items-center justify-center">
         <Spinner className="h-12 w-12" />
@@ -36,6 +36,7 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
     );
   }
 
+  // Once initialized, provide the services to the rest of the application.
   return (
     <FirebaseProvider
       firebaseApp={firebaseServices.firebaseApp}
