@@ -9,7 +9,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
-import { useAuth, useUser } from "@/firebase";
+import { useAuth, useUser, useFirestore, useMemoFirebase } from "@/firebase";
+import { doc } from 'firebase/firestore';
+import { useDoc } from '@/firebase/firestore/use-doc';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,8 +41,17 @@ export function Header() {
   const pathname = usePathname();
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
-  const isAdminPath = pathname.startsWith('/admin');
-  
+  const firestore = useFirestore();
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+
+  const { data: userProfile } = useDoc<{ role: string }>(userDocRef);
+
+  const isSuperuser = userProfile?.role === 'superuser';
+
   const handleLogout = async () => {
     await signOut(auth);
   };
@@ -59,7 +71,7 @@ export function Header() {
           {link.label}
         </Link>
       ))}
-       {isAdminPath && user && (
+       {isSuperuser && (
         <div className="hidden lg:flex items-center gap-4 lg:gap-6 pl-4 ml-4 border-l">
           <span className="text-xs font-semibold text-muted-foreground">ADMIN</span>
           {adminNavLinks.map((link) => (
@@ -132,7 +144,7 @@ export function Header() {
                         </Link>
                       ))}
                 </div>
-                 {isAdminPath && user && (
+                 {isSuperuser && (
                     <div className="mt-6 pt-6 border-t">
                       <h3 className="pl-0 mb-3 text-xs font-semibold text-muted-foreground">ADMINISTRACIÓN</h3>
                        <div className="flex flex-col space-y-3">
@@ -182,7 +194,7 @@ export function Header() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {isAdminPath && (
+                  {isSuperuser && (
                     <DropdownMenuItem asChild>
                       <Link href="/admin/dashboard">
                         <ShieldCheck className="mr-2 h-4 w-4" />
@@ -213,3 +225,5 @@ export function Header() {
     </header>
   );
 }
+
+    
