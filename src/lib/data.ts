@@ -1,5 +1,4 @@
 import type { Component, Store, PriceHistoryPoint } from './types';
-import { PlaceHolderImages } from './placeholder-images';
 
 export const stores: Store[] = [
   { id: 'store-1', name: 'PC Factory', logoUrl: '/logos/pc-parts-plus.png' },
