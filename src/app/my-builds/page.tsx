@@ -53,7 +53,7 @@ function BuildCard({ build }: { build: PCBuild }) {
     };
     
     const buildComponents: { category: string, component: Component | undefined }[] = Object.entries(build.components || {}).flatMap(([category, slugs]) => 
-        (slugs as unknown as string[]).map(slug => ({
+        (slugs as string[]).map(slug => ({ // Cast slugs to string[]
             category,
             component: componentMap.get(slug)
         }))

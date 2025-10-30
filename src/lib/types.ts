@@ -40,7 +40,7 @@ export interface PCBuild {
   id: string;
   userId: string;
   name: string;
-  components: Record<Category, Component[]>;
+  components: Record<Category, string[]>; // Changed from Component[] to string[]
   totalPrice: number;
   createdAt: any; // Firestore Timestamp
 }
