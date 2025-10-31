@@ -29,13 +29,27 @@ const categoryIcons: Record<Category, React.ReactNode> = {
   Case: <PcCase className="h-8 w-8 text-primary" />,
 };
 
-const placeholder = "Ej: 'Quiero una PC para gaming en 4K y streaming. Mi presupuesto es moderado.'";
+const initialPlaceholder = "Ej: 'Quiero una PC para gaming en 4K y streaming. Mi presupuesto es moderado.'";
 
 export default function AIBuilderPage() {
   const [prompt, setPrompt] = useState('');
+  const [placeholder, setPlaceholder] = useState('');
   const [suggestedBuild, setSuggestedBuild] = useState<BuildPcOutput['build'] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  
+  useEffect(() => {
+    let currentIndex = 0;
+    const interval = setInterval(() => {
+      if (currentIndex < initialPlaceholder.length) {
+        setPlaceholder(prev => prev + initialPlaceholder[currentIndex]);
+        currentIndex++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 50);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleGenerateBuild = async () => {
     if (!prompt.trim()) {

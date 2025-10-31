@@ -40,10 +40,12 @@ const SearchBar = () => {
 
   useEffect(() => {
     let currentIndex = 0;
+    setPlaceholder(''); // Asegurarse de que el placeholder esté vacío al inicio
     const interval = setInterval(() => {
-      setPlaceholder(prev => prev + placeholderText[currentIndex]);
-      currentIndex++;
-      if (currentIndex >= placeholderText.length) {
+      if (currentIndex < placeholderText.length) {
+        setPlaceholder(prev => prev + placeholderText[currentIndex]);
+        currentIndex++;
+      } else {
         clearInterval(interval);
       }
     }, 100);

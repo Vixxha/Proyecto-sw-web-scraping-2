@@ -61,8 +61,7 @@ const categoryNavLinks = [
     },
 ];
 
-const placeholder = "Ej: 'GeForce RTX 4090'...";
-
+const initialPlaceholder = "Ej: 'GeForce RTX 4090'...";
 
 // Helper to get the best price for filtering and sorting
 const getBestPrice = (component: Component): number => {
@@ -77,8 +76,22 @@ function ComponentsView({ components }: { components: Component[] }) {
   const [category, setCategory] = useState('All');
   const [brand, setBrand] = useState('All');
   const [sortBy, setSortBy] = useState('relevance');
+  const [placeholder, setPlaceholder] = useState('');
   
   const productsLoading = false;
+
+  useEffect(() => {
+    let currentIndex = 0;
+    const interval = setInterval(() => {
+      if (currentIndex < initialPlaceholder.length) {
+        setPlaceholder(prev => prev + initialPlaceholder[currentIndex]);
+        currentIndex++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 50); // Speed up animation slightly
+    return () => clearInterval(interval);
+  }, []);
 
   // Determine min and max prices for the slider
   const [minPrice, maxPrice] = useMemo(() => {
