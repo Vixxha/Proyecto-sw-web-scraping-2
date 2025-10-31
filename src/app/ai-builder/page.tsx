@@ -4,17 +4,16 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
 import { Bot, Cpu, Dices, HardDrive, MemoryStick, PcCase, Power, Video, LoaderCircle } from 'lucide-react';
 import { buildPc } from '@/ai/flows/build-pc-flow';
 import type { Component } from '@/lib/types';
 import { components as allComponents } from '@/lib/data';
-import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { BuildPcOutput } from '@/ai/flows/build-pc-schema';
+import { Textarea } from '@/components/ui/textarea';
 
 const componentMap = new Map(allComponents.map(c => [c.slug, c]));
 
