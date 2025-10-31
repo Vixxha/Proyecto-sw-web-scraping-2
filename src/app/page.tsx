@@ -113,41 +113,12 @@ function Features() {
   )
 }
 
-function FeaturedComponents() {
-  const featuredComponents = components.filter(c => ['intel-core-i9-13900k', 'nvidia-geforce-rtx-4090', 'asus-rog-maximus-z790-hero', 'samsung-980-pro-1tb'].includes(c.slug));
-
-  return (
-    <section className="w-full py-20 md:py-32 bg-muted/30">
-      <div className="container px-4 md:px-6">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-            <Badge variant="outline" className="mb-2">Lo más popular</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Componentes Destacados</h2>
-            <p className="mt-4 text-lg text-muted-foreground">Explora los componentes más buscados y con mejores precios del momento. Nuestra selección se actualiza constantemente.</p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredComponents.map(component => (
-                <ComponentCard key={component.id} component={component} />
-            ))}
-        </div>
-        <div className="text-center mt-12">
-            <Button asChild size="lg" variant="outline">
-                <Link href="/components">
-                    Ver todos los componentes <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-            </Button>
-        </div>
-      </div>
-    </section>
-  )
-}
-
 export default function HomePage() {
   return (
     <div className="flex flex-col min-h-dvh">
       <main className="flex-1">
         <Hero />
         <Features />
-        <FeaturedComponents />
       </main>
     </div>
   );
