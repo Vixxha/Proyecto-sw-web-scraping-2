@@ -85,42 +85,6 @@ function FeaturedComponents({ components }: { components: Component[] }) {
   );
 }
 
-function Features() {
-  return (
-    <section className="w-full py-12 md:py-24 bg-muted/50">
-      <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="space-y-3">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
-                Tu Aliado #1 para Armar tu PC
-              </h2>
-              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Desde la comparación de precios hasta el armado de tu propia configuración, tenemos todo lo que necesitas en un solo lugar.
-              </p>
-          </div>
-        </div>
-        <div className="mx-auto grid justify-center gap-8 sm:grid-cols-2 lg:grid-cols-3 pt-12">
-            <div className="flex flex-col items-center text-center p-6">
-                <Search className="h-12 w-12 mb-4 text-primary" />
-                <h3 className="text-xl font-bold">Compara Precios</h3>
-                <p className="text-sm text-muted-foreground mt-2">Ahorra dinero encontrando el mejor precio para cada componente entre docenas de tiendas líderes.</p>
-            </div>
-            <div className="flex flex-col items-center text-center p-6">
-                <Dices className="h-12 w-12 mb-4 text-primary" />
-                <h3 className="text-xl font-bold">Arma tu Configuración</h3>
-                <p className="text-sm text-muted-foreground mt-2">Selecciona tus componentes y crea la PC de tus sueños con nuestra herramienta intuitiva.</p>
-            </div>
-            <div className="flex flex-col items-center text-center p-6">
-                <Cpu className="h-12 w-12 mb-4 text-primary" />
-                <h3 className="text-xl font-bold">Catálogo Extenso</h3>
-                <p className="text-sm text-muted-foreground mt-2">Explora un catálogo masivo y actualizado de CPUs, GPUs, placas base, y mucho más.</p>
-            </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export default function HomePage() {
   // In a real app, this data would be fetched from an API.
   // We are passing it as a prop to avoid including it in the client bundle.
@@ -131,7 +95,6 @@ export default function HomePage() {
       <main className="flex-1">
         <Hero />
         <FeaturedComponents components={allComponents} />
-        <Features />
       </main>
     </div>
   );
