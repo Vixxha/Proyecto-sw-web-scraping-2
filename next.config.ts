@@ -40,6 +40,24 @@ const nextConfig: NextConfig = {
         hostname: 'preview.redd.it',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.worldvectorlogo.com',
+        port: '',
+        pathname: '/**',
+      },
+       {
+        protocol: 'https',
+        hostname: 'www.seasonic.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'nzxt.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

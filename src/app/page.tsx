@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -11,6 +12,7 @@ import { components } from '@/lib/data';
 import ComponentCard from '@/components/component-card';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 
 function Hero() {
@@ -113,12 +115,75 @@ function Features() {
   )
 }
 
+function BrandShowcase() {
+  const brands = [
+    { name: 'NVIDIA', logo: 'https://cdn.worldvectorlogo.com/logos/nvidia.svg' },
+    { name: 'AMD', logo: 'https://cdn.worldvectorlogo.com/logos/amd-new-logo-1.svg' },
+    { name: 'Intel', logo: 'https://cdn.worldvectorlogo.com/logos/intel-7.svg' },
+    { name: 'ASUS', logo: 'https://cdn.worldvectorlogo.com/logos/asus-6.svg' },
+    { name: 'Corsair', logo: 'https://cdn.worldvectorlogo.com/logos/corsair-1.svg' },
+    { name: 'Gigabyte', logo: 'https://cdn.worldvectorlogo.com/logos/gigabyte-1.svg' },
+    { name: 'MSI', logo: 'https://cdn.worldvectorlogo.com/logos/msi-4.svg' },
+    { name: 'Samsung', logo: 'https://cdn.worldvectorlogo.com/logos/samsung-5.svg' },
+    { name: 'SeaSonic', logo: 'https://www.seasonic.com/pub/media/logo/default/logo.png' },
+    { name: 'NZXT', logo: 'https://nzxt.com/assets/developer/brand-assets/nzxt-logo-wordmark-white.png?v=1' },
+  ];
+
+  return (
+    <section className="w-full py-20 md:py-24 bg-muted/30">
+      <div className="container px-4 md:px-6">
+        <div className="text-center max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Las Mejores Marcas, Todas en un Mismo Lugar</h2>
+          <p className="mt-4 text-lg text-muted-foreground">Trabajamos con los líderes de la industria para ofrecerte la selección más completa de componentes de alta calidad.</p>
+        </div>
+        <div 
+          className="relative mt-12 w-full overflow-hidden"
+          style={{
+            maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)'
+          }}
+        >
+          <div className="flex animate-infinite-scroll">
+            {[...brands, ...brands].map((brand, index) => (
+              <div key={index} className="flex-shrink-0 mx-8 flex items-center justify-center" style={{ width: '150px' }}>
+                <Image
+                  src={brand.logo}
+                  alt={brand.name}
+                  width={120}
+                  height={50}
+                  className="object-contain filter grayscale transition duration-300 hover:grayscale-0"
+                />
+              </div>
+            ))}
+          </div>
+          <style jsx>{`
+            @keyframes infinite-scroll {
+              from { transform: translateX(0); }
+              to { transform: translateX(-50%); }
+            }
+            .animate-infinite-scroll {
+              animation: infinite-scroll 40s linear infinite;
+            }
+            .filter { filter: grayscale(1); }
+            .hover\\:grayscale-0:hover { filter: grayscale(0); }
+            img[alt="SeaSonic"], img[alt="NZXT"] { filter: grayscale(1) invert(1); }
+            img[alt="SeaSonic"]:hover, img[alt="NZXT"]:hover { filter: grayscale(0) invert(0); }
+            .dark img[alt="SeaSonic"], .dark img[alt="NZXT"] { filter: grayscale(1); }
+            .dark img[alt="SeaSonic"]:hover, .dark img[alt="NZXT"]:hover { filter: grayscale(0); }
+          `}</style>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
 export default function HomePage() {
   return (
     <div className="flex flex-col min-h-dvh">
       <main className="flex-1">
         <Hero />
         <Features />
+        <BrandShowcase />
       </main>
     </div>
   );
