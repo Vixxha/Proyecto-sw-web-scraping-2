@@ -54,6 +54,7 @@ function Hero() {
               alt="Hero PC Build"
               fill
               priority
+              sizes="100vw"
               className="object-cover transition-transform duration-500 group-hover:scale-105"
               data-ai-hint={heroImage?.imageHint || 'gaming pc'}
             />
@@ -151,6 +152,7 @@ function BrandShowcase() {
                   width={120}
                   height={50}
                   className="object-contain filter grayscale transition duration-300 hover:grayscale-0"
+                  style={{ height: 'auto' }}
                 />
               </div>
             ))}
