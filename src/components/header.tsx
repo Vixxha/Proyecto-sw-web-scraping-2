@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Cpu, Dices, Bot, LogOut, HardDrive, ChevronDown } from "lucide-react";
+import { Menu, Cpu, Dices, Bot, LogOut, HardDrive, ChevronDown, Video, MemoryStick } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -30,43 +30,10 @@ const mainNavLinks = [
 ];
 
 const categoryNavLinks = [
-    {
-      name: 'Gaming y Streaming',
-      sub: [
-        { name: 'PC Gamer', href: '/gaming-y-streaming' },
-        { name: 'Notebooks Gamer', href: '/gaming-y-streaming' },
-        { name: 'Monitores Gamer', href: '/gaming-y-streaming' },
-        { name: 'Sillas Gamer', href: '/gaming-y-streaming' }
-      ]
-    },
-    {
-      name: 'Computación',
-      sub: [
-        { name: 'Notebooks', href: '/computacion' },
-        { name: 'Monitores', href: '/computacion' },
-        { name: 'Impresoras', href: '/computacion' },
-        { name: 'Teclados', href: '/computacion' },
-        { name: 'Mouse', href: '/computacion' }
-      ]
-    },
-    {
-      name: 'Componentes',
-      sub: [
-        { name: 'Procesadores (CPU)', href: '/components?category=CPU' },
-        { name: 'Tarjetas de Video (GPU)', href: '/components?category=GPU' },
-        { name: 'Placas Madre', href: '/components?category=Motherboard' },
-        { name: 'Memoria RAM', href: '/components?category=RAM' },
-        { name: 'Almacenamiento', href: '/components?category=Storage' }
-      ]
-    },
-    {
-      name: 'Conectividad y Redes',
-      sub: [
-        { name: 'Routers', href: '/conectividad-y-redes' },
-        { name: 'Tarjetas de Red', href: '/conectividad-y-redes' },
-        { name: 'Access Points', href: '/conectividad-y-redes' }
-      ]
-    },
+    { name: 'Gaming y Streaming', href: '/gaming-y-streaming' },
+    { name: 'Computación', href: '/computacion' },
+    { name: 'Componentes', href: '/components' },
+    { name: 'Conectividad', href: '/conectividad-y-redes' }
 ];
 
 
@@ -101,23 +68,20 @@ export function Header() {
     <div className="border-t hidden md:block">
       <div className="container flex h-14 max-w-screen-2xl items-center">
         <nav className="flex items-center justify-center space-x-6 w-full">
-          {categoryNavLinks.map((cat) => (
-            <DropdownMenu key={cat.name}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-primary data-[state=open]:text-primary group">
-                  {cat.name}
-                  <ChevronDown className="relative top-[1px] ml-1 h-4 w-4 transition duration-200 group-data-[state=open]:rotate-180" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {cat.sub.map((subCat) => (
-                  <DropdownMenuItem key={subCat.name} asChild>
-                    <Link href={subCat.href}>{subCat.name}</Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+          {categoryNavLinks.map((link) => (
+            <Link
+                key={link.name}
+                href={link.href}
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+            >
+                {link.name}
+            </Link>
           ))}
+           <div className="h-6 border-l border-border"></div>
+           <Link href="/components?category=CPU" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary flex items-center gap-2"><Cpu className="h-4 w-4"/> Procesadores</Link>
+           <Link href="/components?category=GPU" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary flex items-center gap-2"><Video className="h-4 w-4"/> Tarjetas de Video</Link>
+           <Link href="/components?category=Motherboard" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary flex items-center gap-2"><Dices className="h-4 w-4"/> Placas Madre</Link>
+           <Link href="/components?category=RAM" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary flex items-center gap-2"><MemoryStick className="h-4 w-4"/> RAM</Link>
         </nav>
       </div>
     </div>
