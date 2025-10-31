@@ -94,7 +94,7 @@ function Features() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12 max-w-5xl mx-auto">
           {features.map((feature) => (
-             <div key={feature.title} className="text-center p-6 rounded-lg">
+             <div key={feature.title} className="flex flex-col items-center text-center p-6 rounded-lg">
                 <div className="flex justify-center items-center mb-4">
                   {feature.icon}
                 </div>
