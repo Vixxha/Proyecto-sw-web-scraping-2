@@ -80,17 +80,37 @@ function ComponentsView({ components }: { components: Component[] }) {
   
   const productsLoading = false;
 
-  useEffect(() => {
+ useEffect(() => {
     let currentIndex = 0;
-    const interval = setInterval(() => {
-      if (currentIndex < initialPlaceholder.length) {
-        setPlaceholder(prev => prev + initialPlaceholder[currentIndex]);
-        currentIndex++;
+    let isDeleting = false;
+    let timeoutId: NodeJS.Timeout;
+
+    const type = () => {
+      const currentText = initialPlaceholder;
+      if (isDeleting) {
+        if (currentIndex > 0) {
+          setPlaceholder(currentText.substring(0, currentIndex - 1));
+          currentIndex--;
+          timeoutId = setTimeout(type, 50); // Faster deleting
+        } else {
+          isDeleting = false;
+          timeoutId = setTimeout(type, 500); // Pause before re-typing
+        }
       } else {
-        clearInterval(interval);
+        if (currentIndex < currentText.length) {
+          setPlaceholder(currentText.substring(0, currentIndex + 1));
+          currentIndex++;
+          timeoutId = setTimeout(type, 100); // Typing speed
+        } else {
+          isDeleting = true;
+          timeoutId = setTimeout(type, 2000); // Pause before deleting
+        }
       }
-    }, 50); // Speed up animation slightly
-    return () => clearInterval(interval);
+    };
+
+    timeoutId = setTimeout(type, 100);
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
   // Determine min and max prices for the slider

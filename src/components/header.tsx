@@ -40,16 +40,35 @@ const SearchBar = () => {
 
   useEffect(() => {
     let currentIndex = 0;
-    setPlaceholder(''); // Asegurarse de que el placeholder esté vacío al inicio
-    const interval = setInterval(() => {
-      if (currentIndex < placeholderText.length) {
-        setPlaceholder(prev => prev + placeholderText[currentIndex]);
-        currentIndex++;
+    let isDeleting = false;
+    let timeoutId: NodeJS.Timeout;
+
+    const type = () => {
+      const currentText = placeholderText;
+      if (isDeleting) {
+        if (currentIndex > 0) {
+          setPlaceholder(currentText.substring(0, currentIndex - 1));
+          currentIndex--;
+          timeoutId = setTimeout(type, 50); // Faster deleting
+        } else {
+          isDeleting = false;
+          timeoutId = setTimeout(type, 500); // Pause before re-typing
+        }
       } else {
-        clearInterval(interval);
+        if (currentIndex < currentText.length) {
+          setPlaceholder(currentText.substring(0, currentIndex + 1));
+          currentIndex++;
+          timeoutId = setTimeout(type, 100); // Typing speed
+        } else {
+          isDeleting = true;
+          timeoutId = setTimeout(type, 2000); // Pause before deleting
+        }
       }
-    }, 100);
-    return () => clearInterval(interval);
+    };
+
+    timeoutId = setTimeout(type, 100); // Initial start
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {

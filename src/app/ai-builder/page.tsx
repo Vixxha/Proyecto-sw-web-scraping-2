@@ -40,15 +40,35 @@ export default function AIBuilderPage() {
   
   useEffect(() => {
     let currentIndex = 0;
-    const interval = setInterval(() => {
-      if (currentIndex < initialPlaceholder.length) {
-        setPlaceholder(prev => prev + initialPlaceholder[currentIndex]);
-        currentIndex++;
+    let isDeleting = false;
+    let timeoutId: NodeJS.Timeout;
+
+    const type = () => {
+      const currentText = initialPlaceholder;
+      if (isDeleting) {
+        if (currentIndex > 0) {
+          setPlaceholder(currentText.substring(0, currentIndex - 1));
+          currentIndex--;
+          timeoutId = setTimeout(type, 50);
+        } else {
+          isDeleting = false;
+          timeoutId = setTimeout(type, 500);
+        }
       } else {
-        clearInterval(interval);
+        if (currentIndex < currentText.length) {
+          setPlaceholder(currentText.substring(0, currentIndex + 1));
+          currentIndex++;
+          timeoutId = setTimeout(type, 50);
+        } else {
+          isDeleting = true;
+          timeoutId = setTimeout(type, 2500);
+        }
       }
-    }, 50);
-    return () => clearInterval(interval);
+    };
+
+    timeoutId = setTimeout(type, 100);
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
   const handleGenerateBuild = async () => {
