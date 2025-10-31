@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -22,6 +23,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Spinner from '@/components/spinner';
 import Link from 'next/link';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const registerSchema = z.object({
   firstName: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -49,42 +53,57 @@ export default function RegisterPage() {
     },
   });
 
-  const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
+  const onSubmit: SubmitHandler<RegisterFormValues> = (data) => {
     setIsLoading(true);
-    try {
-      // 1. Create user in Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      const user = userCredential.user;
 
-      // 2. Update user profile in Firebase Auth
-      await updateProfile(user, {
-        displayName: `${data.firstName} ${data.lastName}`,
-      });
+    createUserWithEmailAndPassword(auth, data.email, data.password)
+      .then(userCredential => {
+        const user = userCredential.user;
+        
+        // Non-blocking operations for profile update and firestore doc creation
+        updateProfile(user, {
+          displayName: `${data.firstName} ${data.lastName}`,
+        }).catch(console.error); // Log error but don't block user
 
-      // 3. Create user profile document in Firestore
-      const userDocRef = doc(firestore, 'users', user.uid);
-      await setDoc(userDocRef, {
-        id: user.uid,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        createdAt: serverTimestamp(),
-      });
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userProfileData = {
+            id: user.uid,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            createdAt: serverTimestamp(),
+        };
 
-      toast({
-        title: '¡Cuenta creada!',
-        description: 'Tu cuenta ha sido creada exitosamente.',
+        // Use non-blocking setDoc
+        setDoc(userDocRef, userProfileData)
+          .catch(error => {
+            errorEmitter.emit(
+                'permission-error',
+                new FirestorePermissionError({
+                    path: userDocRef.path,
+                    operation: 'create',
+                    requestResourceData: userProfileData,
+                })
+            );
+          });
+        
+        toast({
+          title: '¡Cuenta creada!',
+          description: 'Tu cuenta ha sido creada exitosamente. ¡Bienvenido!',
+        });
+        
+        router.push('/');
+      })
+      .catch((error: any) => {
+        toast({
+          variant: 'destructive',
+          title: 'Error al registrar',
+          description: error.message || 'Ocurrió un error. Por favor, intenta de nuevo.',
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-      router.push('/');
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error al registrar',
-        description: error.message || 'Ocurrió un error. Por favor, intenta de nuevo.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   return (
@@ -105,7 +124,7 @@ export default function RegisterPage() {
                     <FormItem className="flex-1">
                       <FormLabel>Nombre</FormLabel>
                       <FormControl>
-                        <Input placeholder="Juan" {...field} />
+                        <Input placeholder="Juan" {...field} disabled={isLoading} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -118,7 +137,7 @@ export default function RegisterPage() {
                     <FormItem className="flex-1">
                       <FormLabel>Apellido</FormLabel>
                       <FormControl>
-                        <Input placeholder="Pérez" {...field} />
+                        <Input placeholder="Pérez" {...field} disabled={isLoading} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -132,7 +151,7 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="tu@email.com" {...field} />
+                      <Input placeholder="tu@email.com" {...field} disabled={isLoading} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -145,7 +164,7 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Contraseña</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input type="password" placeholder="••••••••" {...field} disabled={isLoading} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
