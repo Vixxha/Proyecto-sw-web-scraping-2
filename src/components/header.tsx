@@ -12,7 +12,7 @@ import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import { useAuth, useUser } from "@/firebase";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   DropdownMenu,
@@ -35,29 +35,39 @@ const mainNavLinks = [
 const SearchBar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
+  const [placeholder, setPlaceholder] = useState('');
+  const placeholderText = "Busca un producto...";
 
-  const handleSearch = (query: string) => {
-    if (query.trim()) {
-      router.push(`/components?search=${encodeURIComponent(query.trim())}`);
+  useEffect(() => {
+    let currentIndex = 0;
+    const interval = setInterval(() => {
+      setPlaceholder(prev => prev + placeholderText[currentIndex]);
+      currentIndex++;
+      if (currentIndex >= placeholderText.length) {
+        clearInterval(interval);
+      }
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/components?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
-  
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    handleSearch(searchQuery);
-  };
-  
+
   return (
-      <form onSubmit={handleFormSubmit} className="relative w-full max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        <Input
-          type="text"
-          placeholder="Busca un producto..."
-          className="w-full pl-10"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </form>
+    <form onSubmit={handleSearch} className="relative w-full max-w-md">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      <Input
+        type="text"
+        placeholder={placeholder}
+        className="w-full pl-10"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
+    </form>
   );
 };
 
