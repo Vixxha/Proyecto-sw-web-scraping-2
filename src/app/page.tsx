@@ -95,12 +95,12 @@ function Features() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12 max-w-5xl mx-auto">
           {features.map((feature) => (
              <div key={feature.title} className="text-center p-6 rounded-lg">
-                <div className="flex justify-center items-center mb-4">
+                <div className="inline-block mb-4">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
                 <p className="text-muted-foreground mb-4">{feature.description}</p>
-                 <Button asChild variant="link">
+                 <Button asChild variant="link" className="inline-flex">
                     <Link href={feature.href}>
                         Empezar <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
