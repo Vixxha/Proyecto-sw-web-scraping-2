@@ -23,9 +23,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Spinner from '@/components/spinner';
 import Link from 'next/link';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 const registerSchema = z.object({
   firstName: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -53,17 +50,25 @@ export default function RegisterPage() {
     },
   });
 
-  const onSubmit: SubmitHandler<RegisterFormValues> = (data) => {
+ const onSubmit: SubmitHandler<RegisterFormValues> = (data) => {
     setIsLoading(true);
 
     createUserWithEmailAndPassword(auth, data.email, data.password)
       .then(userCredential => {
         const user = userCredential.user;
         
-        // Non-blocking operations for profile update and firestore doc creation
+        toast({
+          title: '¡Cuenta creada!',
+          description: 'Tu cuenta ha sido creada exitosamente. ¡Bienvenido!',
+        });
+        
+        // Redirect immediately
+        router.push('/');
+
+        // Perform non-blocking operations after redirect
         updateProfile(user, {
           displayName: `${data.firstName} ${data.lastName}`,
-        }).catch(console.error); // Log error but don't block user
+        }).catch(console.error);
 
         const userDocRef = doc(firestore, 'users', user.uid);
         const userProfileData = {
@@ -74,25 +79,9 @@ export default function RegisterPage() {
             createdAt: serverTimestamp(),
         };
 
-        // Use non-blocking setDoc
         setDoc(userDocRef, userProfileData)
-          .catch(error => {
-            errorEmitter.emit(
-                'permission-error',
-                new FirestorePermissionError({
-                    path: userDocRef.path,
-                    operation: 'create',
-                    requestResourceData: userProfileData,
-                })
-            );
-          });
+          .catch(console.error);
         
-        toast({
-          title: '¡Cuenta creada!',
-          description: 'Tu cuenta ha sido creada exitosamente. ¡Bienvenido!',
-        });
-        
-        router.push('/');
       })
       .catch((error: any) => {
         toast({
@@ -102,6 +91,8 @@ export default function RegisterPage() {
         });
       })
       .finally(() => {
+        // This will run after the promise chain starts, but before it completes
+        // allowing the UI to unblock faster.
         setIsLoading(false);
       });
   };
@@ -186,3 +177,5 @@ export default function RegisterPage() {
     </div>
   );
 }
+
+    

@@ -68,7 +68,7 @@ function BuildCard({ build }: { build: PCBuild }) {
                         {build.createdAt && (
                              <p className="text-sm text-muted-foreground flex items-center mt-1">
                                 <Calendar className="h-4 w-4 mr-2"/>
-                                Creado el {format(build.createdAt.toDate(), "d 'de' MMMM, yyyy", { locale: es })}
+                                Creado el {format(new Date(build.createdAt.seconds * 1000), "d 'de' MMMM, yyyy", { locale: es })}
                             </p>
                         )}
                     </div>
@@ -95,16 +95,31 @@ function BuildCard({ build }: { build: PCBuild }) {
                 </div>
             </CardHeader>
             <CardContent className="flex-grow space-y-3">
-                {buildComponents.map(({ category, component }, index) => component ? (
-                    <div key={`${component.id}-${index}`} className="flex items-center gap-3 text-sm">
-                        <Image src={component.imageUrl} alt={component.name} width={40} height={40} className="rounded-md object-cover"/>
-                        <div className="flex-grow">
-                             <p className="font-semibold leading-tight">{component.name}</p>
-                             <p className="text-xs text-muted-foreground">{category}</p>
-                        </div>
-                        <p className="font-medium">${component.price.toLocaleString('es-CL')}</p>
+                {buildComponents.map(({ category, component }, index) => (
+                    <div key={`${build.id}-${category}-${index}`} className="flex items-center gap-3 text-sm">
+                        {component ? (
+                            <>
+                                <Image src={component.imageUrl} alt={component.name} width={40} height={40} className="rounded-md object-cover"/>
+                                <div className="flex-grow">
+                                     <p className="font-semibold leading-tight">{component.name}</p>
+                                     <p className="text-xs text-muted-foreground">{category}</p>
+                                </div>
+                                <p className="font-medium">${component.price.toLocaleString('es-CL')}</p>
+                            </>
+                        ) : (
+                            <>
+                                <div className="w-10 h-10 flex items-center justify-center bg-muted rounded-md">
+                                    <AlertTriangle className="h-5 w-5 text-muted-foreground" />
+                                </div>
+                                <div className="flex-grow">
+                                    <p className="font-semibold leading-tight text-muted-foreground">Componente no encontrado</p>
+                                    <p className="text-xs text-muted-foreground">{category}</p>
+                                </div>
+                                <p className="font-medium text-muted-foreground">$0</p>
+                            </>
+                        )}
                     </div>
-                ) : null)}
+                ))}
             </CardContent>
             <CardFooter className="bg-muted/50 p-4 flex justify-between items-center mt-4">
                  <p className="text-sm font-semibold flex items-center gap-2"><DollarSign className="h-4 w-4"/>Total:</p>
@@ -189,3 +204,5 @@ export default function MyBuildsPage() {
     </div>
   );
 }
+
+    
