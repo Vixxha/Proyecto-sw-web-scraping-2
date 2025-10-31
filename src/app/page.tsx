@@ -74,13 +74,13 @@ function Features() {
     {
       icon: <Dices className="w-10 h-10 text-primary" />,
       title: "Arma tu Configuración",
-      description: "Usa nuestro constructor para elegir tus componentes y verificar la compatibilidad al instante.",
+      description: "Usa nuestro constructor para elegir tus componentes y verificar su compatibilidad al instante.",
        href: "/build"
     },
     {
       icon: <Bot className="w-10 h-10 text-primary" />,
       title: "Asistente con IA",
-      description: "Describe la PC que necesitas y deja que nuestra IA te recomiende la configuración perfecta para ti.",
+      description: "Describe la PC que necesitas y nuestra IA te recomendará la configuración perfecta para tu presupuesto.",
        href: "/ai-builder"
     }
   ]
