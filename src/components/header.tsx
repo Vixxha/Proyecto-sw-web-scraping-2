@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from "next/link";
@@ -24,9 +25,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { signOut } from "firebase/auth";
 import Spinner from "./spinner";
+import { MegaMenu } from "./mega-menu";
 
 const mainNavLinks = [
-  { href: "/components", label: "Explorar", icon: Cpu },
   { href: "/build", label: "Arma tu PC", icon: Dices },
   { href: "/ai-builder", label: "Asistente IA", icon: Bot },
 ];
@@ -72,6 +73,18 @@ export function Header() {
 
   const MainNav = ({ className }: { className?: string }) => (
     <nav className={cn("flex items-center gap-4 lg:gap-6", className)}>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className={cn(
+                    "transition-colors hover:text-foreground/80 text-sm font-medium",
+                     pathname.startsWith('/components') ? "text-foreground" : "text-foreground/60"
+                )}>Explorar</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-screen max-w-6xl p-0" align="center">
+                <MegaMenu />
+            </DropdownMenuContent>
+        </DropdownMenu>
+
       {mainNavLinks.map((link) => (
         <Link
           key={link.href}
@@ -106,6 +119,16 @@ export function Header() {
                 </Link>
              </SheetHeader>
             <div className="flex flex-col space-y-3">
+                 <Link
+                    href="/components"
+                    className={cn(
+                        "transition-colors hover:text-foreground/80 text-lg flex items-center gap-3 p-2 rounded-md",
+                        pathname.startsWith('/components') ? "text-foreground bg-muted" : "text-foreground/60"
+                    )}
+                 >
+                    <Cpu className="h-5 w-5" />
+                    Explorar
+                 </Link>
                  {mainNavLinks.map((link) => (
                     <Link
                       key={link.href}
