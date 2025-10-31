@@ -68,16 +68,7 @@ function FeaturedComponents({ components }: { components: Component[] }) {
   return (
     <section className="w-full py-12 md:py-24">
       <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="space-y-2">
-              <Badge variant="outline">Lo más popular</Badge>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">Componentes Destacados</h2>
-            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Explora los componentes más buscados y con mejores precios del momento. Nuestra selección se actualiza constantemente.
-            </p>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {featuredComponents.map((component) => (
               <ComponentCard key={component.id} component={component} />
             ))}
