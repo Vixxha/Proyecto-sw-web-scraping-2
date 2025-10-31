@@ -100,7 +100,7 @@ function Features() {
                 </div>
                 <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
                 <p className="text-muted-foreground mb-4">{feature.description}</p>
-                 <Button asChild variant="link" className="inline-flex">
+                 <Button asChild variant="link" className="inline-flex items-center">
                     <Link href={feature.href}>
                         Empezar <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
