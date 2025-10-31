@@ -2,14 +2,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Menu, Cpu, Dices, Bot, LogOut, HardDrive, ChevronDown, Video, MemoryStick } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Menu, Cpu, Dices, Bot, LogOut, HardDrive, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import { useAuth, useUser } from "@/firebase";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 import {
   DropdownMenu,
@@ -29,12 +31,34 @@ const mainNavLinks = [
   { href: "/ai-builder", label: "Asistente IA", icon: Bot },
 ];
 
-const categoryNavLinks = [
-    { name: 'Gaming y Streaming', href: '/gaming-y-streaming' },
-    { name: 'Computación', href: '/computacion' },
-    { name: 'Componentes', href: '/components' },
-    { name: 'Conectividad', href: '/conectividad-y-redes' }
-];
+const SearchBar = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
+
+  const handleSearch = (query: string) => {
+    if (query.trim()) {
+      router.push(`/components?search=${encodeURIComponent(query.trim())}`);
+    }
+  };
+  
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    handleSearch(searchQuery);
+  };
+  
+  return (
+      <form onSubmit={handleFormSubmit} className="relative w-full max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <Input
+          type="text"
+          placeholder="Busca un producto..."
+          className="w-full pl-10"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </form>
+  );
+};
 
 
 export function Header() {
@@ -53,99 +77,71 @@ export function Header() {
           key={link.href}
           href={link.href}
           className={cn(
-            "transition-colors hover:text-foreground/80 flex items-center gap-2",
+            "transition-colors hover:text-foreground/80 text-sm font-medium",
             pathname.startsWith(link.href) ? "text-foreground" : "text-foreground/60"
           )}
         >
-          <link.icon className="h-4 w-4" />
           {link.label}
         </Link>
       ))}
     </nav>
   );
 
-   const CategoryNav = () => (
-    <div className="border-t hidden md:block">
-      <div className="container flex h-14 max-w-screen-2xl items-center">
-        <nav className="flex items-center justify-center space-x-6 w-full">
-          {categoryNavLinks.map((link) => (
-            <Link
-                key={link.name}
-                href={link.href}
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >
-                {link.name}
-            </Link>
-          ))}
-           <div className="h-6 border-l border-border"></div>
-           <Link href="/components?category=CPU" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary flex items-center gap-2"><Cpu className="h-4 w-4"/> Procesadores</Link>
-           <Link href="/components?category=GPU" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary flex items-center gap-2"><Video className="h-4 w-4"/> Tarjetas de Video</Link>
-           <Link href="/components?category=Motherboard" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary flex items-center gap-2"><Dices className="h-4 w-4"/> Placas Madre</Link>
-           <Link href="/components?category=RAM" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary flex items-center gap-2"><MemoryStick className="h-4 w-4"/> RAM</Link>
-        </nav>
-      </div>
-    </div>
-  );
-
-
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-screen-2xl items-center">
-        <div className="mr-4 hidden md:flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Logo className="h-6 w-6 text-primary" />
-            <span className="hidden font-bold sm:inline-block">
-              ComponentCompares
-            </span>
-          </Link>
-          <MainNav />
-        </div>
-
-        {/* Mobile Nav */}
+        {/* Mobile Nav Trigger */}
         <Sheet>
           <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-            >
+            <Button variant="ghost" size="icon" className="md:hidden mr-4">
               <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle Menu</span>
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="pr-0">
-             <SheetHeader className="text-left">
-                <SheetTitle className="sr-only">Navegación Principal</SheetTitle>
-                <Link
-                  href="/"
-                  className="flex items-center"
-                >
+             <SheetHeader className="text-left mb-4">
+                <Link href="/" className="flex items-center">
                   <Logo className="mr-2 h-6 w-6 text-primary" />
                   <span className="font-bold">ComponentCompares</span>
                 </Link>
              </SheetHeader>
-            <div className="my-4 h-[calc(100vh-8rem)] pb-10 pl-6">
-                <div className="flex flex-col space-y-3">
-                     {mainNavLinks.map((link) => (
-                        <Link
-                          key={link.href}
-                          href={link.href}
-                          className={cn(
-                            "transition-colors hover:text-foreground/80 text-lg flex items-center gap-3",
-                            pathname.startsWith(link.href) ? "text-foreground" : "text-foreground/60"
-                          )}
-                        >
-                          <link.icon className="h-5 w-5" />
-                          {link.label}
-                        </Link>
-                      ))}
-                </div>
+            <div className="flex flex-col space-y-3">
+                 {mainNavLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={cn(
+                        "transition-colors hover:text-foreground/80 text-lg flex items-center gap-3 p-2 rounded-md",
+                        pathname.startsWith(link.href) ? "text-foreground bg-muted" : "text-foreground/60"
+                      )}
+                    >
+                      <link.icon className="h-5 w-5" />
+                      {link.label}
+                    </Link>
+                  ))}
             </div>
           </SheetContent>
         </Sheet>
         
-        <div className="flex flex-1 items-center justify-between space-x-4 md:justify-end">
-          <nav className="flex items-center gap-2">
+        {/* Desktop Layout */}
+        <div className="flex flex-1 items-center justify-between gap-8">
+            <Link href="/" className="flex items-center space-x-2">
+              <Logo className="h-7 w-7 text-primary" />
+              <span className="hidden sm:inline-block font-bold text-lg">
+                ComponentCompares
+              </span>
+            </Link>
+
+          <div className="flex-1 flex justify-center">
+            <div className="hidden md:block w-full">
+              <SearchBar />
+            </div>
+          </div>
+
+          <nav className="flex items-center gap-4">
+             <div className="hidden md:flex items-center gap-4">
+                <MainNav />
+             </div>
              {isUserLoading ? (
               <Spinner />
             ) : user ? (
@@ -184,20 +180,22 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <>
+              <div className="hidden sm:flex items-center gap-2">
                 <Button asChild variant="ghost">
                   <Link href="/login">Iniciar Sesión</Link>
                 </Button>
                 <Button asChild>
                   <Link href="/register">Registrarse</Link>
                 </Button>
-              </>
+              </div>
             )}
             <ThemeToggle />
           </nav>
         </div>
       </div>
-      <CategoryNav />
+       <div className="md:hidden p-2 border-t">
+          <SearchBar />
+        </div>
     </header>
   );
 }

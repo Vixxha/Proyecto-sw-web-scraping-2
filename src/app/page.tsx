@@ -1,7 +1,6 @@
 
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Cpu, Search, Dices, ArrowRight } from 'lucide-react';
@@ -11,41 +10,7 @@ import type { Component } from '@/lib/types';
 import { components } from '@/lib/data';
 import ComponentCard from '@/components/component-card';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-
-const placeholder = "Ej: 'GeForce RTX 4090'...";
-
-const SearchBar = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const router = useRouter();
-
-  const handleSearch = (query: string) => {
-    if (query.trim()) {
-      router.push(`/components?search=${encodeURIComponent(query.trim())}`);
-    }
-  };
-  
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    handleSearch(searchQuery);
-  };
-  
-  return (
-      <form onSubmit={handleFormSubmit} className="mt-4 flex w-full max-w-lg items-center space-x-2">
-        <Input
-          type="text"
-          placeholder={placeholder}
-          className="flex-1"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <Button type="submit">
-          <Search className="mr-2 h-4 w-4" /> Buscar
-        </Button>
-      </form>
-  );
-};
+import { useState } from 'react';
 
 
 function Hero() {
@@ -66,10 +31,6 @@ function Hero() {
               <p className="max-w-[600px] text-muted-foreground md:text-xl mt-4">
                 Compara precios de miles de componentes, arma tu propia configuración y encuentra las mejores ofertas de las tiendas más confiables.
               </p>
-            </div>
-            
-            <div>
-              <SearchBar />
             </div>
 
             <div className="flex flex-col gap-2 min-[400px]:flex-row pt-4">
