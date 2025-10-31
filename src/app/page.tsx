@@ -63,38 +63,12 @@ function Hero() {
   );
 }
 
-function FeaturedComponents({ components }: { components: Component[] }) {
-  const featuredComponents = components.slice(0, 8);
-  return (
-    <section className="w-full py-12 md:py-24">
-      <div className="container px-4 md:px-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {featuredComponents.map((component) => (
-              <ComponentCard key={component.id} component={component} />
-            ))}
-        </div>
-          <div className="text-center mt-12">
-            <Button asChild size="lg">
-                <Link href="/components">
-                    Ver todos los componentes <ArrowRight className="ml-2" />
-                </Link>
-            </Button>
-          </div>
-      </div>
-    </section>
-  );
-}
 
 export default function HomePage() {
-  // In a real app, this data would be fetched from an API.
-  // We are passing it as a prop to avoid including it in the client bundle.
-  const allComponents = components;
-
   return (
     <div className="flex flex-col min-h-dvh">
       <main className="flex-1">
         <Hero />
-        <FeaturedComponents components={allComponents} />
       </main>
     </div>
   );
