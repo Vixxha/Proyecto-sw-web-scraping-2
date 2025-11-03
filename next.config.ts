@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
+        protocol: 'https://',
         hostname: 'media.solotodo.com',
         port: '',
         pathname: '/**',
@@ -56,6 +56,30 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'nzxt.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.freebiesupply.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.notebookcheck.org',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'press.asus.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https://',
+        hostname: 'cwsmgmt.corsair.com',
         port: '',
         pathname: '/**',
       }

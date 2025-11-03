@@ -119,12 +119,12 @@ function Features() {
 function BrandShowcase() {
   const brands = [
     { name: 'NVIDIA', logo: 'https://cdn.worldvectorlogo.com/logos/nvidia.svg' },
-    { name: 'AMD', logo: 'https://cdn.worldvectorlogo.com/logos/amd-new-logo-1.svg' },
+    { name: 'AMD', logo: 'https://cdn.freebiesupply.com/logos/large/2x/amd-4-logo-png-transparent.png' },
     { name: 'Intel', logo: 'https://cdn.worldvectorlogo.com/logos/intel-7.svg' },
-    { name: 'ASUS', logo: 'https://cdn.worldvectorlogo.com/logos/asus-6.svg' },
-    { name: 'Corsair', logo: 'https://cdn.worldvectorlogo.com/logos/corsair-1.svg' },
+    { name: 'ASUS', logo: 'https://press.asus.com/assets/w_640,h_640/9c932348-92e9-4450-88a0-2b22bb1d63ca/ROG-logo-black.png' },
+    { name: 'Corsair', logo: 'https://cwsmgmt.corsair.com/press/CORSAIRLogo2020_stack_K.png' },
     { name: 'Gigabyte', logo: 'https://cdn.worldvectorlogo.com/logos/gigabyte-1.svg' },
-    { name: 'MSI', logo: 'https://cdn.worldvectorlogo.com/logos/msi-4.svg' },
+    { name: 'MSI', logo: 'https://www.notebookcheck.org/fileadmin/Notebooks/News/_nc3/MSI_logo_for_share2.png' },
     { name: 'Samsung', logo: 'https://cdn.worldvectorlogo.com/logos/samsung-5.svg' },
     { name: 'SeaSonic', logo: 'https://www.seasonic.com/pub/media/logo/default/logo.png' },
     { name: 'NZXT', logo: 'https://nzxt.com/assets/developer/brand-assets/nzxt-logo-wordmark-white.png?v=1' },
@@ -167,10 +167,24 @@ function BrandShowcase() {
             }
             .filter { filter: grayscale(1); }
             .hover\\:grayscale-0:hover { filter: grayscale(0); }
-            img[alt="SeaSonic"], img[alt="NZXT"] { filter: grayscale(1) invert(1); }
-            img[alt="SeaSonic"]:hover, img[alt="NZXT"]:hover { filter: grayscale(0) invert(0); }
-            .dark img[alt="SeaSonic"], .dark img[alt="NZXT"] { filter: grayscale(1); }
-            .dark img[alt="SeaSonic"]:hover, .dark img[alt="NZXT"]:hover { filter: grayscale(0); }
+            .dark img {
+                filter: grayscale(1) invert(1) brightness(1.5);
+            }
+             .dark img:hover {
+                filter: grayscale(0) invert(0) brightness(1);
+            }
+            img[src*="nvidia"], img[src*="amd"], img[src*="intel-7"], img[src*="gigabyte"], img[src*="samsung"] {
+                filter: grayscale(1);
+            }
+             img[src*="nvidia"]:hover, img[src*="amd"]:hover, img[src*="intel-7"]:hover, img[src*="gigabyte"]:hover, img[src*="samsung"]:hover {
+                filter: grayscale(0);
+            }
+             .dark img[src*="nvidia"], .dark img[src*="amd"], .dark img[src*="intel-7"], .dark img[src*="gigabyte"], .dark img[src*="samsung"] {
+                filter: grayscale(1) brightness(1.5);
+             }
+             .dark img[src*="nvidia"]:hover, .dark img[src*="amd"]:hover, .dark img[src*="intel-7"]:hover, .dark img[src*="gigabyte"]:hover, .dark img[src*="samsung"]:hover {
+                 filter: grayscale(0) brightness(1);
+             }
           `}</style>
         </div>
       </div>
