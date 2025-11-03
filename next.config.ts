@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https://',
+        protocol: 'https',
         hostname: 'media.solotodo.com',
         port: '',
         pathname: '/**',
@@ -78,7 +78,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https://',
+        protocol: 'https',
         hostname: 'cwsmgmt.corsair.com',
         port: '',
         pathname: '/**',
