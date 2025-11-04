@@ -1,4 +1,3 @@
-
 import { notFound } from 'next/navigation';
 import ComponentView from './component-view';
 import { components } from '@/lib/data'; 
@@ -31,4 +30,3 @@ export default async function ComponentPage({ params }: { params: { slug: string
   // We pass the full component object to the view
   return <ComponentView initialComponent={component} />;
 }
-

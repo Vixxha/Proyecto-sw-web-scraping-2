@@ -1,19 +1,9 @@
-
-
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Cpu, Search, Dices, ArrowRight, Scale, Bot } from 'lucide-react';
+import { Cpu, Dices, ArrowRight, Scale, Bot } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import type { Component } from '@/lib/types';
-import { components } from '@/lib/data';
-import ComponentCard from '@/components/component-card';
-import { Badge } from '@/components/ui/badge';
-import { useState } from 'react';
-import { cn } from '@/lib/utils';
-
 
 function Hero() {
   const heroImage = {
