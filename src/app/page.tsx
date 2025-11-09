@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Cpu, Dices, ArrowRight, Scale, Bot } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect } from 'react';
 
 function Hero() {
   const heroImage = {

@@ -8,7 +8,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import PriceHistoryChart from '@/components/price-history-chart';
 import { Bell, CalendarIcon, ExternalLink, RefreshCw, Bot } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -24,6 +23,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { findPrices } from '@/ai/flows/find-prices-flow';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import dynamic from 'next/dynamic';
+
+// Priority 6: Use next/dynamic for heavy components (code splitting)
+const PriceHistoryChart = dynamic(() => import('@/components/price-history-chart'), {
+  loading: () => <Skeleton className="h-[250px] w-full" />,
+  ssr: false, // This chart is client-side only
+});
+
 
 export default function ComponentView({ initialComponent }: { initialComponent: Component & { id: string } }) {
   const firestore = useFirestore();
