@@ -1,32 +1,29 @@
-# Dockerfile for Next.js
-
-# Stage 1: Install dependencies
+# 1. Etapa de dependencias (deps)
 FROM node:20-alpine3.20 AS deps
 WORKDIR /app
-COPY package.json ./
+COPY package.json package-lock.json ./
 RUN npm install
 
-# Stage 2: Build the application
+# 2. Etapa de compilación (builder)
 FROM node:20-alpine3.20 AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-# Stage 3: Production runner
+# 3. Etapa de ejecución (runner)
 FROM node:20-alpine3.20 AS runner
 WORKDIR /app
-ENV NODE_ENV=production
 
-# Copy the standalone output
-COPY --from=builder /app/.next/standalone ./
+# Habilita la salida independiente de Next.js
+ENV NEXT_TELEMETRY_DISABLED 1
 
-# Copy the public and static assets
-COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# El puerto por defecto es 3000
 EXPOSE 3000
-ENV PORT 3000
 
-# Run the application
+# Inicia la aplicación
 CMD ["node", "server.js"]
